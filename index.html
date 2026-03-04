@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Ruang Kurikulum</title>
+    
+    <!-- External Resources (Fonts & Icons) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CSS VARIABLES - MINIMALIST PALETTE */
+        :root {
+            --bg-body: #f8fafc;       /* Latar belakang halaman (sangat muda) */
+            --bg-card: #ffffff;       /* Latar belakang kartu (putih bersih) */
+            --text-main: #0f172a;     /* Hitam kebiruan untuk teks utama */
+            --text-muted: #64748b;    /* Abu-abu untuk teks sekunder */
+            --border: #e2e8f0;        /* Warna garis tipis */
+            --primary: #334155;       /* Warna aksen (Dark Slate) */
+            --hover-bg: #f1f5f9;      /* Warna saat hover */
+            --radius: 16px;           /* Sudut membulat yang modern */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            line-height: 1.6; 
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+        /* HEADER - MINIMAL */
+        header { 
+            background: var(--bg-card); 
+            border-bottom: 1px solid var(--border); 
+            position: sticky; top: 0; z-index: 1000; 
+        }
+        .nav-container { 
+            max-width: 1200px; margin: 0 auto; padding: 0 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            height: 70px; 
+        }
+        
+        .logo { 
+            font-weight: 600; font-size: 1.1rem; 
+            color: var(--text-main); text-decoration: none; 
+            display: flex; align-items: center; gap: 10px; cursor: pointer; 
+            letter-spacing: -0.5px;
+        }
+        .logo i { font-size: 1.2rem; }
+        
+        /* External Navigation Links */
+        .ext-nav { display: flex; gap: 8px; }
+        .ext-link {
+            text-decoration: none; color: var(--text-muted); 
+            font-size: 0.85rem; font-weight: 500; padding: 8px 16px;
+            border-radius: 50px; transition: all 0.2s; border: 1px solid transparent;
+        }
+        .ext-link:hover { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+        }
+
+        /* HERO SECTION - CLEAN */
+        .hero { text-align: center; padding: 80px 20px 60px; }
+        .hero h1 { 
+            font-size: 2.5rem; margin-bottom: 16px; 
+            color: var(--text-main); font-weight: 600; letter-spacing: -1px;
+        }
+        .hero p { 
+            color: var(--text-muted); max-width: 500px; margin: 0 auto; 
+            font-weight: 300; font-size: 1.05rem; 
+        }
+
+        /* VIEW 1: JENJANG SELECTION */
+        #jenjang-view { display: block; animation: fadeIn 0.6s ease-out; }
+        .jenjang-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 24px; margin-top: 20px; 
+        }
+        
+        .jenjang-card {
+            background: var(--bg-card); padding: 40px 20px; 
+            border-radius: var(--radius); text-align: center;
+            cursor: pointer; transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+        .jenjang-card:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); 
+            border-color: var(--text-muted);
+        }
+        .jenjang-icon { 
+            font-size: 2rem; color: var(--text-muted); 
+            margin-bottom: 5px; transition: color 0.3s;
+        }
+        .jenjang-card:hover .jenjang-icon { color: var(--text-main); }
+        
+        .jenjang-title { 
+            font-weight: 600; font-size: 1.1rem; color: var(--text-main); 
+        }
+        .jenjang-desc { font-size: 0.85rem; color: var(--text-muted); font-weight: 400; }
+
+        /* VIEW 2: CURRICULUM LIST */
+        #curriculum-view { display: none; animation: slideUp 0.4s ease-out; }
+        
+        .view-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; padding-bottom: 20px; 
+            border-bottom: 1px solid var(--border);
+        }
+        .view-header h2 { font-size: 1.5rem; color: var(--text-main); font-weight: 600; }
+        
+        .back-btn { 
+            background: transparent; border: 1px solid var(--border); 
+            color: var(--text-muted); cursor: pointer; 
+            display: flex; align-items: center; gap: 8px; font-weight: 500; 
+            padding: 8px 16px; border-radius: 8px; transition: 0.2s; font-size: 0.9rem;
+        }
+        .back-btn:hover { background: var(--bg-body); color: var(--text-main); border-color: var(--text-muted); }
+
+        .list-container { display: flex; flex-direction: column; gap: 16px; }
+        
+        .curriculum-item {
+            background: var(--bg-card); padding: 24px; 
+            border-radius: var(--radius); 
+            display: flex; flex-direction: column; gap: 20px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+        .curriculum-item:hover { border-color: #cbd5e1; }
+        
+        @media (min-width: 640px) {
+            .curriculum-item { flex-direction: row; align-items: center; justify-content: space-between; }
+        }
+
+        .item-content h3 { font-size: 1.1rem; margin-bottom: 6px; color: var(--text-main); font-weight: 600; }
+        .item-content p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        
+        /* Minimalist Outline Button */
+        .btn-download {
+            background: transparent; color: var(--text-main); text-decoration: none; 
+            padding: 10px 20px; border: 1px solid var(--border);
+            border-radius: 8px; font-weight: 500; font-size: 0.85rem; 
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.2s; white-space: nowrap; min-width: 120px; justify-content: center;
+        }
+        .btn-download:hover { 
+            background: var(--text-main); color: #fff; border-color: var(--text-main); 
+        }
+        .btn-no-link { 
+            border-color: transparent; color: #cbd5e1; cursor: default; pointer-events: none; 
+        }
+
+        /* UTILITIES */
+        #loading { text-align: center; padding: 80px 20px; display: none; }
+        .spinner { width: 30px; height: 30px; border: 2px solid #e2e8f0; border-top: 2px solid var(--text-main); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        footer { text-align: center; padding: 60px 20px 30px; color: var(--text-muted); font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-container">
+            <div class="logo" onclick="resetApp()">
+                <i class="fas fa-book-open"></i> Ruang Kurikulum
+            </div>
+            
+            <!-- MENU KE WEB LAIN -->
+            <nav class="ext-nav">
+                <!-- Saya biarkan target="_blank" untuk menu atas karena ini adalah website terpisah -->
+                <a href="https://sayaguruid.github.io/jurnal/" target="_blank" class="ext-link">Jurnal Pengajian</a>
+                <a href="https://sayaguruid.github.io/datagen/" target="_blank" class="ext-link">Data Generus</a>
+                <a href="https://sayaguruid.github.io/kurikulum/" target="_blank" class="ext-link">Monitoring</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Hero Text -->
+        <section class="hero">
+            <h1>Portal Kurikulum</h1>
+            <p>Akses materi dan dokumen pembelajaran untuk setiap jenjang pendidikan.</p>
+        </section>
+
+        <!-- Loading Indicator -->
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Memuat data...</p>
+        </div>
+
+        <!-- VIEW 1: PILIHAN JENJANG -->
+        <div id="jenjang-view">
+            <div class="jenjang-grid">
+                <div class="jenjang-card" onclick="openJenjang('PAUD')">
+                    <div class="jenjang-icon"><i class="fas fa-shapes"></i></div>
+                    <div class="jenjang-title">PAUD</div>
+                    <div class="jenjang-desc">Pendidikan Usia Dini</div>
+                </div>
+                <div class="jenjang-card" onclick="openJenjang('Caberawit')">
+                    <div class="jenjang-icon"><i class="fas fa-child"></i></div>
+                    <div class="jenjang-title">Caberawit</div>
+                    <div class="jenjang-desc">Kelompok Bermain</div>
+                </div>
+                <div class="jenjang-card" onclick="openJenjang('Pra Remaja')">
+                    <div class="jenjang-icon"><i class="fas fa-user-graduate"></i></div>
+                    <div class="jenjang-title">Pra Remaja</div>
+                    <div class="jenjang-desc">Masa Transisi</div>
+                </div>
+                <div class="jenjang-card" onclick="openJenjang('Remaja')">
+                    <div class="jenjang-icon"><i class="fas fa-users"></i></div>
+                    <div class="jenjang-title">Remaja</div>
+                    <div class="jenjang-desc">Generasi Muda</div>
+                </div>
+                <div class="jenjang-card" onclick="openJenjang('Pra Nikah')">
+                    <div class="jenjang-icon"><i class="fas fa-heart"></i></div>
+                    <div class="jenjang-title">Pra Nikah</div>
+                    <div class="jenjang-desc">Bimbingan Keluarga</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: LIST KURIKULUM -->
+        <div id="curriculum-view">
+            <div class="view-header">
+                <div>
+                    <small style="text-transform: uppercase; color: var(--text-muted); font-weight: 600; font-size: 0.75rem; letter-spacing: 1px;">Materi Pembelajaran</small>
+                    <h2 id="current-jenjang-title">Nama Jenjang</h2>
+                </div>
+                <button class="back-btn" onclick="resetApp()">
+                    Kembali
+                </button>
+            </div>
+            
+            <div id="list-container" class="list-container">
+                <!-- Item JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; <span id="year"></span> Ruang Kurikulum.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEmY93jUhH60aJLmVVMQRDBahHeEs_lqAiZlFJABy7j7atw9IWeGfXvZS5wK6qlAZvgg/exec'; 
+
+        let allData = [];
+        const elJenjangView = document.getElementById('jenjang-view');
+        const elCurriculumView = document.getElementById('curriculum-view');
+        const elLoading = document.getElementById('loading');
+        const elListContainer = document.getElementById('list-container');
+        const elTitle = document.getElementById('current-jenjang-title');
+
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (SCRIPT_URL === 'URL_APPS_SCRIPT_ANDA_DISINI' || SCRIPT_URL === '') {
+                alert("URL Script belum dikonfigurasi.");
+                return;
+            }
+            fetchData();
+        });
+
+        async function fetchData() {
+            elJenjangView.style.display = 'none';
+            elLoading.style.display = 'block';
+
+            try {
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) throw new Error("Gagal menghubungi server");
+                allData = await response.json();
+                
+                elLoading.style.display = 'none';
+                elJenjangView.style.display = 'block';
+            } catch (error) {
+                elLoading.innerHTML = `<p style="color:var(--text-muted)">Gagal memuat data. Periksa koneksi internet.</p>`;
+            }
+        }
+
+        function openJenjang(jenjangName) {
+            const filteredData = allData.filter(item => item.jenjang === jenjangName);
+            elTitle.textContent = "Kurikulum " + jenjangName;
+            elListContainer.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                elListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <p>Belum ada data kurikulum untuk jenjang ini.</p>
+                    </div>`;
+            } else {
+                filteredData.forEach(item => {
+                    // PERUBAHAN: Hapus target="_blank" agar tidak buka tab baru
+                    let downloadBtn = '';
+                    if (item.link && item.link.trim() !== '') {
+                        downloadBtn = `<a href="${item.link}" class="btn-download"><i class="fas fa-download"></i> Unduh</a>`;
+                    } else {
+                        downloadBtn = `<span class="btn-download btn-no-link">Tidak ada file</span>`;
+                    }
+
+                    const html = `
+                        <div class="curriculum-item">
+                            <div class="item-content">
+                                <h3>${item.judul}</h3>
+                                <p>${item.deskripsi}</p>
+                            </div>
+                            <div>${downloadBtn}</div>
+                        </div>`;
+                    elListContainer.innerHTML += html;
+                });
+            }
+
+            elJenjangView.style.display = 'none';
+            elCurriculumView.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetApp() {
+            elCurriculumView.style.display = 'none';
+            elJenjangView.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
