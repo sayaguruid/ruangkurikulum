@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Generus Modern</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS Library untuk Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b;
+            --bg: #f8fafc; --surface: #ffffff; --text: #0f172a; --text-light: #64748b;
+            --border: #e2e8f0; --danger: #ef4444; --success: #10b981;
+            --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
+        
+        /* LOGIN */
+        #login-view { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
+            z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; 
+            transition: opacity 0.5s ease-out;
+        }
+        /* Class untuk menyembunyikan login dengan transisi */
+        #login-view.fade-out { opacity: 0; pointer-events: none; }
+
+        .login-card { 
+            background: white; width: 100%; max-width: 380px; padding: 30px; 
+            border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            /* Transisi untuk animasi getar */
+            transition: transform 0.3s;
+        }
+        
+        /* Animasi Getar (Shake) untuk Error */
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; transition: 0.2s; }
+        .form-control:focus { border-color: var(--primary); outline: none; ring: 2px var(--primary); }
+        
+        .btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 10px; 
+            background: var(--primary); color: white; font-weight: 600; 
+            cursor: pointer; font-size: 1rem; transition: 0.2s; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            position: relative; 
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        /* Loading Spinner CSS */
+        .spinner {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .btn.loading .spinner { display: block; }
+        .btn.loading i { display: none; } /* Sembunyikan icon login saat loading */
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Tombol Kecil (Header) */
+        .btn-sm { width: auto; padding: 6px 12px; font-size: 0.8rem; }
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { background-color: #059669; }
+
+        /* HEADER & NAV */
+        header { background: var(--surface); padding: 15px 20px; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .brand { font-weight: 700; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .user-badge { background: #eff6ff; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        
+        /* TABS */
+        .tabs { display: flex; background: #f1f5f9; padding: 5px; border-radius: 12px; gap: 5px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text-light); font-weight: 600; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .tab-btn.active { background: white; color: var(--primary); shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        /* CONTAINER */
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+        
+        /* STATS SECTION */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; }
+        .stat-val { font-size: 1.8rem; font-weight: 700; color: var(--primary); line-height: 1.2; }
+        .stat-label { font-size: 0.8rem; color: var(--text-light); font-weight: 500; text-transform: uppercase; margin-top: 5px; }
+        
+        .chart-section { background: var(--surface); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; }
+        .chart-title { font-size: 1rem; font-weight: 600; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        
+        /* Progress Bar Styles */
+        .progress-item { margin-bottom: 12px; }
+        .p-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; font-weight: 500; }
+        .p-bar-bg { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .p-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+
+        /* Badge Grid */
+        .badge-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .mini-badge { background: #f8fafc; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; color: var(--text); }
+
+        /* DATA VIEW */
+        .filter-bar { background: var(--surface); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .search-box { flex: 1; min-width: 200px; position: relative; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
+        .filter-select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; background: white; min-width: 120px; }
+
+        .table-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-light); white-space: nowrap; }
+        tr:hover { background: #f8fafc; }
+        
+        /* PAGINATION */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 10px; padding: 15px; border-top: 1px solid var(--border); }
+        .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; font-size: 0.85rem; }
+        .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .page-info { font-size: 0.85rem; color: var(--text-light); }
+
+        /* ACTION BUTTONS */
+        .action-icon { color: var(--text-light); cursor: pointer; margin-right: 8px; font-size: 1rem; transition: 0.2s; }
+        .action-icon:hover { color: var(--primary); }
+        .action-icon.delete:hover { color: var(--danger); }
+
+        /* FAB (Floating Action Button) */
+        .fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); cursor: pointer; font-size: 1.5rem; z-index: 90; transition: 0.3s; }
+        .fab:hover { transform: translateY(-3px); }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: flex-end; } 
+        .modal-content { background-color: white; width: 100%; border-radius: 20px 20px 0 0; padding: 25px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
+        
+        @media(min-width: 768px) {
+            .modal { align-items: center; justify-content: center; }
+            .modal-content { width: 500px; border-radius: 16px; }
+            .filter-bar { align-items: center; }
+        }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        /* Stats Filter Style */
+        #statsFilterContainer {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: none; 
+            align-items: center;
+            gap: 10px;
+        }
+        #statsFilterContainer label { font-weight: 600; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgLdQd2MJmefMNnCcK1RPr2A767SO_MVROrlecUBRx7PtAfEsyQDmU6Hqu5M6bv-8c/exec"; 
+    </script>
+
+    <!-- LOGIN VIEW -->
+    <div id="login-view">
+        <div class="login-card" id="loginCard">
+            <h2 style="text-align:center; color:var(--primary); margin-bottom:25px;">Generus</h2>
+            
+            <!-- Pesan Error/Peringatan -->
+            <div id="loginMsg" style="color:var(--danger); font-size:0.9rem; text-align:center; margin-bottom:15px; min-height:20px; font-weight:600; background:#fef2f2; padding:8px; border-radius:6px; border:1px solid #fee2e2; display:none;"></div>
+            
+            <form onsubmit="event.preventDefault(); doLogin();">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="u" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="p" class="form-control" required>
+                </div>
+                
+                <!-- Tombol Login dengan ID untuk manipulasi JS -->
+                <button id="btnLogin" type="submit" class="btn">
+                    <i class="fas fa-sign-in-alt"></i> 
+                    <span class="btnText">Masuk</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP VIEW -->
+    <div id="app-view" style="display:none;">
+        <header>
+            <div class="top-bar">
+                <div class="brand"><i class="fas fa-chart-pie"></i> Data Generus</div>
+                <div class="header-actions">
+                    <button class="btn btn-sm btn-success" onclick="downloadExcel()">
+                        <i class="fas fa-file-excel"></i> Unduh Excel
+                    </button>
+                    <span class="user-badge" id="userInfo">User</span>
+                    <a href="#" onclick="location.reload()" style="color:var(--danger);"><i class="fas fa-power-off"></i></a>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('stats')"><i class="fas fa-chart-bar"></i> Statistik</button>
+                <button class="tab-btn" onclick="switchTab('data')"><i class="fas fa-table"></i> Data</button>
+            </div>
+        </header>
+
+        <!-- TAB 1: STATISTIK -->
+        <div id="tab-stats" class="container">
+            <div id="statsFilterContainer">
+                <label for="statsFilterSelect">Filter:</label>
+                <select id="statsFilterSelect" class="filter-select" onchange="renderStats()">
+                    <option value="all">Semua Data</option>
+                </select>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-val" id="sTotal">0</div>
+                    <div class="stat-label">Total Anak</div>
+                </div>
+                <div class="stat-card" style="border-color:#dbeafe;">
+                    <div class="stat-val" id="sL" style="color:#2563eb">0</div>
+                    <div class="stat-label">Laki-laki</div>
+                </div>
+                <div class="stat-card" style="border-color:#fce7f3;">
+                    <div class="stat-val" id="sP" style="color:#db2777">0</div>
+                    <div class="stat-label">Perempuan</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-title">Distribusi Jenjang Pembinaan</div>
+                <div id="jenjangChart"></div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-title">Distribusi Sekolah</div>
+                <div class="badge-grid" id="kelasChart"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: DATA -->
+        <div id="tab-data" class="container" style="display:none;">
+            <div class="filter-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Cari nama atau orang tua..." onkeyup="applyFilters()">
+                </div>
+                
+                <select id="filterJk" class="filter-select" onchange="applyFilters()">
+                    <option value="">Semua JK</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+
+                <select id="filterJenjang" class="filter-select" onchange="applyFilters()">
+                    <option value="">Semua Jenjang</option>
+                </select>
+
+                <select id="filterDesa" class="filter-select" onchange="applyFilters()" style="display:none;">
+                    <option value="">Semua Desa</option>
+                </select>
+
+                <select id="filterKelompok" class="filter-select" onchange="applyFilters()" style="display:none;">
+                    <option value="">Semua Kelompok</option>
+                </select>
+            </div>
+
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama</th>
+                                <th>Orang Tua</th>
+                                <th>L/P</th>
+                                <th>Umur</th>
+                                <th>Jenjang</th>
+                                <th>Kelas</th>
+                                <th>Lokasi</th>
+                                <th id="thAction" style="display:none;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button class="page-btn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <span class="page-info" id="pageInfo">1 / 1</span>
+                    <button class="page-btn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="fabAdd" class="fab" style="display:none;" onclick="openModal()">
+            <i class="fas fa-plus"></i>
+        </div>
+    </div>
+
+    <!-- MODAL FORM -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="margin:0;">Form Data</h3>
+                <i class="fas fa-times" style="font-size:1.2rem; cursor:pointer;" onclick="closeModal()"></i>
+            </div>
+            <form onsubmit="event.preventDefault(); saveData();">
+                <input type="hidden" id="inpRowIndex">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="inpNama" class="form-control" required>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>JK</label>
+                        <select id="inpJk" class="form-control">
+                            <option value="L">Laki-laki</option>
+                            <option value="P">Perempuan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Tempat Lahir</label>
+                        <input type="text" id="inpTempatLahir" class="form-control" placeholder="Contoh: Garut" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Lahir</label>
+                        <input type="date" id="inpTgl" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Kelas</label>
+                    <select id="inpKelas" class="form-control">
+                        <option value="Belum Sekolah">Belum Sekolah</option>
+                        <option value="PAUD">PAUD</option>
+                        <option value="TK">TK</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="Mahasiswa">Mahasiswa</option>
+                        <option value="S1">S1</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Ayah</label>
+                        <input type="text" id="inpAyah" class="form-control" list="listAyah" placeholder="Ketik nama ayah..." autocomplete="off">
+                        <datalist id="listAyah"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Ibu</label>
+                        <input type="text" id="inpIbu" class="form-control" list="listIbu" placeholder="Ketik nama ibu..." autocomplete="off">
+                        <datalist id="listIbu"></datalist>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Kelompok</label>
+                        <input type="text" id="inpKelompok" class="form-control" readonly style="background:#f1f5f9;">
+                    </div>
+                    <div class="form-group">
+                        <label>Desa</label>
+                        <input type="text" id="inpDesa" class="form-control" readonly style="background:#f1f5f9;">
+                    </div>
+                </div>
+                <div style="margin-top:20px;">
+                    <button type="submit" class="btn">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        let currentUser = { role: '', lokasi: '', desa: '' };
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const rowsPerPage = 10;
+
+        // --- API ---
+        async function callApi(action, payload = {}) {
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action, ...payload })
+                });
+                return await res.json();
+            } catch (e) {
+                alert("Error: " + e);
+                return { status: 'error' };
+            }
+        }
+
+        // --- LOGIN (WITH ANIMATIONS) ---
+        async function doLogin() {
+            const btn = document.getElementById('btnLogin');
+            const btnText = btn.querySelector('.btnText');
+            const card = document.getElementById('loginCard');
+            const msg = document.getElementById('loginMsg');
+            const u = document.getElementById('u').value;
+            const p = document.getElementById('p').value;
+
+            // 1. Set State Loading
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btnText.innerText = "Masuk...";
+            msg.style.display = 'none'; // Sembunyikan pesan error lama
+            card.classList.remove('shake'); // Hapus animasi getar jika ada
+
+            try {
+                const res = await callApi('login', { username: u, password: p });
+                
+                if (res.success) {
+                    // 2. Sukses Login
+                    currentUser = { role: res.role, lokasi: res.lokasi, desa: res.desa };
+                    
+                    // Efek Fade Out Login View
+                    document.getElementById('login-view').classList.add('fade-out');
+                    
+                    // Tunggu animasi selesai, baru pindah view
+                    setTimeout(() => {
+                        document.getElementById('login-view').style.display = 'none';
+                        document.getElementById('app-view').style.display = 'block';
+                        
+                        let info = `${currentUser.role} - ${currentUser.lokasi}`;
+                        if(currentUser.role === 'kelompok') info += ` (${currentUser.desa})`;
+                        document.getElementById('userInfo').innerText = info;
+
+                        if (currentUser.role === 'kelompok') document.getElementById('fabAdd').style.display = 'flex';
+                        if (currentUser.role === 'kelompok') document.getElementById('thAction').style.display = 'table-cell';
+
+                        initApp();
+                    }, 500);
+
+                } else {
+                    // 3. Gagal Login (Salah Password/User)
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
+                    btnText.innerText = "Masuk";
+                    
+                    // Tampilkan Pesan Error
+                    msg.innerText = "Username atau Password salah!";
+                    msg.style.display = 'block';
+                    
+                    // Trigger Animasi Shake (Getar)
+                    card.classList.add('shake');
+                    // Hapus class shake setelah animasi selesai agar bisa dipanggil lagi nanti
+                    setTimeout(() => {
+                        card.classList.remove('shake');
+                    }, 500);
+                }
+            } catch (error) {
+                // 4. Error Koneksi
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btnText.innerText = "Masuk";
+                
+                msg.innerText = "Terjadi kesalahan koneksi.";
+                msg.style.display = 'block';
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 500);
+            }
+        }
+
+        // --- INIT ---
+        async function initApp() {
+            const res = await callApi('getData', { role: currentUser.role, lokasi: currentUser.lokasi });
+            allData = res.data || [];
+            
+            populateFilters();
+            populateParentLists();
+            populateStatsFilter();
+
+            applyFilters();
+            renderStats();
+        }
+
+        function populateFilters() {
+            const jenjangs = [...new Set(allData.map(d => d.jenjang))].sort();
+            const desas = [...new Set(allData.map(d => d.desa))].sort();
+            const kelompoks = [...new Set(allData.map(d => d.kelompok))].sort();
+
+            const jSelect = document.getElementById('filterJenjang');
+            jSelect.innerHTML = '<option value="">Semua Jenjang</option>';
+            jenjangs.forEach(j => {
+                const opt = document.createElement('option');
+                opt.value = j; opt.innerText = j;
+                jSelect.appendChild(opt);
+            });
+
+            if (currentUser.role === 'daerah') {
+                document.getElementById('filterDesa').style.display = 'block';
+                document.getElementById('filterKelompok').style.display = 'block';
+                
+                const dSelect = document.getElementById('filterDesa');
+                dSelect.innerHTML = '<option value="">Semua Desa</option>';
+                desas.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d; opt.innerText = d;
+                    dSelect.appendChild(opt);
+                });
+
+                const kSelect = document.getElementById('filterKelompok');
+                kSelect.innerHTML = '<option value="">Semua Kelompok</option>';
+                kelompoks.forEach(k => {
+                    const opt = document.createElement('option');
+                    opt.value = k; opt.innerText = k;
+                    kSelect.appendChild(opt);
+                });
+            } else if (currentUser.role === 'desa') {
+                document.getElementById('filterKelompok').style.display = 'block';
+                const kSelect = document.getElementById('filterKelompok');
+                kSelect.innerHTML = '<option value="">Semua Kelompok</option>';
+                kelompoks.forEach(k => {
+                    const opt = document.createElement('option');
+                    opt.value = k; opt.innerText = k;
+                    kSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function populateStatsFilter() {
+            const container = document.getElementById('statsFilterContainer');
+            const select = document.getElementById('statsFilterSelect');
+            select.innerHTML = '<option value="all">Semua Data</option>';
+
+            if (currentUser.role === 'daerah') {
+                container.style.display = 'flex';
+                const desas = [...new Set(allData.map(d => d.desa))].sort();
+                desas.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d; opt.innerText = `Desa: ${d}`;
+                    select.appendChild(opt);
+                });
+            } else if (currentUser.role === 'desa') {
+                container.style.display = 'flex';
+                const kelompoks = [...new Set(allData.map(d => d.kelompok))].sort();
+                kelompoks.forEach(k => {
+                    const opt = document.createElement('option');
+                    opt.value = k; opt.innerText = `Kelompok: ${k}`;
+                    select.appendChild(opt);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function populateParentLists() {
+            const listAyah = document.getElementById('listAyah');
+            const listIbu = document.getElementById('listIbu');
+            listAyah.innerHTML = '';
+            listIbu.innerHTML = '';
+
+            let sourceData = allData;
+            if (currentUser.role === 'kelompok') {
+                sourceData = allData.filter(d => d.kelompok === currentUser.lokasi);
+            } else if (currentUser.role === 'desa') {
+                sourceData = allData.filter(d => d.desa === currentUser.lokasi);
+            }
+
+            const ayahs = [...new Set(sourceData.map(d => d.ayah).filter(n => n))];
+            const ibus = [...new Set(sourceData.map(d => d.ibu).filter(n => n))];
+
+            ayahs.forEach(name => listAyah.innerHTML += `<option value="${name}">`);
+            ibus.forEach(name => listIbu.innerHTML += `<option value="${name}">`);
+        }
+
+        function downloadExcel() {
+            if (allData.length === 0) {
+                alert("Tidak ada data untuk diunduh.");
+                return;
+            }
+
+            const dataToExport = allData.map((d, index) => ({
+                "No": d.no || index + 1,
+                "Nama Lengkap": d.nama,
+                "Jenis Kelamin": d.jk === 'L' ? 'Laki-laki' : 'Perempuan',
+                "Tanggal Lahir": d.ttl || '-',
+                "Umur": d.umur || '-',
+                "Kelas": d.kelas || '-',
+                "Jenjang": d.jenjang || '-',
+                "Nama Ayah": d.ayah || '-',
+                "Nama Ibu": d.ibu || '-',
+                "Kelompok": d.kelompok || '-',
+                "Desa": d.desa || '-'
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data Generus");
+            
+            const date = new Date().toISOString().slice(0,10);
+            XLSX.writeFile(wb, `Data_Generus_${date}.xlsx`);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-btn')[tab === 'stats' ? 0 : 1].classList.add('active');
+            
+            document.getElementById('tab-stats').style.display = tab === 'stats' ? 'block' : 'none';
+            document.getElementById('tab-data').style.display = tab === 'data' ? 'block' : 'none';
+        }
+
+        function renderStats() {
+            let dataToProcess = allData;
+            const filterVal = document.getElementById('statsFilterSelect').value;
+
+            if (currentUser.role === 'daerah' && filterVal !== 'all') {
+                dataToProcess = allData.filter(d => d.desa === filterVal);
+            } else if (currentUser.role === 'desa' && filterVal !== 'all') {
+                dataToProcess = allData.filter(d => d.kelompok === filterVal);
+            }
+
+            let t=0, l=0, p=0;
+            let jCount = {};
+            let kCount = {};
+
+            dataToProcess.forEach(d => {
+                t++;
+                if(d.jk === 'L') l++; else p++;
+                jCount[d.jenjang] = (jCount[d.jenjang] || 0) + 1;
+                kCount[d.kelas] = (kCount[d.kelas] || 0) + 1;
+            });
+
+            document.getElementById('sTotal').innerText = t;
+            document.getElementById('sL').innerText = l;
+            document.getElementById('sP').innerText = p;
+
+            const jDiv = document.getElementById('jenjangChart');
+            jDiv.innerHTML = '';
+            for (const [k, v] of Object.entries(jCount)) {
+                const pct = t > 0 ? Math.round((v / t) * 100) : 0;
+                jDiv.innerHTML += `
+                    <div class="progress-item">
+                        <div class="p-label"><span>${k}</span> <span>${v} (${pct}%)</span></div>
+                        <div class="p-bar-bg"><div class="p-bar-fill" style="width:${pct}%"></div></div>
+                    </div>`;
+            }
+
+            const kDiv = document.getElementById('kelasChart');
+            kDiv.innerHTML = '';
+            for (const [k, v] of Object.entries(kCount)) {
+                kDiv.innerHTML += `<div class="mini-badge"><b>${k}</b>: ${v}</div>`;
+            }
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const fJk = document.getElementById('filterJk').value;
+            const fJenjang = document.getElementById('filterJenjang').value;
+            const fDesa = document.getElementById('filterDesa').value;
+            const fKelompok = document.getElementById('filterKelompok').value;
+
+            filteredData = allData.filter(d => {
+                const matchSearch = d.nama.toLowerCase().includes(search) || 
+                                    (d.ayah && d.ayah.toLowerCase().includes(search)) || 
+                                    (d.ibu && d.ibu.toLowerCase().includes(search));
+                
+                const matchJk = fJk ? d.jk === fJk : true;
+                const matchJenjang = fJenjang ? d.jenjang === fJenjang : true;
+                const matchDesa = fDesa ? d.desa === fDesa : true;
+                const matchKelompok = fKelompok ? d.kelompok === fKelompok : true;
+
+                return matchSearch && matchJk && matchJenjang && matchDesa && matchKelompok;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            const colCount = currentUser.role === 'kelompok' ? 9 : 8;
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align:center; padding:20px;">Tidak ada data</td></tr>`;
+                return;
+            }
+
+            pageData.forEach(d => {
+                let locText = d.kelompok;
+                if(currentUser.role !== 'kelompok' && d.desa) locText += `, ${d.desa}`;
+
+                let ortuHtml = '-';
+                if(d.ayah || d.ibu) {
+                    ortuHtml = `<small style="color:#64748b; line-height:1.4;">`;
+                    if(d.ayah) ortuHtml += `A: ${d.ayah}<br>`;
+                    if(d.ibu) ortuHtml += `I: ${d.ibu}`;
+                    ortuHtml += `</small>`;
+                }
+
+                let action = '';
+                if(currentUser.role === 'kelompok') {
+                    action = `
+                        <i class="fas fa-edit action-icon" onclick="editItem(${d.rowIndex})"></i>
+                        <i class="fas fa-trash action-icon delete" onclick="deleteItem(${d.rowIndex})"></i>
+                    `;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${d.no}</td>
+                    <td><b>${d.nama}</b></td>
+                    <td>${ortuHtml}</td>
+                    <td><span style="color:${d.jk==='L'?'#2563eb':'#db2777'}; font-weight:600;">${d.jk}</span></td>
+                    <td>${d.umur}</td>
+                    <td><span style="background:#eff6ff; color:#1e40af; padding:2px 8px; border-radius:4px; font-size:0.75rem;">${d.jenjang}</span></td>
+                    <td>${d.kelas}</td>
+                    <td><small style="color:#64748b;">${locText}</small></td>
+                    <td style="display:${currentUser.role === 'kelompok' ? 'table-cell' : 'none'}">${action}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
+            document.getElementById('pageInfo').innerText = `Hal ${currentPage} / ${totalPages}`;
+        }
+
+        function changePage(delta) {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderTable();
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modal').style.display = 'flex';
+            document.querySelector('form').reset();
+            document.getElementById('inpRowIndex').value = '';
+            if (currentUser.role === 'kelompok') {
+                document.getElementById('inpKelompok').value = currentUser.lokasi;
+                document.getElementById('inpDesa').value = currentUser.desa;
+            }
+        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        
+        function editItem(idx) {
+            const item = allData.find(d => d.rowIndex === idx);
+            if(!item) return;
+            openModal();
+            document.getElementById('inpRowIndex').value = item.rowIndex;
+            document.getElementById('inpNama').value = item.nama;
+            document.getElementById('inpJk').value = item.jk;
+            
+            try {
+                const ttlParts = item.ttl.split(', ');
+                if (ttlParts.length >= 2) {
+                    document.getElementById('inpTempatLahir').value = ttlParts[0];
+                    const dateParts = ttlParts[1].split('/');
+                    document.getElementById('inpTgl').value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                } else if (ttlParts.length === 1) {
+                     document.getElementById('inpTgl').value = ttlParts[0];
+                }
+            } catch(e){
+                console.error("Gagal memparsing TTL", e);
+            }
+
+            document.getElementById('inpKelas').value = item.kelas;
+            document.getElementById('inpAyah').value = item.ayah;
+            document.getElementById('inpIbu').value = item.ibu;
+            document.getElementById('inpKelompok').value = item.kelompok;
+            document.getElementById('inpDesa').value = item.desa;
+        }
+
+        async function saveData() {
+            const payload = {
+                rowIndex: document.getElementById('inpRowIndex').value,
+                no: allData.length + 1,
+                nama: document.getElementById('inpNama').value,
+                jk: document.getElementById('inpJk').value,
+                tempatLahir: document.getElementById('inpTempatLahir').value, 
+                tanggalLahir: document.getElementById('inpTgl').value,
+                kelas: document.getElementById('inpKelas').value,
+                ayah: document.getElementById('inpAyah').value,
+                ibu: document.getElementById('inpIbu').value,
+                kelompok: document.getElementById('inpKelompok').value,
+                desa: document.getElementById('inpDesa').value
+            };
+            const action = payload.rowIndex ? 'editData' : 'addData';
+            const res = await callApi(action, { payload });
+            if (res.status === 'success') {
+                alert(res.message);
+                closeModal();
+                initApp(); 
+            }
+        }
+
+        async function deleteItem(idx) {
+            if(confirm('Hapus data?')) {
+                const res = await callApi('deleteData', { rowIndex: idx });
+                if (res.status === 'success') initApp();
+            }
+        }
+    </script>
+</body>
+</html>
