@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jurnal Pengajian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary: #0d9488;
+        --primary-light: #f0fdfa;
+        --text-main: #334155;
+        --text-light: #64748b;
+        --bg-body: #f8fafc;
+        --white: #ffffff;
+        --danger: #ef4444;
+        --success: #10b981;
+        --radius: 16px;
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      body { font-family: 'Inter', sans-serif; background: var(--bg-body); margin: 0; padding: 0; color: var(--text-main); line-height: 1.5; }
+      
+      .container { max-width: 600px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-body); }
+      
+      /* HEADER & NAV */
+      .app-header { background: var(--white); padding: 20px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); display: flex; justify-content: space-between; align-items: center; }
+      .app-header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+      .logout-btn { color: var(--danger); font-size: 0.875rem; font-weight: 500; text-decoration: none; border: 1px solid #fee2e2; padding: 6px 12px; border-radius: 20px; background: #fef2f2; }
+
+      .tabs-nav { display: flex; background: var(--white); padding: 0 10px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+      .tab-item { flex: 1; text-align: center; padding: 16px 0; color: var(--text-light); font-weight: 500; font-size: 0.9rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+      .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+      .tab-item.hidden { display: none; }
+
+      /* VIEW SECTIONS */
+      .view-section { padding: 20px; display: none; animation: slideUp 0.3s ease-out; }
+      .view-section.active { display: block; }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+      /* FORMS */
+      .form-group { margin-bottom: 20px; }
+      label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--text-main); margin-bottom: 8px; }
+      input, select, textarea { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-family: inherit; font-size: 1rem; background: var(--white); transition: border-color 0.2s; }
+      input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
+      
+      .btn { width: 100%; padding: 16px; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; border: none; transition: transform 0.1s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+      .btn:active { transform: scale(0.98); }
+      .btn-primary { background: var(--primary); color: var(--white); box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3); }
+      .btn-secondary { background: var(--white); color: var(--text-main); border: 1px solid #cbd5e1; margin-top: 10px; }
+
+      /* COMPONENTS */
+      .jenjang-box { background: var(--primary-light); border: 1px solid #ccfbf1; padding: 20px; border-radius: var(--radius); margin-bottom: 24px; }
+      
+      .member-card { background: var(--white); padding: 16px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); border: 1px solid #f1f5f9; }
+      .member-name { font-weight: 500; font-size: 1rem; flex: 1; padding-right: 10px; }
+      .member-status { flex-shrink: 0; }
+      .member-status select { padding: 8px 12px; font-size: 0.9rem; border-radius: 8px; border-color: #cbd5e1; min-width: 110px; }
+
+      /* HISTORY CARD UPDATE */
+      .history-card { background: var(--white); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid #f1f5f9; }
+      .history-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+      .history-date { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
+      .history-tag { background: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+      .history-materi { color: var(--text-light); font-style: italic; margin-bottom: 12px; font-size: 0.95rem; }
+      
+      /* Student List in History */
+      .student-list { margin-top: 15px; max-height: 300px; overflow-y: auto; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+      .student-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.9rem; padding: 6px 0; }
+      .student-name { color: var(--text-main); font-weight: 500; }
+      .student-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+      
+      /* Badge Colors */
+      .bg-hadir { background: #d1fae5; color: #065f46; } /* Green */
+      .bg-sakit { background: #fef3c7; color: #92400e; } /* Yellow */
+      .bg-izin { background: #dbeafe; color: #1e40af; } /* Blue */
+      .bg-alpha { background: #fee2e2; color: #991b1b; } /* Red */
+
+      /* STATISTICS */
+      .stat-card { background: var(--white); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; margin-bottom: 20px; }
+      .stat-big { font-size: 3rem; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 8px; }
+      .stat-label { font-size: 0.9rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+      
+      .chart-container { background: var(--white); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 20px; height: 300px; position: relative; }
+      canvas { width: 100%; height: 100%; }
+      
+      .stat-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9rem; }
+      .stat-table th { text-align: left; color: var(--text-light); font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+      .stat-table td { padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+      .stat-table tr:last-child td { border-bottom: none; }
+      .stat-perc { font-weight: 700; text-align: right; }
+
+      /* LOGIN SPECIFIC */
+      #loginView { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 30px; background: var(--white); }
+      .login-card { width: 100%; max-width: 400px; text-align: center; }
+      .login-logo { font-size: 3rem; margin-bottom: 20px; display: inline-block; }
+      .login-title { margin: 0 0 30px 0; color: var(--text-main); }
+
+      /* UTILS */
+      .hidden { display: none !important; }
+      .text-center { text-align: center; }
+      .loader { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid var(--primary); width: 20px; height: 20px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #334155; color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+      .toast.show { opacity: 1; }
+      .toast.error { background: var(--danger); }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      
+      <!-- LOGIN VIEW -->
+      <div id="loginView">
+        <div class="login-card">
+          <div class="login-logo">📖</div>
+          <h1 class="login-title">Jurnal Pengajian</h1>
+          
+          <div class="form-group">
+            <label>Pilih Lokasi Anda</label>
+            <select id="kelompokSelect">
+              <option value="">-- Memuat Daftar Lokasi --</option>
+            </select>
+          </div>
+
+          <button class="btn btn-primary" id="btnLogin" onclick="doLogin()">Masuk</button>
+        </div>
+      </div>
+
+      <!-- APP VIEW -->
+      <div id="appView" class="hidden">
+        <header class="app-header">
+          <h1 id="headerTitle">Jurnal</h1>
+          <a href="#" class="logout-btn" onclick="logout()">Keluar</a>
+        </header>
+
+        <nav class="tabs-nav">
+          <div class="tab-item" id="tabInput" onclick="switchTab('input')">Input</div>
+          <div class="tab-item" id="tabHistory" onclick="switchTab('history')">Riwayat</div>
+          <div class="tab-item" id="tabStats" onclick="switchTab('stats')">Statistik</div>
+        </nav>
+
+        <!-- VIEW INPUT -->
+        <div id="viewInput" class="view-section">
+          <div class="jenjang-box">
+            <label>Pilih Jenjang</label>
+            <select id="inputJenjang" onchange="loadMembers()">
+              <option value="">-- Pilih Jenjang --</option>
+              <option value="PAUD">PAUD</option>
+              <option value="Caberawit">Caberawit</option>
+              <option value="Pra Remaja">Pra Remaja</option>
+              <option value="Remaja">Remaja</option>
+              <option value="Pra Nikah">Pra Nikah</option>
+            </select>
+          </div>
+
+          <div id="inputForm" class="hidden">
+            <div class="form-group">
+              <label>Tanggal</label>
+              <input type="date" id="tanggal">
+            </div>
+            <div class="form-group">
+              <label>Lokasi Kelompok</label>
+              <select id="kelompok" disabled style="background: #f1f5f9; color: #64748b;">
+                <option value="">Loading...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Materi</label>
+              <textarea id="materi" rows="3" placeholder="Tuliskan ringkasan materi..."></textarea>
+            </div>
+
+            <div style="margin: 20px 0;">
+              <label style="margin-bottom:12px;">Daftar Kehadiran</label>
+              <div id="memberList"></div>
+              <div style="text-align:right; margin-top:10px;">
+                <button type="button" class="btn btn-secondary" style="display:inline-flex; width:auto; padding:8px 16px; font-size:0.85rem;" onclick="setAllStatus('Hadir')">Set Semua Hadir</button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="btnSave" onclick="submitJurnal()">Simpan Jurnal</button>
+          </div>
+
+          <div id="selectJenjangMsg" class="text-center" style="padding: 40px; color: #94a3b8;">
+            Silakan pilih jenjang untuk memulai input.
+          </div>
+        </div>
+
+        <!-- VIEW HISTORY -->
+        <div id="viewHistory" class="view-section">
+          <button class="btn btn-secondary" onclick="loadJurnalHistory()" style="margin-bottom:20px; width:auto; padding: 10px 20px;">🔄 Refresh</button>
+          <div id="historyContainer"></div>
+        </div>
+
+        <!-- VIEW STATISTICS -->
+        <div id="viewStats" class="view-section">
+          <div class="form-group">
+            <select id="statJenjang" onchange="loadStatistics()">
+              <option value="">-- Pilih Jenjang --</option>
+              <option value="PAUD">PAUD</option>
+              <option value="Caberawit">Caberawit</option>
+              <option value="Pra Remaja">Pra Remaja</option>
+              <option value="Remaja">Remaja</option>
+              <option value="Pra Nikah">Pra Nikah</option>
+            </select>
+          </div>
+
+          <div id="statContent" class="hidden">
+            <div class="stat-card">
+              <div class="stat-big" id="dispTotal">0</div>
+              <div class="stat-label">Total Anggota</div>
+            </div>
+            
+            <div class="chart-container">
+              <canvas id="statChart"></canvas>
+            </div>
+
+            <table class="stat-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Hadir</th>
+                  <th style="text-align:right;">Persen</th>
+                </tr>
+              </thead>
+              <tbody id="statTableBody"></tbody>
+            </table>
+          </div>
+          
+          <div id="statMsg" class="text-center" style="padding: 40px; color: #94a3b8;">Pilih jenjang untuk melihat grafik.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="toast" class="toast">Notifikasi</div>
+
+    <script>
+      // ==========================================
+      // KONFIGURASI URL WEB APP
+      // ==========================================
+      const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3sTHEHitZ3uGxTzDT2g68dn9osOJK1IfClEcEM2z9x75bPBQiA6BGyLycT3HPiTCsuA/exec'; 
+      
+      let currentUser = null;
+
+      // --- AUTH ---
+      async function fetchKelompokList() {
+        const btn = document.getElementById('btnLogin');
+        const sel = document.getElementById('kelompokSelect');
+        
+        btn.innerHTML = '<div class="loader" style="width:20px; height:20px; border-width:2px;"></div>';
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getKelompokList' })
+          });
+          const data = await res.json();
+          sel.innerHTML = '<option value="">-- Pilih Lokasi --</option>';
+          if(data.list && data.list.length > 0) {
+            data.list.forEach(k => {
+              const opt = document.createElement('option');
+              opt.value = k;
+              opt.innerText = k;
+              sel.appendChild(opt);
+            });
+          } else {
+            const opt = document.createElement('option');
+            opt.innerText = "Tidak ada data lokasi";
+            sel.appendChild(opt);
+          }
+        } catch(e) {
+          sel.innerHTML = '<option value="">Gagal memuat data</option>';
+          console.error(e);
+        } finally {
+          btn.innerHTML = 'Masuk';
+          btn.disabled = false;
+        }
+      }
+
+      async function doLogin() {
+        const k = document.getElementById('kelompokSelect').value;
+        if(!k) { showToast('Pilih lokasi terlebih dahulu', true); return; }
+        
+        const btn = document.getElementById('btnLogin');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<div class="loader" style="width:20px; height:20px; border-width:2px;"></div>';
+        
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', lokasi: k })
+          });
+          const data = await res.json();
+          if (data.success) {
+            currentUser = data;
+            try { localStorage.setItem('jurnalUser', JSON.stringify(data)); } catch(e){}
+            initApp();
+          } else {
+            showToast(data.message, true);
+          }
+        } catch (e) { showToast('Gagal terhubung ke server', true); } finally {
+          btn.innerHTML = originalText;
+        }
+      }
+
+      function logout() { localStorage.removeItem('jurnalUser'); location.reload(); }
+
+      function showToast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        if(isError) t.classList.add('error'); else t.classList.remove('error');
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+      }
+
+      // --- INIT ---
+      function initApp() {
+        document.getElementById('loginView').classList.add('hidden');
+        document.getElementById('appView').classList.remove('hidden');
+        document.getElementById('headerTitle').innerText = currentUser.lokasi;
+        document.getElementById('tanggal').valueAsDate = new Date();
+        document.getElementById('kelompok').innerHTML = `<option value="${currentUser.lokasi}">${currentUser.lokasi}</option>`;
+        
+        if(currentUser.role !== 'kelompok') {
+          document.getElementById('tabInput').classList.add('hidden');
+          switchTab('stats');
+        } else {
+          switchTab('input');
+        }
+      }
+
+      function switchTab(name) {
+        document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(e => e.classList.remove('active'));
+        
+        document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+        if(name === 'input') document.getElementById('tabInput').classList.add('active');
+        if(name === 'history') { document.getElementById('tabHistory').classList.add('active'); loadJurnalHistory(); }
+        if(name === 'stats') document.getElementById('tabStats').classList.add('active');
+      }
+
+      // --- INPUT LOGIC ---
+      async function loadMembers() {
+        const jenjang = document.getElementById('inputJenjang').value;
+        const list = document.getElementById('memberList');
+        const form = document.getElementById('inputForm');
+        const msg = document.getElementById('selectJenjangMsg');
+
+        if(!jenjang) { form.classList.add('hidden'); msg.classList.remove('hidden'); return; }
+        
+        msg.classList.add('hidden'); form.classList.remove('hidden');
+        list.innerHTML = '<div class="text-center"><div class="loader" style="margin:20px auto;"></div></div>';
+
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang: jenjang })
+          });
+          const data = await res.json();
+          list.innerHTML = '';
+          if(data.members.length === 0) { list.innerHTML = '<div class="text-center" style="padding:20px; color:#94a3b8;">Tidak ada anggota di jenjang ini.</div>'; return; }
+
+          data.members.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'member-card';
+            div.innerHTML = `
+              <div class="member-name">${m.nama}</div>
+              <div class="member-status">
+                <select id="status_${m.no}">
+                  <option value="Hadir" selected>Hadir</option>
+                  <option value="Sakit">Sakit</option>
+                  <option value="Izin">Izin</option>
+                  <option value="Tanpa Berita">Alpha</option>
+                </select>
+              </div>
+            `;
+            list.appendChild(div);
+          });
+        } catch(e) { list.innerHTML = '<div class="text-center" style="color:red;">Gagal memuat.</div>'; }
+      }
+
+      function setAllStatus(status) {
+        document.querySelectorAll('#memberList select').forEach(s => s.value = status);
+      }
+
+      async function submitJurnal() {
+        const jenjang = document.getElementById('inputJenjang').value;
+        const tanggal = document.getElementById('tanggal').value;
+        const materi = document.getElementById('materi').value;
+        const selects = document.querySelectorAll('#memberList select');
+        if(!jenjang || !tanggal || !materi) { showToast('Lengkapi semua data', true); return; }
+
+        const hadirData = [];
+        selects.forEach(s => {
+          hadirData.push({ nama: s.parentElement.previousElementSibling.innerText, status: s.value });
+        });
+
+        const btn = document.getElementById('btnSave');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<div class="loader" style="width:16px; height:16px; border-width:2px;"></div>';
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'addJurnal',
+              payload: { tanggal: tanggal, kelompok: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjang, materi: materi, hadir: hadirData }
+            })
+          });
+          const result = await res.json();
+          if(result.status === 'success') {
+            showToast('Jurnal Tersimpan');
+            document.getElementById('materi').value = '';
+            setAllStatus('Hadir');
+          } else { showToast(result.message, true); }
+        } catch(e) { showToast('Error koneksi', true); } finally {
+          btn.innerHTML = originalText; btn.disabled = false;
+        }
+      }
+
+      // --- HISTORY & STATS (UPDATED) ---
+      async function loadJurnalHistory() {
+        const container = document.getElementById('historyContainer');
+        container.innerHTML = '<div class="text-center"><div class="loader" style="margin:20px auto;"></div></div>';
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getJurnalHistory', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa })
+          });
+          const data = await res.json();
+          container.innerHTML = '';
+          if(data.history.length === 0) { container.innerHTML = '<div class="text-center" style="padding:20px; color:#94a3b8;">Belum ada riwayat.</div>'; return; }
+          
+          data.history.forEach(h => {
+            let hadir = 0, total = 0;
+            let studentListHtml = '';
+
+            try {
+              const list = JSON.parse(h.kehadiran);
+              total = list.length; 
+              hadir = list.filter(x => x.status === 'Hadir').length;
+
+              // Generate HTML for student details
+              list.forEach(student => {
+                let badgeClass = '';
+                if(student.status === 'Hadir') badgeClass = 'bg-hadir';
+                else if(student.status === 'Sakit') badgeClass = 'bg-sakit';
+                else if(student.status === 'Izin') badgeClass = 'bg-izin';
+                else badgeClass = 'bg-alpha';
+
+                studentListHtml += `
+                  <div class="student-item">
+                    <span class="student-name">${student.nama}</span>
+                    <span class="student-badge ${badgeClass}">${student.status}</span>
+                  </div>
+                `;
+              });
+            } catch(e){}
+            
+            const div = document.createElement('div');
+            div.className = 'history-card';
+            div.innerHTML = `
+              <div class="history-header">
+                <div class="history-date">${h.tanggal}</div>
+                <div class="history-tag">${h.jenjang}</div>
+              </div>
+              <div class="history-materi">"${h.materi}"</div>
+              <div style="font-size:0.85rem; color:#64748b; margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed #e2e8f0;">
+                Total Kehadiran: <span style="font-weight:bold; color:var(--primary);">${hadir}/${total}</span>
+              </div>
+              <div class="student-list">
+                ${studentListHtml}
+              </div>
+            `;
+            container.appendChild(div);
+          });
+        } catch(e) { container.innerHTML = '<div class="text-center" style="color:red;">Error.</div>'; }
+      }
+
+      async function loadStatistics() {
+        const jenjang = document.getElementById('statJenjang').value;
+        const content = document.getElementById('statContent');
+        const msg = document.getElementById('statMsg');
+        if(!jenjang) { content.classList.add('hidden'); msg.classList.remove('hidden'); return; }
+        
+        msg.classList.add('hidden'); content.classList.remove('hidden');
+        try {
+          const res = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getStatistics', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjang })
+          });
+          const data = await res.json();
+          document.getElementById('dispTotal').innerText = data.totalAnggotaJenjang;
+          renderStatTable(data.chartData);
+          drawChart(data.chartData);
+        } catch(e) {}
+      }
+
+      function renderStatTable(data) {
+        const tbody = document.getElementById('statTableBody');
+        tbody.innerHTML = '';
+        [...data].reverse().forEach(d => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${d.date}</td><td>${d.hadir} / ${d.total}</td><td class="stat-perc">${d.percentage}%</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function drawChart(data) {
+        const canvas = document.getElementById('statChart');
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.parentNode.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        
+        if(data.length === 0) {
+          ctx.font = "14px Inter"; ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center";
+          ctx.fillText("Belum ada data.", rect.width/2, rect.height/2);
+          return;
+        }
+
+        const padding = 30; const width = rect.width - (padding*2); const height = rect.height - (padding*2);
+        
+        // Axes
+        ctx.beginPath(); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+        ctx.moveTo(padding, padding); ctx.lineTo(padding, height+padding); ctx.lineTo(width+padding, height+padding); ctx.stroke();
+
+        // Labels
+        ctx.fillStyle = '#64748b'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+        ctx.fillText('100%', padding-5, padding); ctx.fillText('50%', padding-5, padding+height/2); ctx.fillText('0%', padding-5, padding+height);
+
+        // Line
+        ctx.beginPath(); ctx.strokeStyle = '#0d9488'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        const stepX = width / (data.length > 1 ? data.length - 1 : 1);
+        
+        data.forEach((d, i) => {
+          const x = padding + (i * stepX);
+          const y = padding + height - ((d.percentage/100)*height);
+          if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Points
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = '#0d9488'; ctx.lineWidth = 2;
+        data.forEach((d, i) => {
+          const x = padding + (i * stepX);
+          const y = padding + height - ((d.percentage/100)*height);
+          ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        });
+      }
+
+      window.onload = function() {
+        try {
+          const saved = localStorage.getItem('jurnalUser');
+          if(saved) { 
+            currentUser = JSON.parse(saved); 
+            initApp(); 
+          } else {
+            fetchKelompokList();
+          }
+        } catch(e) {
+          fetchKelompokList();
+        }
+      }
+    </script>
+  </body>
+</html>
