@@ -330,21 +330,70 @@
     </div>
 </div>
             </section>
-
-            <!-- MODULE 3: KURIKULUM -->
+            <!-- MODULE 3: KURIKULUMUM (UPDATE DASHBOARD & FILTER) -->
             <section id="mod-kurikulum" class="hidden">
                 <h2 style="margin-bottom:20px;"><i class="fas fa-chart-line" style="color:var(--primary)"></i> Monitoring Kurikulum</h2>
-                <div class="filter-bar"><label style="align-self:center;">Kelompok:</label><select id="kurGroupSelect" class="form-control" style="width:auto; min-width:200px;" onchange="Kurikulum.loadProgress()"><option value="">-- Pilih Kelompok --</option></select></div>
-                <div id="kurContent" class="hidden">
-                    <div style="margin-bottom:20px; background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow);">
-                        <h4 style="margin-bottom:10px;">Progress: <span id="kurPercent">0%</span></h4>
-                        <div style="background:#e2e8f0; height:10px; border-radius:5px; overflow:hidden;"><div id="kurBar" style="width:0%; background:var(--success); height:100%; transition:1s;"></div></div>
+                
+                <!-- Tab Navigasi (Untuk Desa/Daerah) -->
+                <div class="tabs-jurnal" style="margin-bottom: 20px;">
+                    <div class="tab-j active" onclick="Kurikulum.switchView('dashboard', this)">Rekapitulasi Kelompok</div>
+                    <div class="tab-j" onclick="Kurikulum.switchView('detail', this)">Detail Siswa</div>
+                </div>
+
+                <!-- VIEW 1: REKAPITULASI DASHBOARD (DEFAULT UNTUK DESA/DAERAH) -->
+                <div id="kur-dashboard-view">
+                    
+                    <div class="filter-bar">
+                        <label style="align-self:center;">Filter Jenjang:</label>
+                        <select id="kurDashboardFilterJenjang" class="form-control" style="width:auto;" onchange="Kurikulum.loadDashboard()">
+                            <option value="">Semua Jenjang</option>
+                            <!-- Opsi akan diisi otomatis oleh JS -->
+                        </select>
                     </div>
-                    <div id="kurChecklistArea"></div>
-                    <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="Kurikulum.save()"><i class="fas fa-save"></i> Simpan Progress</button>
+
+                    <div id="kurDashboardContent">
+                        <!-- Kartu Rekapitulasi -->
+                    </div>
+                </div>
+
+                <!-- VIEW 2: DETAIL SISWA -->
+                <div id="kur-detail-view" class="hidden">
+                    <div class="filter-bar">
+                        <label style="align-self:center;">Filter Siswa:</label>
+                        <!-- Dropdown Filter Jenjang -->
+                        <select id="kurFilterJenjang" class="form-control" style="width:auto;" onchange="Kurikulum.populateStudentList()">
+                            <option value="">Semua Jenjang</option>
+                            <!-- Opsi diisi otomatis -->
+                        </select>
+                        
+                        <label style="align-self:center; margin-left: 15px;">Pilih Siswa:</label>
+                        <select id="kurStudentSelect" class="form-control" style="width:auto; min-width:250px;" onchange="Kurikulum.loadStudentDetail()">
+                            <option value="">-- Pilih Siswa --</option>
+                        </select>
+                    </div>
+
+                    <div id="kurContent" class="hidden">
+                        <div style="background:#eff6ff; padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid #bfdbfe;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <h4 style="margin:0; color:var(--primary-dark);">Siswa: <span id="kurStudentNameDisplay" style="color:var(--text);">-</span></h4>
+                                    <small style="color:var(--secondary);">Jenjang: <span id="kurJenjangDisplay">-</span></small>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:0.9rem; color:#666;">Pencapaian</div>
+                                    <div style="font-size:1.5rem; font-weight:bold; color:var(--primary);"><span id="kurPercent">0%</span></div>
+                                </div>
+                            </div>
+                            <div style="background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden; margin-top:10px;">
+                                <div id="kurBar" style="width:0%; background:var(--success); height:100%; transition:width 0.5s;"></div>
+                            </div>
+                        </div>
+
+                        <div id="kurChecklistArea"></div>
+                        <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="Kurikulum.save()"><i class="fas fa-save"></i> Simpan Progress Siswa</button>
+                    </div>
                 </div>
             </section>
-
         </main>
     </div>
 
@@ -548,419 +597,674 @@
             downloadExcel: function() { if(!this.filteredData.length) return App.toast('Tidak ada data', 'error'); const ws=XLSX.utils.json_to_sheet(this.filteredData); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `Data_${new Date().toISOString().slice(0,10)}.xlsx`); }
         };
 
-// ==========================================
-// MODULE 2: JURNAL (FINAL UPDATE)
-// ==========================================
-const Jurnal = {
-    members: [], statsData: null, chartInstance: null,
-    allHistoryData: [], currentPage: 1, itemsPerPage: 10,
+        // ==========================================
+        // MODULE 2: JURNAL (FINAL UPDATE)
+        // ==========================================
+        const Jurnal = {
+            members: [], statsData: null, chartInstance: null,
+            allHistoryData: [], currentPage: 1, itemsPerPage: 10,
 
-    init: function() { 
-        document.getElementById('jurnDate').valueAsDate = new Date(); 
-        
-        // Tampilkan filter kelompok jika Desa/Daerah
-        if(currentUser.role !== 'kelompok') {
-            document.getElementById('histFilterKelompok').classList.remove('hidden');
-            document.getElementById('statsKelompokFilterWrapper').classList.remove('hidden');
-            this.populateOptions();
-        } else {
-            document.getElementById('histFilterKelompok').classList.add('hidden');
-            document.getElementById('statsKelompokFilterWrapper').classList.add('hidden');
-        }
-
-        if(currentUser.role === 'kelompok') this.switchTab('input', document.querySelectorAll('.tab-j')[0]);
-        else this.switchTab('stats', document.querySelectorAll('.tab-j')[2]);
-    },
-
-    populateOptions: function() {
-        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang: '' }) })
-        .then(res => res.json()).then(json => {
-            const kSet = new Set((json.members || []).map(m => m.kelompok).filter(k=>k));
-            const kSel = document.getElementById('histFilterKelompok');
-            const statsKSel = document.getElementById('statsFilterKelompok');
-            
-            [kSel, statsKSel].forEach(sel => {
-                sel.innerHTML = '<option value="">Semua Kelompok</option>';
-                kSet.forEach(k => sel.innerHTML += `<option value="${k}">${k}</option>`);
-            });
-        });
-    },
-
-    switchTab: function(tab, el) {
-        document.querySelectorAll('.tab-j').forEach(t => t.classList.remove('active')); 
-        if(el) el.classList.add('active');
-        document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input');
-        document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history');
-        document.getElementById('jurnal-stats-view').classList.toggle('hidden', tab !== 'stats');
-        
-        if(tab === 'history') {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('histStart').value = today;
-            document.getElementById('histEnd').value = today;
-            this.loadHistory(); 
-        }
-        if(tab === 'stats') this.loadStats();
-    },
-
-    loadMembers: async function() {
-        const jenjang = document.getElementById('jurnJenjang').value;
-        const container = document.getElementById('jurnMemberList'), formArea = document.getElementById('jurnalFormArea');
-        if(!jenjang) { formArea.classList.add('hidden'); return; } formArea.classList.remove('hidden');
-        container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang }) });
-            const json = await res.json(); container.innerHTML = ''; this.members = json.members || [];
-            this.members.forEach(m => {
-                const div = document.createElement('div'); div.className = 'member-card';
-                div.innerHTML = `<span>${m.nama}</span><select id="status_${m.no}" style="padding:5px; border-radius:4px; border:1px solid #ddd;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`;
-                container.appendChild(div);
-            });
-        } catch(e) { App.toast('Gagal muat anggota', 'error'); }
-    },
-
-    save: async function() {
-        const jenjang = document.getElementById('jurnJenjang').value, tgl = document.getElementById('jurnDate').value, materi = document.getElementById('jurnMateri').value;
-        if(!jenjang || !tgl || !materi) return App.toast('Lengkapi data', 'error');
-        const hadirData = []; this.members.forEach(m => hadirData.push({ nama: m.nama, status: document.getElementById(`status_${m.no}`).value }));
-        App.loader(true);
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addJurnal', payload: { tanggal: tgl, kelompok: currentUser.lokasi, desa: currentUser.desa, jenjang, materi, hadir: hadirData } }) });
-            if((await res.json()).status === 'success') { App.toast('Jurnal tersimpan'); document.getElementById('jurnMateri').value = ''; }
-        } catch(e) { App.toast('Gagal simpan', 'error'); } finally { App.loader(false); }
-    },
-
-    // UPDATE: Load History dengan Filter Jenjang
-    loadHistory: async function() {
-        App.loader(true);
-        this.currentPage = 1;
-        
-        // Ambil semua filter
-        const start = document.getElementById('histStart').value; 
-        const end = document.getElementById('histEnd').value;       
-        const kel = document.getElementById('histFilterKelompok').value;
-        const jenjang = document.getElementById('histFilterJenjang').value; // BARU
-
-        const payload = { 
-            action: 'getJurnalHistory', 
-            role: currentUser.role, 
-            lokasi: currentUser.lokasi, 
-            desa: currentUser.desa, 
-            startDate: start || '', 
-            endDate: end || '', 
-            filterKelompok: kel || '',
-            jenjang: jenjang || '' // BARU
-        };
-        
-        const container = document.getElementById('jurnHistoryContainer');
-        container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
-        document.getElementById('historyPagination').classList.add('hidden');
-        
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            const json = await res.json(); 
-            this.allHistoryData = json.history || [];
-            this.renderHistoryPage();
-        } catch(e) { App.toast('Gagal muat riwayat', 'error'); }
-        finally { App.loader(false); }
-    },
-
-    renderHistoryPage: function() {
-        const container = document.getElementById('jurnHistoryContainer');
-        container.innerHTML = '';
-        if (this.allHistoryData.length === 0) { container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Tidak ada data riwayat.</div>'; return; }
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        const end = start + this.itemsPerPage;
-        const pageData = this.allHistoryData.slice(start, end);
-        pageData.forEach(h => {
-            let hCount=0, sCount=0, iCount=0, aCount=0;
-            try { const list = JSON.parse(h.kehadiran); list.forEach(x => { if(x.status==='Hadir')hCount++; else if(x.status==='Sakit')sCount++; else if(x.status==='Izin')iCount++; else aCount++; }); }catch(e){}
-            const div = document.createElement('div'); div.className = 'history-card';
-            div.innerHTML = `<div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">${h.tanggal} - ${h.jenjang}</div><div style="font-style:italic; margin-bottom:10px;">"${h.materi}"</div><div style="display:flex; gap:10px; font-size:0.8rem; margin-bottom:10px; color:#555;"><span>H: <b>${hCount}</b></span> <span>S: <b>${sCount}</b></span> <span>I: <b>${iCount}</b></span> <span>A: <b>${aCount}</b></span></div><div style="border-top:1px dashed #ccc; padding-top:10px;"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`;
-            container.appendChild(div);
-        });
-        const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
-        document.getElementById('histPageNum').innerText = `${this.currentPage} / ${totalPages}`;
-        document.querySelector('#historyPagination button:first-child').disabled = this.currentPage === 1;
-        document.querySelector('#historyPagination button:last-child').disabled = this.currentPage === totalPages;
-        document.getElementById('historyPagination').classList.remove('hidden');
-    },
-
-    changePage: function(delta) {
-        const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
-        const newPage = this.currentPage + delta;
-        if(newPage > 0 && newPage <= totalPages) { this.currentPage = newPage; this.renderHistoryPage(); }
-    },
-
-    showDetails: function(encodedData) {
-        const h = JSON.parse(atob(encodedData));
-        const modal = document.getElementById('modalDetail');
-        const listDiv = document.getElementById('modalDetailList');
-        document.getElementById('modalDetailTitle').innerText = `Kehadiran ${h.tanggal} (${h.jenjang})`;
-        document.getElementById('modalDetailMateri').innerText = `"${h.materi}"`;
-        let html = '';
-        try {
-            const list = JSON.parse(h.kehadiran);
-            list.forEach(x => {
-                let badgeClass = 'badge-A';
-                if(x.status === 'Hadir') badgeClass = 'badge-H';
-                else if(x.status === 'Sakit') badgeClass = 'badge-S';
-                else if(x.status === 'Izin') badgeClass = 'badge-I';
-                html += `<div class="detail-item"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`;
-            });
-        } catch(e){ html = '<p style="color:red;">Gagal memuat data.</p>'; }
-        listDiv.innerHTML = html;
-        modal.style.display = 'flex';
-    },
-
-    // UPDATE: Load Stats dengan Tampilan Rata-rata
-    loadStats: async function() {
-        App.loader(true);
-        const jenjangFilter = document.getElementById('statsFilterJenjang').value;
-        const kelompokFilter = document.getElementById('statsFilterKelompok').value;
-        const startDate = document.getElementById('statsStart').value;
-        const endDate = document.getElementById('statsEnd').value;
-
-        let payload = { action: 'getJurnalStats', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjangFilter, startDate: startDate || '', endDate: endDate || '' };
-        if (kelompokFilter) payload.filterKelompok = kelompokFilter;
-        
-        try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            const json = await res.json();
-            if(json.status === 'success') {
-                this.statsData = json.history; 
-                this.renderChart(json.chartData);
-                this.renderAnalysis(json.analysis);
+            init: function() { 
+                document.getElementById('jurnDate').valueAsDate = new Date(); 
                 
-                // HITUNG & TAMPILKAN RATA-RATA
-                const chartData = json.chartData || [];
-                if(chartData.length > 0) {
-                    const totalPct = chartData.reduce((sum, item) => sum + item.percentage, 0);
-                    const avg = Math.round(totalPct / chartData.length);
-                    document.getElementById('avgAttendanceValue').innerText = avg + "%";
+                // Tampilkan filter kelompok jika Desa/Daerah
+                if(currentUser.role !== 'kelompok') {
+                    document.getElementById('histFilterKelompok').classList.remove('hidden');
+                    document.getElementById('statsKelompokFilterWrapper').classList.remove('hidden');
+                    this.populateOptions();
                 } else {
-                    document.getElementById('avgAttendanceValue').innerText = "0%";
+                    document.getElementById('histFilterKelompok').classList.add('hidden');
+                    document.getElementById('statsKelompokFilterWrapper').classList.add('hidden');
                 }
 
-            } else { App.toast(json.message, 'error'); }
-        } catch(e) { App.toast('Gagal muat statistik', 'error'); }
-        finally { App.loader(false); }
-    },
-    renderChart: function(data) {
-        const ctx = document.getElementById('attendanceChart').getContext('2d');
-        if(this.chartInstance) this.chartInstance.destroy();
-        this.chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { labels: data.map(d => d.date), datasets: [{ label: 'Kehadiran (%)', data: data.map(d => d.percentage), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
-        });
-    },
-    renderAnalysis: function(analysis) {
-        const renderList = (id, data) => {
-            const el = document.getElementById(id);
-            el.innerHTML = data.length ? '' : '<small style="color:#999">Tidak ada data</small>';
-            data.forEach(item => {
-                let detail = `(${item.stat.H}/${item.stat.Total})`;
-                if(currentUser.role !== 'kelompok' && item.kelompoks) detail += `<br><small style="color:#888;">Kelompok: ${item.kelompoks}</small>`;
-                el.innerHTML += `<div style="padding:4px 0; border-bottom:1px solid #eee;"><b>${item.nama}</b> <span style="font-size:0.8rem; color:#666;">${detail}</span></div>`;
-            });
-        };
-        renderList('listRajin', analysis.rajin);
-        renderList('listIzin', analysis.izin); 
-        renderList('listSakit', analysis.sakit);
-        renderList('listAlpha', analysis.alpha);
-    },
+                if(currentUser.role === 'kelompok') this.switchTab('input', document.querySelectorAll('.tab-j')[0]);
+                else this.switchTab('stats', document.querySelectorAll('.tab-j')[2]);
+            },
 
-    // UPDATE: Download Laporan PDF (Kolom Materi Diperkecil Jadi 90)
-    downloadRekap: function() {
-        if(!this.statsData) return App.toast('Data statistik belum dimuat. Silakan pilih filter terlebih dahulu.', 'error');
-        if(this.statsData.length === 0) return App.toast('Tidak ada data untuk diunduh.', 'error');
+            populateOptions: function() {
+                fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang: '' }) })
+                .then(res => res.json()).then(json => {
+                    const kSet = new Set((json.members || []).map(m => m.kelompok).filter(k=>k));
+                    const kSel = document.getElementById('histFilterKelompok');
+                    const statsKSel = document.getElementById('statsFilterKelompok');
+                    
+                    [kSel, statsKSel].forEach(sel => {
+                        sel.innerHTML = '<option value="">Semua Kelompok</option>';
+                        kSet.forEach(k => sel.innerHTML += `<option value="${k}">${k}</option>`);
+                    });
+                });
+            },
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // Ambil Nilai Filter
-        const startDate = document.getElementById('statsStart').value;
-        const endDate = document.getElementById('statsEnd').value;
-        
-        // Format Tanggal
-        const startStr = startDate || 'Awal';
-        const endStr = endDate || 'Akhir';
-        
-        // 1. NAMA FILE
-        const fileName = `Laporan_${currentUser.lokasi}_${startStr}_sd_${endStr}.pdf`;
-        
-        // 2. SUB JUDUL
-        const subTitle = `Periode ${startStr} s.d. ${endStr}`;
+            switchTab: function(tab, el) {
+                document.querySelectorAll('.tab-j').forEach(t => t.classList.remove('active')); 
+                if(el) el.classList.add('active');
+                document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input');
+                document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history');
+                document.getElementById('jurnal-stats-view').classList.toggle('hidden', tab !== 'stats');
+                
+                if(tab === 'history') {
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('histStart').value = today;
+                    document.getElementById('histEnd').value = today;
+                    this.loadHistory(); 
+                }
+                if(tab === 'stats') this.loadStats();
+            },
 
-        const filterKelompok = document.getElementById('statsFilterKelompok').value; 
-        const filterJenjang = document.getElementById('statsFilterJenjang').value;
+            loadMembers: async function() {
+                const jenjang = document.getElementById('jurnJenjang').value;
+                const container = document.getElementById('jurnMemberList'), formArea = document.getElementById('jurnalFormArea');
+                if(!jenjang) { formArea.classList.add('hidden'); return; } formArea.classList.remove('hidden');
+                container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang }) });
+                    const json = await res.json(); container.innerHTML = ''; this.members = json.members || [];
+                    this.members.forEach(m => {
+                        const div = document.createElement('div'); div.className = 'member-card';
+                        div.innerHTML = `<span>${m.nama}</span><select id="status_${m.no}" style="padding:5px; border-radius:4px; border:1px solid #ddd;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`;
+                        container.appendChild(div);
+                    });
+                } catch(e) { App.toast('Gagal muat anggota', 'error'); }
+            },
 
-        // --- LOGIKA KONTEN ---
-        let title = "";
-        let tableHeaders = [];
-        let tableBody = [];
-        let grandTotalPct = 0;
-        let countAvg = 0;
+            save: async function() {
+                const jenjang = document.getElementById('jurnJenjang').value, tgl = document.getElementById('jurnDate').value, materi = document.getElementById('jurnMateri').value;
+                if(!jenjang || !tgl || !materi) return App.toast('Lengkapi data', 'error');
+                const hadirData = []; this.members.forEach(m => hadirData.push({ nama: m.nama, status: document.getElementById(`status_${m.no}`).value }));
+                App.loader(true);
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addJurnal', payload: { tanggal: tgl, kelompok: currentUser.lokasi, desa: currentUser.desa, jenjang, materi, hadir: hadirData } }) });
+                    if((await res.json()).status === 'success') { App.toast('Jurnal tersimpan'); document.getElementById('jurnMateri').value = ''; }
+                } catch(e) { App.toast('Gagal simpan', 'error'); } finally { App.loader(false); }
+            },
 
-        // 3. PENGATURAN LEBAR KOLOM
-        let columnStyles = {
-            0: { cellWidth: 15 }, // No: 15 (Cukup untuk 2-3 digit)
-        };
+            loadHistory: async function() {
+                App.loader(true);
+                this.currentPage = 1;
+                
+                const start = document.getElementById('histStart').value; 
+                const end = document.getElementById('histEnd').value;       
+                const kel = document.getElementById('histFilterKelompok').value;
+                const jenjang = document.getElementById('histFilterJenjang').value; 
 
-        // --- AKUN KELOMPOK ---
-        if (currentUser.role === 'kelompok') {
-            title = `Laporan Jurnal Pengajian Kelompok ${currentUser.lokasi}`;
-            tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Persentase Kehadiran']];
-            
-            // Materi di-index 2, lebar diset 90
-            columnStyles[2] = { cellWidth: 65 }; 
+                const payload = { 
+                    action: 'getJurnalHistory', 
+                    role: currentUser.role, 
+                    lokasi: currentUser.lokasi, 
+                    desa: currentUser.desa, 
+                    startDate: start || '', 
+                    endDate: end || '', 
+                    filterKelompok: kel || '',
+                    jenjang: jenjang || '' 
+                };
+                
+                const container = document.getElementById('jurnHistoryContainer');
+                container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
+                document.getElementById('historyPagination').classList.add('hidden');
+                
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    const json = await res.json(); 
+                    this.allHistoryData = json.history || [];
+                    this.renderHistoryPage();
+                } catch(e) { App.toast('Gagal muat riwayat', 'error'); }
+                finally { App.loader(false); }
+            },
 
-            this.statsData.forEach((h, i) => {
-                let pct = 0;
-                try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
-                tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, pct + "%"]);
-                grandTotalPct += pct; countAvg++;
-            });
-        }
-        
-        // --- AKUN DESA ---
-        else if (currentUser.role === 'desa') {
-            if (filterKelompok) {
-                title = `Laporan Jurnal Pengajian Kelompok ${filterKelompok}`;
-            } else {
-                title = `Laporan Jurnal Pengajian Tingkat Desa ${currentUser.desa}`;
+            renderHistoryPage: function() {
+                const container = document.getElementById('jurnHistoryContainer');
+                container.innerHTML = '';
+                if (this.allHistoryData.length === 0) { container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Tidak ada data riwayat.</div>'; return; }
+                const start = (this.currentPage - 1) * this.itemsPerPage;
+                const end = start + this.itemsPerPage;
+                const pageData = this.allHistoryData.slice(start, end);
+                pageData.forEach(h => {
+                    let hCount=0, sCount=0, iCount=0, aCount=0;
+                    try { const list = JSON.parse(h.kehadiran); list.forEach(x => { if(x.status==='Hadir')hCount++; else if(x.status==='Sakit')sCount++; else if(x.status==='Izin')iCount++; else aCount++; }); }catch(e){}
+                    const div = document.createElement('div'); div.className = 'history-card';
+                    div.innerHTML = `<div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">${h.tanggal} - ${h.jenjang}</div><div style="font-style:italic; margin-bottom:10px;">"${h.materi}"</div><div style="display:flex; gap:10px; font-size:0.8rem; margin-bottom:10px; color:#555;"><span>H: <b>${hCount}</b></span> <span>S: <b>${sCount}</b></span> <span>I: <b>${iCount}</b></span> <span>A: <b>${aCount}</b></span></div><div style="border-top:1px dashed #ccc; padding-top:10px;"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`;
+                    container.appendChild(div);
+                });
+                const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
+                document.getElementById('histPageNum').innerText = `${this.currentPage} / ${totalPages}`;
+                document.querySelector('#historyPagination button:first-child').disabled = this.currentPage === 1;
+                document.querySelector('#historyPagination button:last-child').disabled = this.currentPage === totalPages;
+                document.getElementById('historyPagination').classList.remove('hidden');
+            },
+
+            changePage: function(delta) {
+                const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
+                const newPage = this.currentPage + delta;
+                if(newPage > 0 && newPage <= totalPages) { this.currentPage = newPage; this.renderHistoryPage(); }
+            },
+
+            showDetails: function(encodedData) {
+                const h = JSON.parse(atob(encodedData));
+                const modal = document.getElementById('modalDetail');
+                const listDiv = document.getElementById('modalDetailList');
+                document.getElementById('modalDetailTitle').innerText = `Kehadiran ${h.tanggal} (${h.jenjang})`;
+                document.getElementById('modalDetailMateri').innerText = `"${h.materi}"`;
+                let html = '';
+                try {
+                    const list = JSON.parse(h.kehadiran);
+                    list.forEach(x => {
+                        let badgeClass = 'badge-A';
+                        if(x.status === 'Hadir') badgeClass = 'badge-H';
+                        else if(x.status === 'Sakit') badgeClass = 'badge-S';
+                        else if(x.status === 'Izin') badgeClass = 'badge-I';
+                        html += `<div class="detail-item"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`;
+                    });
+                } catch(e){ html = '<p style="color:red;">Gagal memuat data.</p>'; }
+                listDiv.innerHTML = html;
+                modal.style.display = 'flex';
+            },
+
+            loadStats: async function() {
+                App.loader(true);
+                const jenjangFilter = document.getElementById('statsFilterJenjang').value;
+                const kelompokFilter = document.getElementById('statsFilterKelompok').value;
+                const startDate = document.getElementById('statsStart').value;
+                const endDate = document.getElementById('statsEnd').value;
+
+                let payload = { action: 'getJurnalStats', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjangFilter, startDate: startDate || '', endDate: endDate || '' };
+                if (kelompokFilter) payload.filterKelompok = kelompokFilter;
+                
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    const json = await res.json();
+                    if(json.status === 'success') {
+                        this.statsData = json.history; 
+                        this.renderChart(json.chartData);
+                        this.renderAnalysis(json.analysis);
+                        
+                        const chartData = json.chartData || [];
+                        if(chartData.length > 0) {
+                            const totalPct = chartData.reduce((sum, item) => sum + item.percentage, 0);
+                            const avg = Math.round(totalPct / chartData.length);
+                            document.getElementById('avgAttendanceValue').innerText = avg + "%";
+                        } else {
+                            document.getElementById('avgAttendanceValue').innerText = "0%";
+                        }
+
+                    } else { App.toast(json.message, 'error'); }
+                } catch(e) { App.toast('Gagal muat statistik', 'error'); }
+                finally { App.loader(false); }
+            },
+            renderChart: function(data) {
+                const ctx = document.getElementById('attendanceChart').getContext('2d');
+                if(this.chartInstance) this.chartInstance.destroy();
+                this.chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: data.map(d => d.date), datasets: [{ label: 'Kehadiran (%)', data: data.map(d => d.percentage), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+            },
+            renderAnalysis: function(analysis) {
+                const renderList = (id, data) => {
+                    const el = document.getElementById(id);
+                    el.innerHTML = data.length ? '' : '<small style="color:#999">Tidak ada data</small>';
+                    data.forEach(item => {
+                        let detail = `(${item.stat.H}/${item.stat.Total})`;
+                        if(currentUser.role !== 'kelompok' && item.kelompoks) detail += `<br><small style="color:#888;">Kelompok: ${item.kelompoks}</small>`;
+                        el.innerHTML += `<div style="padding:4px 0; border-bottom:1px solid #eee;"><b>${item.nama}</b> <span style="font-size:0.8rem; color:#666;">${detail}</span></div>`;
+                    });
+                };
+                renderList('listRajin', analysis.rajin);
+                renderList('listIzin', analysis.izin); 
+                renderList('listSakit', analysis.sakit);
+                renderList('listAlpha', analysis.alpha);
+            },
+
+            downloadRekap: function() {
+                if(!this.statsData) return App.toast('Data statistik belum dimuat. Silakan pilih filter terlebih dahulu.', 'error');
+                if(this.statsData.length === 0) return App.toast('Tidak ada data untuk diunduh.', 'error');
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const startDate = document.getElementById('statsStart').value;
+                const endDate = document.getElementById('statsEnd').value;
+                const startStr = startDate || 'Awal';
+                const endStr = endDate || 'Akhir';
+                const fileName = `Laporan_${currentUser.lokasi}_${startStr}_sd_${endStr}.pdf`;
+                const subTitle = `Periode ${startStr} s.d. ${endStr}`;
+
+                const filterKelompok = document.getElementById('statsFilterKelompok').value; 
+                const filterJenjang = document.getElementById('statsFilterJenjang').value;
+
+                let title = "";
+                let tableHeaders = [];
+                let tableBody = [];
+                let grandTotalPct = 0;
+                let countAvg = 0;
+                let columnStyles = { 0: { cellWidth: 15 } };
+
+                if (currentUser.role === 'kelompok') {
+                    title = `Laporan Jurnal Pengajian Kelompok ${currentUser.lokasi}`;
+                    tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Persentase Kehadiran']];
+                    columnStyles[2] = { cellWidth: 65 }; 
+                    this.statsData.forEach((h, i) => {
+                        let pct = 0;
+                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                        tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, pct + "%"]);
+                        grandTotalPct += pct; countAvg++;
+                    });
+                }
+                else if (currentUser.role === 'desa') {
+                    if (filterKelompok) title = `Laporan Jurnal Pengajian Kelompok ${filterKelompok}`;
+                    else title = `Laporan Jurnal Pengajian Tingkat Desa ${currentUser.desa}`;
+                    tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Kelompok', 'Persentase Kehadiran']];
+                    columnStyles[2] = { cellWidth: 65 }; 
+                    columnStyles[4] = { cellWidth: 35 }; 
+                    this.statsData.forEach((h, i) => {
+                        let pct = 0;
+                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                        tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, h.kelompok, pct + "%"]);
+                        grandTotalPct += pct; countAvg++;
+                    });
+                }
+                else if (currentUser.role === 'daerah') {
+                    title = `Rekap Laporan Jurnal Pengajian ${currentUser.lokasi}`;
+                    tableHeaders = [['No', 'Jenjang', 'Persentase Kehadiran Kelompok', 'Desa']];
+                    columnStyles[1] = { cellWidth: 40 }; 
+                    columnStyles[3] = { cellWidth: 50 }; 
+                    const groupMap = {}; 
+                    this.statsData.forEach(h => {
+                        let pct = 0;
+                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                        const key = `${h.jenjang}_${h.kelompok}_${h.desa}`;
+                        if (!groupMap[key]) groupMap[key] = { totalPct: 0, count: 0, jenjang: h.jenjang, kelompok: h.kelompok, desa: h.desa };
+                        groupMap[key].totalPct += pct; groupMap[key].count++;
+                    });
+                    let index = 1;
+                    for (const key in groupMap) {
+                        const group = groupMap[key];
+                        const avgPct = Math.round(group.totalPct / group.count);
+                        tableBody.push([index++, group.jenjang, avgPct + "%", group.desa]);
+                        grandTotalPct += avgPct; countAvg++;
+                    }
+                }
+
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text(title, 14, 20);
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                doc.text(subTitle, 14, 30);
+
+                doc.autoTable({
+                    startY: 40,
+                    head: tableHeaders,
+                    body: tableBody,
+                    theme: 'grid',
+                    headStyles: { fillColor: [37, 99, 235] }, 
+                    styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' }, 
+                    columnStyles: columnStyles 
+                });
+
+                const finalY = doc.lastAutoTable.finalY + 10;
+                let overallAvg = countAvg > 0 ? Math.round(grandTotalPct / countAvg) : 0;
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Rata-rata kehadiran keseluruhan: ${overallAvg}%`, 14, finalY);
+                doc.save(fileName);
+            },
+            downloadReport: function() {
+                if(!this.statsData) return App.toast('Belum ada data statistik', 'error');
+                const excelData = [];
+                this.statsData.forEach(h => {
+                    try { const list = JSON.parse(h.kehadiran); list.forEach(s => { excelData.push({ "Tanggal": h.tanggal, "Jenjang": h.jenjang, "Kelompok": h.kelompok, "Materi": h.materi, "Nama Siswa": s.nama, "Status": s.status }); }); } catch(e){}
+                });
+                if(excelData.length === 0) return App.toast('Tidak ada data', 'error');
+                const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail"); XLSX.writeFile(wb, `Detail_Siswa_${new Date().toISOString().slice(0,10)}.xlsx`);
             }
-            tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Kelompok', 'Persentase Kehadiran']];
-            
-            // Materi di-index 2, lebar diset 90
-            columnStyles[2] = { cellWidth: 65 }; 
-            // Kelompok di-index 4, lebar diset 35
-            columnStyles[4] = { cellWidth: 35 }; 
-
-            this.statsData.forEach((h, i) => {
-                let pct = 0;
-                try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
-                tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, h.kelompok, pct + "%"]);
-                grandTotalPct += pct; countAvg++;
-            });
-        }
-
-        // --- AKUN DAERAH ---
-        else if (currentUser.role === 'daerah') {
-            title = `Rekap Laporan Jurnal Pengajian ${currentUser.lokasi}`;
-            tableHeaders = [['No', 'Jenjang', 'Persentase Kehadiran Kelompok', 'Desa']];
-            
-            // Pengaturan lebar khusus Daerah
-            columnStyles[1] = { cellWidth: 40 }; // Jenjang
-            columnStyles[3] = { cellWidth: 50 }; // Desa
-
-            const groupMap = {}; 
-            this.statsData.forEach(h => {
-                let pct = 0;
-                try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
-                const key = `${h.jenjang}_${h.kelompok}_${h.desa}`;
-                if (!groupMap[key]) groupMap[key] = { totalPct: 0, count: 0, jenjang: h.jenjang, kelompok: h.kelompok, desa: h.desa };
-                groupMap[key].totalPct += pct; groupMap[key].count++;
-            });
-
-            let index = 1;
-            for (const key in groupMap) {
-                const group = groupMap[key];
-                const avgPct = Math.round(group.totalPct / group.count);
-                tableBody.push([index++, group.jenjang, avgPct + "%", group.desa]);
-                grandTotalPct += avgPct; countAvg++;
-            }
-        }
-
-        // --- RENDER PDF ---
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.text(title, 14, 20);
-
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "normal");
-        doc.text(subTitle, 14, 30);
-
-        doc.autoTable({
-            startY: 40,
-            head: tableHeaders,
-            body: tableBody,
-            theme: 'grid',
-            headStyles: { fillColor: [37, 99, 235] }, 
-            styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' }, 
-            columnStyles: columnStyles 
-        });
-
-        // Footer: Rata-rata
-        const finalY = doc.lastAutoTable.finalY + 10;
-        let overallAvg = countAvg > 0 ? Math.round(grandTotalPct / countAvg) : 0;
-        doc.setFontSize(11);
-        doc.setFont("helvetica", "bold");
-        doc.text(`Rata-rata kehadiran keseluruhan: ${overallAvg}%`, 14, finalY);
-
-        // Simpan File
-        doc.save(fileName);
-    },
-    downloadReport: function() {
-        if(!this.statsData) return App.toast('Belum ada data statistik', 'error');
-        const excelData = [];
-        this.statsData.forEach(h => {
-            try { const list = JSON.parse(h.kehadiran); list.forEach(s => { excelData.push({ "Tanggal": h.tanggal, "Jenjang": h.jenjang, "Kelompok": h.kelompok, "Materi": h.materi, "Nama Siswa": s.nama, "Status": s.status }); }); } catch(e){}
-        });
-        if(excelData.length === 0) return App.toast('Tidak ada data', 'error');
-        const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail"); XLSX.writeFile(wb, `Detail_Siswa_${new Date().toISOString().slice(0,10)}.xlsx`);
-    }
-};
+        };
 
         // ==========================================
-        // MODULE 3: KURIKULUM
+        // MODULE 3: KURIKULUMUM (COMPLETE UPDATE)
         // ==========================================
         const Kurikulum = {
-            groups: [], config: {}, currentGroupId: null,
+            allStudents: [], 
+            allProgress: [], // Menyimpan semua progress untuk kebutuhan Rekapitulasi
+            config: {},      
+            currentStudent: null,
+            currentView: 'dashboard', // 'dashboard' atau 'detail'
+
             init: async function() {
                 App.loader(true);
                 try {
-                    const gRes = await fetch(API_URL + "?action=getGroups"); const gJson = await gRes.json();
-                    if(gJson.status === 'success') this.groups = gJson.data;
-                    const cRes = await fetch(API_URL + "?action=getConfig"); const cJson = await cRes.json();
+                    // 1. Tentukan tampilan default
+                    // FIX 1: Mengubah 'currentRole' menjadi 'currentUser.role'
+                    if (currentUser.role === 'kelompok') {
+                        this.currentView = 'detail';
+                    } else {
+                        this.currentView = 'dashboard';
+                    }
+                    
+                    // 2. Ambil Data Siswa dari Sheet Data
+                    const sRes = await fetch(API_URL, { 
+                        method: 'post', 
+                        body: JSON.stringify({ action: 'getData', role: currentUser.role, lokasi: currentUser.lokasi }) 
+                    });
+                    const sJson = await sRes.json();
+                    this.allStudents = sJson.data || [];
+
+                    // 3. Ambil Config Kurikulum (Menggunakan POST)
+                    const cRes = await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ action: 'getConfig' }) 
+                    });
+                    const cJson = await cRes.json();
                     if(cJson.status === 'success') this.config = cJson.data;
-                    const sel = document.getElementById('kurGroupSelect'); sel.innerHTML = '<option value="">-- Pilih Kelompok --</option>';
-                    this.groups.forEach(g => sel.innerHTML += `<option value="${g.id}">${g.name} (${g.desa})</option>`);
-                } catch(e) { App.toast('Gagal inisialisasi', 'error'); } finally { App.loader(false); }
+
+                    // 4. Isi Filter Jenjang
+                    const jenjangSet = new Set(this.allStudents.map(s => s.jenjang).filter(j => j));
+                    const filterSel = document.getElementById('kurDashboardFilterJenjang');
+                    const detailFilterSel = document.getElementById('kurFilterJenjang');
+                    
+                    [filterSel, detailFilterSel].forEach(sel => {
+                        sel.innerHTML = '<option value="">Semua Jenjang</option>';
+                        jenjangSet.forEach(j => sel.innerHTML += `<option value="${j}">${j}</option>`);
+                    });
+
+                    // 5. Tampilkan View yang Sesuai
+                    if (this.currentView === 'dashboard') {
+                        this.loadDashboard();
+                    } else {
+                        this.populateStudentList(); // Siapkan list siswa
+                    }
+
+                } catch(e) { 
+                    console.error(e);
+                    App.toast('Gagal inisialisasi kurikulum', 'error'); 
+                } 
+                finally { App.loader(false); }
             },
-            loadProgress: async function() {
-                const gid = document.getElementById('kurGroupSelect').value, content = document.getElementById('kurContent');
-                if(!gid) { content.classList.add('hidden'); return; } content.classList.remove('hidden'); this.currentGroupId = gid; App.loader(true);
+
+            // --- NAVIGASI VIEW ---
+            switchView: function(view, btnElement) {
+                this.currentView = view;
+                
+                // Update class active pada Tab
+                document.querySelectorAll('#mod-kurikulum .tab-j').forEach(t => t.classList.remove('active'));
+                if(btnElement) btnElement.classList.add('active');
+
+                // Tampilkan/sembunyikan container
+                if(view === 'dashboard') {
+                    document.getElementById('kur-dashboard-view').classList.remove('hidden');
+                    document.getElementById('kur-detail-view').classList.add('hidden');
+                    this.loadDashboard();
+                } else {
+                    document.getElementById('kur-dashboard-view').classList.add('hidden');
+                    document.getElementById('kur-detail-view').classList.remove('hidden');
+                    document.getElementById('kurContent').classList.add('hidden');
+                    // Reset pilihan detail
+                    document.getElementById('kurStudentSelect').value = "";
+                }
+            },
+
+            // --- LOGIKA DASHBOARD (REKAPITULASI KELOMPOK) ---
+            loadDashboard: async function() {
+                const content = document.getElementById('kurDashboardContent');
+                content.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div><p>Memuat data rekapitulasi...</p></div>';
+
                 try {
-                    const pRes = await fetch(API_URL + "?action=getProgress&id=" + gid); const pJson = await pRes.json();
-                    let savedData = {}, jenjang = '';
-                    if(pJson.status === 'success' && pJson.data) { savedData = pJson.data.progressData || {}; jenjang = pJson.data.jenjang; }
-                    const area = document.getElementById('kurChecklistArea'); area.innerHTML = '';
-                    const targetJenjang = jenjang || Object.keys(this.config)[0];
-                    if(!targetJenjang || !this.config[targetJenjang]) { area.innerHTML = '<p class="text-center">Config tidak ditemukan.</p>'; App.loader(false); return; }
-                    const items = this.config[targetJenjang]; let html = ''; let total = 0, checked = 0;
-                    items.forEach((cat, cIdx) => {
+                    // 1. Ambil Filter Jenjang Dashboard
+                    const filterJenjang = document.getElementById('kurDashboardFilterJenjang').value;
+
+                    // 2. Ambil semua data progress dari Backend (Sekali Request)
+                    const pRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllProgressData' }) });
+                    const pJson = await pRes.json();
+
+                    if(pJson.status === 'success' && pJson.data) {
+                        // progressMap: { "Nama Siswa": { "0-0": true, "0-1": false } }
+                        // groupStats: { "Kelompok A": { totalItems: 10, checkedItems: 5, memberCount: 2 } }
+                        
+                        let groupStats = {}; 
+
+                        // Mapping data progress ke Siswa
+                        const progressMap = {}; 
+                        pJson.data.forEach(p => {
+                            progressMap[p.student] = p.progressData;
+                        });
+
+                        // Loop siswa untuk mengelompokkan dan menghitung statistik
+                        this.allStudents.forEach(student => {
+                            // Skip jika siswa tidak ada progress sama sekali
+                            if (!progressMap[student.nama]) return;
+
+                            // Filter Jenjang Dashboard
+                            if (filterJenjang && student.jenjang !== filterJenjang) return;
+
+                            // Tentukan Key Grup
+                            let groupKey = "";
+                            if(currentUser.role === 'daerah') {
+                                groupKey = `${student.kelompok} - ${student.desa}`;
+                            } else if (currentUser.role === 'desa') {
+                                groupKey = student.kelompok;
+                            }
+
+                            // Inisialisasi Group jika belum ada
+                            if (!groupStats[groupKey]) {
+                                groupStats[groupKey] = { 
+                                    name: groupKey, 
+                                    totalItems: 0, checkedItems: 0, 
+                                    memberCount: 0 
+                                };
+                            }
+                            
+                            const pData = progressMap[student.nama] || {};
+                            const total = Object.keys(pData).length;
+                            const checked = Object.values(pData).filter(v => v).length;
+                            
+                            groupStats[groupKey].totalItems += total;
+                            groupStats[groupKey].checkedItems += checked;
+                            groupStats[groupKey].memberCount++;
+                        });
+
+                        // Render Cards
+                        // FIX 2: Menggunakan variabel string sementara ('dashboardHtml') alih-alih langsung mengakses DOM elemen
+                        let dashboardHtml = '';
+                        const sortedKeys = Object.keys(groupStats).sort(); 
+
+                        if (sortedKeys.length === 0) {
+                            dashboardHtml = '<div class="text-center" style="padding:20px;">Tidak ada data kurikulum ditemukan untuk jenjang ini.</div>';
+                        } else {
+                            sortedKeys.forEach(key => {
+                                const stats = groupStats[key];
+                                // Hitung rata-rata persentase
+                                let pct = 0;
+                                if (stats.totalItems > 0) {
+                                    pct = Math.round((stats.checkedItems / stats.totalItems) * 100);
+                                }
+
+                                // Parse Nama untuk tampilan rapi (Hilangkan info desa jika role desa)
+                                let displayName = key;
+                                if (currentUser.role === 'desa') {
+                                    displayName = key.split(' - ')[0]; // Ambil bagian depan nama kelompok
+                                }
+
+                                dashboardHtml += `
+                                    <div class="stat-card" style="margin-bottom:15px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <h4 style="margin:0; font-size:1rem; color:var(--primary);">${displayName}</h4>
+                                            <div style="text-align:right;">
+                                                <div style="font-size:0.8rem; color:#666;">Pencapaian</div>
+                                                <div style="font-size:1.5rem; font-weight:bold; color:var(--primary);">${pct}%</div>
+                                            </div>
+                                        </div>
+                                        <div style="background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden; margin-top:5px;">
+                                            <div style="width:${pct}%; background:var(--success); height:100%; transition:width 0.5s;"></div>
+                                        </div>
+                                        <div style="margin-top:5px; font-size:0.8rem; color:#666;">
+                                            ${stats.checkedItems} dari ${stats.totalItems} Materi Tercapai
+                                            <br><small>(${stats.memberCount} Siswa)</small>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        content.innerHTML = dashboardHtml;
+
+                    } else {
+                        content.innerHTML = '<p class="text-center">Gagal memuat data rekapitulasi.</p>';
+                    }
+
+                } catch(e) {
+                    console.error(e);
+                    App.toast('Gagal memuat dashboard', 'error');
+                    content.innerHTML = '<p class="text-center" style="color:red;">Terjadi kesalahan sistem.</p>';
+                }
+            },
+
+            // --- LOGIKA DETAIL (SISWA INDIVIDU) ---
+
+            populateStudentList: function() {
+                const filterJenjang = document.getElementById('kurFilterJenjang').value;
+                
+                // Filter list siswa
+                const filteredStudents = filterJenjang 
+                    ? this.allStudents.filter(s => s.jenjang === filterJenjang)
+                    : this.allStudents;
+
+                const sel = document.getElementById('kurStudentSelect');
+                const prevValue = sel.value;
+                sel.innerHTML = '<option value="">-- Pilih Siswa --</option>';
+                
+                filteredStudents.forEach(s => {
+                    const jenjang = s.jenjang || "Umum";
+                    // Pertahankan pilihan
+                    const selected = s.nama === prevValue ? 'selected' : '';
+                    sel.innerHTML += `<option value="${s.nama}" data-jenjang="${jenjang}" ${selected}>${s.nama} (${s.kelompok || '-'})</option>`;
+                });
+
+                // Jika user ganti filter dan pilihan lama hilang, reset tampilan
+                if (prevValue && !filteredStudents.some(s => s.nama === prevValue)) {
+                    document.getElementById('kurContent').classList.add('hidden');
+                }
+            },
+
+            loadStudentDetail: async function() {
+                const select = document.getElementById('kurStudentSelect');
+                const selectedName = select.value;
+                const content = document.getElementById('kurContent');
+                
+                if(!selectedName) { 
+                    content.classList.add('hidden'); 
+                    return; 
+                }
+                
+                content.classList.remove('hidden'); 
+                App.loader(true);
+                
+                try {
+                    const selectedOption = select.options[select.selectedIndex];
+                    const jenjang = selectedOption.getAttribute('data-jenjang');
+
+                    // Update UI Info
+                    document.getElementById('kurStudentNameDisplay').innerText = selectedName;
+                    document.getElementById('kurJenjangDisplay').innerText = jenjang;
+
+                    // Ambil Isi Kurikulum
+                    const curriculumData = this.config[jenjang];
+
+                    if(!curriculumData) {
+                        const area = document.getElementById('kurChecklistArea'); 
+                        area.innerHTML = `<div style="text-align:center; padding:20px; color:#d97706; background:#fef3c7; border-radius:8px;">
+                            <i class="fas fa-exclamation-triangle"></i> Tidak ditemukan kurikulum untuk jenjang <b>${jenjang}</b>.
+                        </div>`;
+                        this.updateProgressBar(0);
+                        App.loader(false); 
+                        return; 
+                    }
+
+                    // Ambil Progress tersimpan
+                    const pRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getProgress', student: selectedName, jenjang: jenjang }) });
+                    const pJson = await pRes.json();
+                    
+                    let savedData = {};
+                    if(pJson.status === 'success' && pJson.data) { 
+                        savedData = pJson.data.progressData || {}; 
+                    }
+
+                    // Render Checklist dengan Event Click Update
+                    const area = document.getElementById('kurChecklistArea'); 
+                    area.innerHTML = '';
+                    
+                    let html = ''; 
+                    
+                    curriculumData.forEach((cat, cIdx) => {
                         html += `<div class="category-section"><div class="category-header">${cat.category}. ${cat.title}</div><div class="item-list">`;
                         cat.items.forEach((item, iIdx) => {
-                            total++; const key = `${cIdx}-${iIdx}`; const isChecked = savedData[key] ? 'checked' : ''; if(isChecked) checked++;
-                            html += `<div class="checklist-item"><input type="checkbox" id="chk_${key}" ${isChecked}><label for="chk_${key}">${item}</label></div>`;
-                        }); html += `</div></div>`;
+                            const key = `${cIdx}-${iIdx}`; 
+                            const isChecked = savedData[key] ? 'checked' : ''; 
+                            
+                            html += `<div class="checklist-item"><input type="checkbox" id="chk_${key}" ${isChecked} onchange="Kurikulum.updateLocalProgress()"><label for="chk_${key}">${item}</label></div>`;
+                        }); 
+                        html += `</div></div>`;
                     });
+                    
                     area.innerHTML = html;
-                    const pct = total > 0 ? Math.round((checked/total)*100) : 0;
-                    document.getElementById('kurPercent').innerText = pct + "%"; document.getElementById('kurBar').style.width = pct + "%";
-                } catch(e) { App.toast('Gagal muat progress', 'error'); } finally { App.loader(false); }
+                    
+                    // Hitung progress awal
+                    const checkboxes = area.querySelectorAll('input[type="checkbox"]');
+                    const total = checkboxes.length;
+                    const checked = area.querySelectorAll('input[type="checkbox"]:checked').length;
+                    this.updateProgressUI(checked, total);
+
+                } catch(e) { App.toast('Gagal muat progress siswa', 'error'); console.error(e); } 
+                finally { App.loader(false); }
             },
-            save: async function() {
-                if(!this.currentGroupId) return;
+
+            // --- LOGIKA UPDATE PROGRESS ---
+            
+            updateLocalProgress: function() {
                 const checkboxes = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]');
-                const progressData = {}; checkboxes.forEach(cb => { const key = cb.id.replace('chk_', ''); progressData[key] = cb.checked; });
+                const total = checkboxes.length;
+                const checked = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]:checked').length;
+                
+                this.updateProgressUI(checked, total);
+            },
+
+            updateProgressUI: function(checked, total) {
+                const pct = total > 0 ? Math.round((checked/total)*100) : 0;
+                document.getElementById('kurPercent').innerText = pct + "%"; 
+                document.getElementById('kurBar').style.width = pct + "%";
+            },
+
+            save: async function() {
+                const selectedName = document.getElementById('kurStudentSelect').value;
+                const selectedOption = document.getElementById('kurStudentSelect').options[document.getElementById('kurStudentSelect').selectedIndex];
+                const jenjang = selectedOption.getAttribute('data-jenjang');
+
+                if(!selectedName) return App.toast('Pilih siswa terlebih dahulu', 'error');
+
+                const checkboxes = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]');
+                const progressData = {}; 
+                checkboxes.forEach(cb => { 
+                    const key = cb.id.replace('chk_', ''); 
+                    progressData[key] = cb.checked; 
+                });
+                
                 App.loader(true);
-                try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveProgress', id: this.currentGroupId, jenjang: 'Umum', progressData }) }); App.toast('Progress disimpan'); } 
-                catch(e) { App.toast('Gagal simpan', 'error'); } finally { App.loader(false); }
+                try { 
+                    await fetch(API_URL, { 
+                        method: 'POST', 
+                        body: JSON.stringify({ 
+                            action: 'saveProgress', 
+                            student: selectedName, 
+                            jenjang: jenjang, 
+                            progressData: progressData 
+                        }) 
+                    }); 
+                    App.toast('Progress siswa berhasil disimpan'); 
+                } 
+                catch(e) { App.toast('Gagal simpan', 'error'); } 
+                finally { App.loader(false); }
             }
         };
-
         window.onload = function() { Auth.init(); };
     </script>
 </body>
