@@ -2,339 +2,966 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Ruang Kurikulum</title>
-    
-    <!-- External Resources (Fonts & Icons) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ruang Kurikulum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <style>
-        /* CSS VARIABLES - MINIMALIST PALETTE */
+        /* --- CSS VARIABLES --- */
         :root {
-            --bg-body: #f8fafc;       /* Latar belakang halaman (sangat muda) */
-            --bg-card: #ffffff;       /* Latar belakang kartu (putih bersih) */
-            --text-main: #0f172a;     /* Hitam kebiruan untuk teks utama */
-            --text-muted: #64748b;    /* Abu-abu untuk teks sekunder */
-            --border: #e2e8f0;        /* Warna garis tipis */
-            --primary: #334155;       /* Warna aksen (Dark Slate) */
-            --hover-bg: #f1f5f9;      /* Warna saat hover */
-            --radius: 16px;           /* Sudut membulat yang modern */
+            --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b;
+            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; --text-light: #64748b;
+            --border: #e2e8f0; --danger: #ef4444; --success: #10b981;
+            --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --sidebar-width: 250px;
         }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-body); 
-            color: var(--text-main); 
-            line-height: 1.6; 
-            -webkit-font-smoothing: antialiased;
-        }
-        
-        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        /* --- UTILS --- */
+        .hidden { display: none !important; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .btn-block { width: 100%; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* HEADER - MINIMAL */
-        header { 
-            background: var(--bg-card); 
-            border-bottom: 1px solid var(--border); 
-            position: sticky; top: 0; z-index: 1000; 
-        }
-        .nav-container { 
-            max-width: 1200px; margin: 0 auto; padding: 0 20px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            height: 70px; 
-        }
-        
-        .logo { 
-            font-weight: 600; font-size: 1.1rem; 
-            color: var(--text-main); text-decoration: none; 
-            display: flex; align-items: center; gap: 10px; cursor: pointer; 
-            letter-spacing: -0.5px;
-        }
-        .logo i { font-size: 1.2rem; }
-        
-        /* External Navigation Links */
-        .ext-nav { display: flex; gap: 8px; }
-        .ext-link {
-            text-decoration: none; color: var(--text-muted); 
-            font-size: 0.85rem; font-weight: 500; padding: 8px 16px;
-            border-radius: 50px; transition: all 0.2s; border: 1px solid transparent;
-        }
-        .ext-link:hover { 
-            background-color: var(--bg-body); 
-            color: var(--text-main); 
-        }
+        /* --- LOGIN --- */
+        #login-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s ease; }
+        #login-view.fade-out { opacity: 0; pointer-events: none; }
+        .login-card { background: white; width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center; }
+        .login-logo { font-size: 3rem; color: var(--primary); margin-bottom: 10px; }
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: 0.2s; }
+        .form-control:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
 
-        /* HERO SECTION - CLEAN */
-        .hero { text-align: center; padding: 80px 20px 60px; }
-        .hero h1 { 
-            font-size: 2.5rem; margin-bottom: 16px; 
-            color: var(--text-main); font-weight: 600; letter-spacing: -1px;
-        }
-        .hero p { 
-            color: var(--text-muted); max-width: 500px; margin: 0 auto; 
-            font-weight: 300; font-size: 1.05rem; 
-        }
+        /* --- LAYOUT --- */
+        #app-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: white; border-right: 1px solid var(--border); position: fixed; height: 100%; z-index: 100; transition: transform 0.3s; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .nav-links { flex: 1; padding: 20px 10px; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-light); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .nav-item:hover, .nav-item.active { background: #eff6ff; color: var(--primary); }
+        .nav-item i { width: 20px; text-align: center; }
+        .user-profile { padding: 15px; border-top: 1px solid var(--border); background: #f8fafc; }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 20px; width: calc(100% - var(--sidebar-width)); }
+        .mobile-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 101; background: white; padding: 8px; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid var(--border); }
 
-        /* VIEW 1: JENJANG SELECTION */
-        #jenjang-view { display: block; animation: fadeIn 0.6s ease-out; }
-        .jenjang-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 24px; margin-top: 20px; 
-        }
-        
-        .jenjang-card {
-            background: var(--bg-card); padding: 40px 20px; 
-            border-radius: var(--radius); text-align: center;
-            cursor: pointer; transition: all 0.3s ease;
-            border: 1px solid var(--border);
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
-        }
-        .jenjang-card:hover { 
-            transform: translateY(-4px); 
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); 
-            border-color: var(--text-muted);
-        }
-        .jenjang-icon { 
-            font-size: 2rem; color: var(--text-muted); 
-            margin-bottom: 5px; transition: color 0.3s;
-        }
-        .jenjang-card:hover .jenjang-icon { color: var(--text-main); }
-        
-        .jenjang-title { 
-            font-weight: 600; font-size: 1.1rem; color: var(--text-main); 
-        }
-        .jenjang-desc { font-size: 0.85rem; color: var(--text-muted); font-weight: 400; }
+        /* --- COMPONENTS --- */
+        .dashboard-stats { margin-bottom: 20px; }
+        .stat-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--surface); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .stat-card h4 { margin: 0 0 10px 0; color: var(--text-light); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .big-num { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        .stat-bar-item { margin-bottom: 8px; font-size: 0.85rem; }
+        .sb-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .sb-bg { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; }
+        .sb-fill { background: var(--primary); height: 100%; border-radius: 4px; }
 
-        /* VIEW 2: CURRICULUM LIST */
-        #curriculum-view { display: none; animation: slideUp 0.4s ease-out; }
+        .table-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-light); white-space: nowrap; }
         
-        .view-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 30px; padding-bottom: 20px; 
-            border-bottom: 1px solid var(--border);
-        }
-        .view-header h2 { font-size: 1.5rem; color: var(--text-main); font-weight: 600; }
-        
-        .back-btn { 
-            background: transparent; border: 1px solid var(--border); 
-            color: var(--text-muted); cursor: pointer; 
-            display: flex; align-items: center; gap: 8px; font-weight: 500; 
-            padding: 8px 16px; border-radius: 8px; transition: 0.2s; font-size: 0.9rem;
-        }
-        .back-btn:hover { background: var(--bg-body); color: var(--text-main); border-color: var(--text-muted); }
+        .filter-bar { background: var(--surface); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .search-box { flex: 1; min-width: 200px; position: relative; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1px solid var(--border); border-radius: 8px; }
 
-        .list-container { display: flex; flex-direction: column; gap: 16px; }
-        
-        .curriculum-item {
-            background: var(--bg-card); padding: 24px; 
-            border-radius: var(--radius); 
-            display: flex; flex-direction: column; gap: 20px;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s;
-        }
-        .curriculum-item:hover { border-color: #cbd5e1; }
-        
-        @media (min-width: 640px) {
-            .curriculum-item { flex-direction: row; align-items: center; justify-content: space-between; }
-        }
+        /* Modal Detail */
+        #modalDetailList { max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
+        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
+        .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
+        .badge-H { background: #dcfce7; color: #166534; } .badge-S { background: #fef9c3; color: #854d0e; }
+        .badge-I { background: #dbeafe; color: #1e40af; } .badge-A { background: #fee2e2; color: #991b1b; }
 
-        .item-content h3 { font-size: 1.1rem; margin-bottom: 6px; color: var(--text-main); font-weight: 600; }
-        .item-content p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
-        
-        /* Minimalist Outline Button */
-        .btn-download {
-            background: transparent; color: var(--text-main); text-decoration: none; 
-            padding: 10px 20px; border: 1px solid var(--border);
-            border-radius: 8px; font-weight: 500; font-size: 0.85rem; 
-            display: inline-flex; align-items: center; gap: 8px;
-            transition: all 0.2s; white-space: nowrap; min-width: 120px; justify-content: center;
-        }
-        .btn-download:hover { 
-            background: var(--text-main); color: #fff; border-color: var(--text-main); 
-        }
-        .btn-no-link { 
-            border-color: transparent; color: #cbd5e1; cursor: default; pointer-events: none; 
-        }
+        /* --- JURNAL & KURIKULUM --- */
+        .tabs-jurnal { display: flex; background: var(--surface); padding: 5px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .tab-j { flex: 1; text-align: center; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--text-light); }
+        .tab-j.active { background: var(--primary); color: white; }
 
-        /* UTILITIES */
-        #loading { text-align: center; padding: 80px 20px; display: none; }
-        .spinner { width: 30px; height: 30px; border: 2px solid #e2e8f0; border-top: 2px solid var(--text-main); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        .member-card { background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+        .history-card { background: var(--surface); padding: 20px; border-radius: var(--radius); margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border); }
         
+        /* Pagination Styles */
+        .pagination-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        .page-btn { padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-info { align-self: center; font-size: 0.9rem; color: var(--text-light); }
+
+        .category-section { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .category-header { background: var(--primary); color: white; padding: 10px 15px; font-weight: 600; }
+        .item-list { padding: 15px; background: #fafafa; }
+        .checklist-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed #ddd; }
+        .checklist-item input { margin-right: 12px; transform: scale(1.2); accent-color: var(--primary); }
+        .checklist-item input:checked + label { text-decoration: line-through; color: #888; }
+
+        /* --- TOAST & LOADER --- */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #333; color: white; padding: 12px 20px; border-radius: 8px; font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
+        .toast.success { background: var(--success); } .toast.error { background: var(--danger); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        footer { text-align: center; padding: 60px 20px 30px; color: var(--text-muted); font-size: 0.8rem; }
+        .modal { display: none; position: fixed; z-index: 500; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background-color: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s; }
+        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; padding: 15px; padding-top: 60px; }
+            .mobile-toggle { display: block; }
+            .stat-cards-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <header>
-        <div class="nav-container">
-            <div class="logo" onclick="resetApp()">
-                <i class="fas fa-book-open"></i> Ruang Kurikulum
-            </div>
-            
-            <!-- MENU KE WEB LAIN -->
-            <nav class="ext-nav">
-                <!-- Saya biarkan target="_blank" untuk menu atas karena ini adalah website terpisah -->
-                <a href="https://sayaguruid.github.io/jurnal/" target="_blank" class="ext-link">Jurnal Pengajian</a>
-                <a href="https://sayaguruid.github.io/datagen/" target="_blank" class="ext-link">Data Generus</a>
-                <a href="https://sayaguruid.github.io/kurikulum/" target="_blank" class="ext-link">Monitoring</a>
-            </nav>
+    <div id="globalLoader" class="loader-overlay hidden"><div class="spinner"></div><p style="margin-top:10px; font-weight:600;">Memuat...</p></div>
+    <div id="toast-container"></div>
+
+    <!-- LOGIN VIEW -->
+    <div id="login-view">
+        <div class="login-card" id="loginCard">
+            <div class="login-logo"><i class="fas fa-users-rays"></i></div>
+            <h2 style="margin-bottom: 20px; color: var(--primary);">Ruang Kurikulum</h2>
+            <div id="loginMsg" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-bottom:15px; min-height:20px; font-weight:600; background:#fef2f2; padding:8px; border-radius:6px; border:1px solid #fee2e2; display:none;"></div>
+            <form onsubmit="event.preventDefault(); Auth.login();">
+                <div class="form-group"><label>Username</label><input type="text" id="u" class="form-control" required placeholder="Masukkan username"></div>
+                <div class="form-group"><label>Password</label><input type="password" id="p" class="form-control" required placeholder="Masukkan password"></div>
+                <button type="submit" class="btn btn-primary btn-block" id="btnLogin"><i class="fas fa-sign-in-alt"></i> <span>Masuk Aplikasi</span></button>
+            </form>
         </div>
-    </header>
-
-    <div class="container">
-        
-        <!-- Hero Text -->
-        <section class="hero">
-            <h1>Portal Kurikulum</h1>
-            <p>Akses materi dan dokumen pembelajaran untuk setiap jenjang pendidikan.</p>
-        </section>
-
-        <!-- Loading Indicator -->
-        <div id="loading">
-            <div class="spinner"></div>
-            <p style="font-size: 0.9rem; color: var(--text-muted);">Memuat data...</p>
-        </div>
-
-        <!-- VIEW 1: PILIHAN JENJANG -->
-        <div id="jenjang-view">
-            <div class="jenjang-grid">
-                <div class="jenjang-card" onclick="openJenjang('PAUD')">
-                    <div class="jenjang-icon"><i class="fas fa-shapes"></i></div>
-                    <div class="jenjang-title">PAUD</div>
-                    <div class="jenjang-desc">Pendidikan Usia Dini</div>
-                </div>
-                <div class="jenjang-card" onclick="openJenjang('Caberawit')">
-                    <div class="jenjang-icon"><i class="fas fa-child"></i></div>
-                    <div class="jenjang-title">Caberawit</div>
-                    <div class="jenjang-desc">Kelompok Bermain</div>
-                </div>
-                <div class="jenjang-card" onclick="openJenjang('Pra Remaja')">
-                    <div class="jenjang-icon"><i class="fas fa-user-graduate"></i></div>
-                    <div class="jenjang-title">Pra Remaja</div>
-                    <div class="jenjang-desc">Masa Transisi</div>
-                </div>
-                <div class="jenjang-card" onclick="openJenjang('Remaja')">
-                    <div class="jenjang-icon"><i class="fas fa-users"></i></div>
-                    <div class="jenjang-title">Remaja</div>
-                    <div class="jenjang-desc">Generasi Muda</div>
-                </div>
-                <div class="jenjang-card" onclick="openJenjang('Pra Nikah')">
-                    <div class="jenjang-icon"><i class="fas fa-heart"></i></div>
-                    <div class="jenjang-title">Pra Nikah</div>
-                    <div class="jenjang-desc">Bimbingan Keluarga</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 2: LIST KURIKULUM -->
-        <div id="curriculum-view">
-            <div class="view-header">
-                <div>
-                    <small style="text-transform: uppercase; color: var(--text-muted); font-weight: 600; font-size: 0.75rem; letter-spacing: 1px;">Materi Pembelajaran</small>
-                    <h2 id="current-jenjang-title">Nama Jenjang</h2>
-                </div>
-                <button class="back-btn" onclick="resetApp()">
-                    Kembali
-                </button>
-            </div>
-            
-            <div id="list-container" class="list-container">
-                <!-- Item JS -->
-            </div>
-        </div>
-
     </div>
 
-    <footer>
-        <p>&copy; <span id="year"></span> Ruang Kurikulum.</p>
-    </footer>
+    <!-- APP LAYOUT -->
+    <div id="app-layout" class="hidden">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header"><i class="fas fa-layer-group"></i> MENU UTAMA</div>
+            <div class="nav-links">
+                <a class="nav-item active" onclick="App.switchModule('generus', this)"><i class="fas fa-database"></i> Data Generus</a>
+                <a class="nav-item" onclick="App.switchModule('jurnal', this)"><i class="fas fa-book-open"></i> Jurnal Pengajian</a>
+                <a class="nav-item" onclick="App.switchModule('kurikulum', this)"><i class="fas fa-chart-line"></i> Monitoring Kurikulum</a>
+            </div>
+            <div class="user-profile">
+                <div class="user-info" id="sidebarUserName">User Name</div>
+                <div class="user-role" id="sidebarUserRole">Role</div>
+                <button class="btn btn-sm btn-danger btn-block" style="margin-top:10px;" onclick="Auth.logout()"><i class="fas fa-power-off"></i> Keluar</button>
+            </div>
+        </nav>
 
-    <!-- JAVASCRIPT LOGIC -->
+        <main class="main-content">
+            
+            <!-- MODULE 1: GENERUS -->
+            <section id="mod-generus">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2><i class="fas fa-database" style="color:var(--primary)"></i> Data Anggota</h2>
+                    <button class="btn btn-primary btn-sm" onclick="Generus.downloadExcel()"><i class="fas fa-file-excel"></i> Unduh Excel</button>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-cards-grid">
+                        <div class="stat-card"><h4>Total Anggota</h4><div class="big-num" id="statTotal">0</div></div>
+                        <div class="stat-card" style="border-left: 4px solid #3b82f6;"><h4>Laki-laki</h4><div class="big-num" id="statL">0</div></div>
+                        <div class="stat-card" style="border-left: 4px solid #ec4899;"><h4>Perempuan</h4><div class="big-num" id="statP">0</div></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <div class="stat-card"><h4>Distribusi Kelas</h4><div id="chartKelas"></div></div>
+                        <div class="stat-card"><h4>Distribusi Jenjang</h4><div id="chartJenjang"></div></div>
+                        <div class="stat-card hidden" id="cardGroupStats"><h4 id="titleGroupStats">Statistik Wilayah</h4><div id="chartGrouping"></div></div>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="search-box"><i class="fas fa-search"></i><input type="text" id="genSearch" placeholder="Cari nama..." onkeyup="Generus.applyFilters()"></div>
+                    <select id="filterDesa" class="form-control hidden" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua Desa</option></select>
+                    <select id="filterKelompok" class="form-control hidden" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua Kelompok</option></select>
+                    <select id="filterJenjang" class="form-control" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="TK">TK</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option><option value="Mahasiswa">Mahasiswa</option></select>
+                    <select id="filterJK" class="form-control" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua JK</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+                    <button class="btn btn-primary" onclick="Generus.openModal()" id="btnAddGen"><i class="fas fa-plus"></i> Tambah</button>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table id="genTable"><thead><tr><th>No</th><th>Nama</th><th>L/P</th><th>Umur</th><th>Kelas</th><th>Jenjang</th><th>Lokasi</th><th>Aksi</th></tr></thead><tbody id="genTableBody"></tbody></table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE 2: JURNAL -->
+            <section id="mod-jurnal" class="hidden">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2><i class="fas fa-book-open" style="color:var(--primary)"></i> Jurnal Pengajian</h2>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-secondary btn-sm" onclick="Jurnal.switchTab('input', document.querySelectorAll('.tab-j')[0])"><i class="fas fa-edit"></i> Input</button>
+                        <button class="btn btn-secondary btn-sm" onclick="Jurnal.switchTab('history', document.querySelectorAll('.tab-j')[1])"><i class="fas fa-history"></i> Riwayat</button>
+                        <button class="btn btn-secondary btn-sm" onclick="Jurnal.switchTab('stats', document.querySelectorAll('.tab-j')[2])"><i class="fas fa-chart-pie"></i> Statistik</button>
+                    </div>
+                </div>
+
+                <div class="tabs-jurnal">
+                    <div class="tab-j active" onclick="Jurnal.switchTab('input', this)">Input</div>
+                    <div class="tab-j" onclick="Jurnal.switchTab('history', this)">Riwayat</div>
+                    <div class="tab-j" onclick="Jurnal.switchTab('stats', this)">Statistik</div>
+                </div>
+
+                <!-- VIEW 1: INPUT -->
+                <div id="jurnal-input-view">
+                    <div class="form-group"><label>Pilih Jenjang</label><select id="jurnJenjang" class="form-control" onchange="Jurnal.loadMembers()"><option value="">-- Pilih Jenjang --</option><option value="PAUD">PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja">Pra Remaja</option><option value="Remaja">Remaja</option></select></div>
+                    <div id="jurnalFormArea" class="hidden">
+                        <div class="form-group"><label>Tanggal</label><input type="date" id="jurnDate" class="form-control"></div>
+                        <div class="form-group"><label>Materi</label><textarea id="jurnMateri" class="form-control" rows="2" placeholder="Ringkasan materi..."></textarea></div>
+                        <label style="font-weight:600; margin-bottom:10px; display:block;">Daftar Hadir:</label>
+                        <div id="jurnMemberList"></div>
+                        <div style="margin-top:20px;"><button class="btn btn-primary btn-block" onclick="Jurnal.save()">Simpan Jurnal</button></div>
+                    </div>
+                </div>
+
+<!-- VIEW 2: RIWAYAT -->
+<div id="jurnal-history-view" class="hidden">
+    <div class="filter-bar" style="background:#fff; padding:10px; border-radius:8px; border:1px solid #eee; margin-bottom:15px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.8rem; margin-bottom:5px;">Dari:</label>
+                <input type="date" id="histStart" class="form-control" style="width:auto;" onchange="Jurnal.loadHistory()">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.8rem; margin-bottom:5px;">Sampai:</label>
+                <input type="date" id="histEnd" class="form-control" style="width:auto;" onchange="Jurnal.loadHistory()">
+            </div>
+            <!-- Filter Jenjang (Untuk Semua Role) -->
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:0.8rem; margin-bottom:5px;">Jenjang:</label>
+                <select id="histFilterJenjang" class="form-control" style="width:auto;" onchange="Jurnal.loadHistory()">
+                    <option value="">Semua Jenjang</option>
+                    <option value="PAUD">PAUD</option>
+                    <option value="Caberawit">Caberawit</option>
+                    <option value="Pra Remaja">Pra Remaja</option>
+                    <option value="Remaja">Remaja</option>
+                </select>
+            </div>
+            <!-- Filter Kelompok (Hanya Desa/Daerah) -->
+            <select id="histFilterKelompok" class="form-control hidden" style="width:auto;" onchange="Jurnal.loadHistory()"><option value="">Semua Kelompok</option></select>
+        </div>
+    </div>
+    <div id="jurnHistoryContainer" style="margin-top:15px;"></div>
+    <!-- Pagination -->
+    <div class="pagination-container hidden" id="historyPagination">
+        <button class="page-btn" onclick="Jurnal.changePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
+        <span class="page-info">Halaman <span id="histPageNum">1</span></span>
+        <button class="page-btn" onclick="Jurnal.changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+    </div>
+</div>
+
+                <!-- VIEW 3: STATISTIK -->
+<!-- VIEW 3: STATISTIK -->
+<div id="jurnal-stats-view" class="hidden">
+    <!-- Filter Area -->
+    <div class="stat-card" style="margin-bottom:20px;">
+        <h4>Filter Data</h4>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <div style="display:flex; gap:5px; align-items:center;">
+                <label style="font-size:0.8rem;">Jenjang:</label>
+                <!-- ID statsFilterJenjang untuk semua akun -->
+                <select id="statsFilterJenjang" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()">
+                    <option value="">Semua Jenjang</option>
+                    <option value="PAUD">PAUD</option>
+                    <option value="Caberawit">Caberawit</option>
+                    <option value="Pra Remaja">Pra Remaja</option>
+                    <option value="Remaja">Remaja</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:5px; align-items:center;" id="statsKelompokFilterWrapper" class="hidden">
+                <label style="font-size:0.8rem;">Kelompok:</label>
+                <select id="statsFilterKelompok" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()"><option value="">Semua Kelompok</option></select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tanggal -->
+    <div class="stat-card" style="margin-bottom:20px;">
+        <h4>Periode Tanggal</h4>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <input type="date" id="statsStart" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()">
+            <span>s/d</span>
+            <input type="date" id="statsEnd" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()">
+        </div>
+    </div>
+
+    <!-- Grafik & Rata-rata -->
+    <div class="stat-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h4>Grafik Perkembangan Kehadiran (%)</h4>
+            <!-- Tampilan Rata-rata Baru -->
+            <div style="background:#eff6ff; padding:5px 10px; border-radius:8px; border:1px solid #bfdbfe;">
+                <span style="font-size:0.8rem; color:#1e40af;">Rata-rata: </span>
+                <span id="avgAttendanceValue" style="font-weight:bold; color:#1e40af; font-size:1.1rem;">0%</span>
+            </div>
+        </div>
+        <div style="height:300px; width:100%;"><canvas id="attendanceChart"></canvas></div>
+    </div>
+
+    <!-- Analisis Siswa -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-top:20px;">
+        <div class="stat-card" style="border-left: 4px solid var(--success);"><h4 style="color:var(--success)">Selalu Hadir (100%)</h4><div id="listRajin" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
+        <div class="stat-card" style="border-left: 4px solid var(--primary);"><h4 style="color:var(--primary);">Sering Izin (>50%)</h4><div id="listIzin" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
+        <div class="stat-card" style="border-left: 4px solid orange;"><h4 style="color:orange;">Sering Sakit (>50%)</h4><div id="listSakit" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
+        <div class="stat-card" style="border-left: 4px solid var(--danger);"><h4 style="color:var(--danger);">Sering Alpha (>50%)</h4><div id="listAlpha" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
+    </div>
+
+    <!-- Download Laporan -->
+    <div class="stat-card" style="margin-top:20px; text-align:right;">
+        <button class="btn btn-primary" onclick="Jurnal.downloadRekap()">
+            <i class="fas fa-file-alt"></i> Download Laporan Jurnal
+        </button>
+    </div>
+</div>
+            </section>
+
+            <!-- MODULE 3: KURIKULUM -->
+            <section id="mod-kurikulum" class="hidden">
+                <h2 style="margin-bottom:20px;"><i class="fas fa-chart-line" style="color:var(--primary)"></i> Monitoring Kurikulum</h2>
+                <div class="filter-bar"><label style="align-self:center;">Kelompok:</label><select id="kurGroupSelect" class="form-control" style="width:auto; min-width:200px;" onchange="Kurikulum.loadProgress()"><option value="">-- Pilih Kelompok --</option></select></div>
+                <div id="kurContent" class="hidden">
+                    <div style="margin-bottom:20px; background:white; padding:15px; border-radius:12px; box-shadow:var(--shadow);">
+                        <h4 style="margin-bottom:10px;">Progress: <span id="kurPercent">0%</span></h4>
+                        <div style="background:#e2e8f0; height:10px; border-radius:5px; overflow:hidden;"><div id="kurBar" style="width:0%; background:var(--success); height:100%; transition:1s;"></div></div>
+                    </div>
+                    <div id="kurChecklistArea"></div>
+                    <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="Kurikulum.save()"><i class="fas fa-save"></i> Simpan Progress</button>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL ADD GENERUS -->
+    <div id="modalGen" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:15px;">Form Data Anggota</h3>
+            <form onsubmit="event.preventDefault(); Generus.saveForm();">
+                <input type="hidden" id="genRowIndex"><input type="hidden" id="genNo">
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="genNama" class="form-control" required></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="form-group"><label>Jenis Kelamin</label><select id="genJK" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+                    <div class="form-group"><label>Kelas</label><select id="genKelas" class="form-control" required><option value="Belum Sekolah">Belum Sekolah</option><option value="PAUD">PAUD</option><option value="TK">TK</option><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option><option value="7">Kelas 7</option><option value="8">Kelas 8</option><option value="9">Kelas 9</option><option value="10">Kelas 10</option><option value="11">Kelas 11</option><option value="12">Kelas 12</option><option value="Mahasiswa">Mahasiswa</option><option value="S1">S1</option><option value="S2">S2</option></select></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="form-group"><label>Tempat Lahir</label><input type="text" id="genTmpLahir" class="form-control"></div>
+                    <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="genTglLahir" class="form-control"></div>
+                </div>
+                <div class="form-group"><label>Nama Ayah</label><input type="text" id="genAyah" class="form-control"></div>
+                <div class="form-group"><label>Nama Ibu</label><input type="text" id="genIbu" class="form-control"></div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="document.getElementById('modalGen').style.display='none'">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL JURNAL -->
+    <div id="modalDetail" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 id="modalDetailTitle" style="margin:0;">Detail Kehadiran</h3>
+                <i class="fas fa-times" style="cursor:pointer; font-size:1.2rem;" onclick="document.getElementById('modalDetail').style.display='none'"></i>
+            </div>
+            <p id="modalDetailMateri" style="font-style:italic; color:#666; margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:8px;"></p>
+            <div id="modalDetailList"></div>
+            <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="document.getElementById('modalDetail').style.display='none'">Tutup</button>
+        </div>
+    </div>
+
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEmY93jUhH60aJLmVVMQRDBahHeEs_lqAiZlFJABy7j7atw9IWeGfXvZS5wK6qlAZvgg/exec'; 
+        // ==========================================
+        // CONFIG
+        // ==========================================
+        const API_URL = "https://script.google.com/macros/s/AKfycbyxNxItvHA9gZosXvyXD8zYMi7LfBuj14Ras4PEIpnaXPw7dzppcuBtsnKpqCWX_TNL/exec"; 
+        let currentUser = null;
 
-        let allData = [];
-        const elJenjangView = document.getElementById('jenjang-view');
-        const elCurriculumView = document.getElementById('curriculum-view');
-        const elLoading = document.getElementById('loading');
-        const elListContainer = document.getElementById('list-container');
-        const elTitle = document.getElementById('current-jenjang-title');
-
-        document.getElementById('year').textContent = new Date().getFullYear();
-
-        window.addEventListener('DOMContentLoaded', () => {
-            if (SCRIPT_URL === 'URL_APPS_SCRIPT_ANDA_DISINI' || SCRIPT_URL === '') {
-                alert("URL Script belum dikonfigurasi.");
-                return;
+        // ==========================================
+        // AUTH & APP LOGIC
+        // ==========================================
+        const Auth = {
+            init: function() {
+                const savedUser = localStorage.getItem('sso_user');
+                if (savedUser) { currentUser = JSON.parse(savedUser); Auth.showApp(); } 
+                else document.getElementById('login-view').style.display = 'flex';
+            },
+            login: async function() {
+                const u = document.getElementById('u').value, p = document.getElementById('p').value;
+                const btn = document.getElementById('btnLogin'), msg = document.getElementById('loginMsg'), card = document.getElementById('loginCard');
+                btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border-width:2px;"></div> Memproses...';
+                msg.style.display = 'none'; card.classList.remove('shake');
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: u, password: p }) });
+                    const data = await res.json();
+                    if (data.success) {
+                        currentUser = { role: data.role, lokasi: data.lokasi, desa: data.desa, username: u };
+                        localStorage.setItem('sso_user', JSON.stringify(currentUser));
+                        document.getElementById('login-view').classList.add('fade-out');
+                        setTimeout(() => Auth.showApp(), 500);
+                    } else throw new Error("Username/Password salah");
+                } catch (err) {
+                    msg.innerText = err.message || "Terjadi kesalahan koneksi"; msg.style.display = 'block';
+                    card.classList.add('shake'); setTimeout(() => card.classList.remove('shake'), 500);
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Masuk Aplikasi</span>';
+                }
+            },
+            logout: function() { localStorage.removeItem('sso_user'); location.reload(); },
+            showApp: function() {
+                document.getElementById('login-view').style.display = 'none'; document.getElementById('app-layout').classList.remove('hidden');
+                document.getElementById('sidebarUserName').innerText = currentUser.username || "User";
+                document.getElementById('sidebarUserRole').innerText = `${currentUser.role} - ${currentUser.lokasi}`;
+                App.switchModule('generus', document.querySelector('.nav-item'));
             }
-            fetchData();
+        };
+
+        const App = {
+            loader: function(show) { const el = document.getElementById('globalLoader'); if(show) el.classList.remove('hidden'); else el.classList.add('hidden'); },
+            toast: function(msg, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const div = document.createElement('div'); div.className = `toast ${type}`;
+                div.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+                container.appendChild(div); setTimeout(() => div.remove(), 3000);
+            },
+            switchModule: function(modName, navEl) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); if(navEl) navEl.classList.add('active');
+                document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`mod-${modName}`).classList.remove('hidden');
+                if(window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+                if(modName === 'generus') Generus.init();
+                if(modName === 'jurnal') Jurnal.init();
+                if(modName === 'kurikulum') Kurikulum.init();
+            }
+        };
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+        // ==========================================
+        // MODULE 1: GENERUS (SHORTENED)
+        // ==========================================
+        const Generus = {
+            allData: [], filteredData: [],
+            init: async function() {
+                App.loader(true);
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', role: currentUser.role, lokasi: currentUser.lokasi }) });
+                    const json = await res.json();
+                    this.allData = json.data || [];
+                    this.setupFilters();
+                    this.applyFilters();
+                } catch(e) { App.toast('Gagal memuat data Generus', 'error'); }
+                finally { App.loader(false); }
+            },
+            setupFilters: function() {
+                const fDesa = document.getElementById('filterDesa');
+                const fKel = document.getElementById('filterKelompok');
+                fDesa.classList.add('hidden'); fKel.classList.add('hidden');
+                const desaSet = new Set(this.allData.map(d => d.desa).filter(d => d));
+                const kelSet = new Set(this.allData.map(d => d.kelompok).filter(d => d));
+
+                if (currentUser.role === 'daerah') {
+                    fDesa.classList.remove('hidden');
+                    fDesa.innerHTML = '<option value="">Semua Desa</option>';
+                    desaSet.forEach(d => fDesa.innerHTML += `<option value="${d}">${d}</option>`);
+                }
+                if (currentUser.role === 'daerah' || currentUser.role === 'desa') {
+                    fKel.classList.remove('hidden');
+                    fKel.innerHTML = '<option value="">Semua Kelompok</option>';
+                    kelSet.forEach(k => fKel.innerHTML += `<option value="${k}">${k}</option>`);
+                }
+            },
+            applyFilters: function() {
+                const search = document.getElementById('genSearch').value.toLowerCase();
+                const fJk = document.getElementById('filterJK').value;
+                const fJenjang = document.getElementById('filterJenjang').value;
+                const fDesa = document.getElementById('filterDesa').value;
+                const fKelompok = document.getElementById('filterKelompok').value;
+                this.filteredData = this.allData.filter(d => {
+                    const matchSearch = d.nama.toLowerCase().includes(search) || (d.ayah && d.ayah.toLowerCase().includes(search));
+                    const matchJk = fJk ? d.jk === fJk : true;
+                    const matchJenjang = fJenjang ? (d.jenjang || '').toLowerCase().includes(fJenjang.toLowerCase()) : true;
+                    const matchDesa = fDesa ? d.desa === fDesa : true;
+                    const matchKel = fKelompok ? d.kelompok === fKelompok : true;
+                    return matchSearch && matchJk && matchJenjang && matchDesa && matchKel;
+                });
+                this.renderTable(); this.renderStats();
+            },
+            renderTable: function() {
+                const tbody = document.getElementById('genTableBody'); tbody.innerHTML = '';
+                if (this.filteredData.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Tidak ada data</td></tr>`; return; }
+                this.filteredData.forEach(d => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${d.no}</td><td><b>${d.nama}</b><br><small style="color:#888;">A: ${d.ayah||'-'} | I: ${d.ibu||'-'}</small></td><td><span style="color:${d.jk==='L'?'blue':'pink'}; font-weight:bold;">${d.jk}</span></td><td>${d.umur || '-'}</td><td>${d.kelas}</td><td><span style="background:#eff6ff; color:#1e40af; padding:2px 8px; border-radius:4px; font-size:0.75rem;">${d.jenjang||'-'}</span></td><td><small>${d.kelompok || '-'} <br> ${d.desa || '-'}</small></td><td><button class="btn btn-sm btn-primary" onclick="Generus.edit(${d.rowIndex})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="Generus.del(${d.rowIndex})"><i class="fas fa-trash"></i></button></td>`;
+                    tbody.appendChild(tr);
+                });
+                if(currentUser.role !== 'kelompok') { document.getElementById('btnAddGen').style.display = 'none'; document.querySelectorAll('#genTable th:last-child, #genTable td:last-child').forEach(el => el.style.display = 'none'); } 
+                else { document.getElementById('btnAddGen').style.display = 'inline-flex'; document.querySelectorAll('#genTable th:last-child, #genTable td:last-child').forEach(el => el.style.display = 'table-cell'); }
+            },
+            renderStats: function() {
+                const total = this.filteredData.length;
+                document.getElementById('statTotal').innerText = total;
+                document.getElementById('statL').innerText = this.filteredData.filter(d => d.jk === 'L').length;
+                document.getElementById('statP').innerText = this.filteredData.filter(d => d.jk === 'P').length;
+                
+                const renderBar = (id, map) => {
+                    const el = document.getElementById(id); el.innerHTML = '';
+                    const max = Math.max(...Object.values(map), 1);
+                    for (const [k, v] of Object.entries(map)) el.innerHTML += `<div class="stat-bar-item"><div class="sb-label"><span>${k}</span><span>${v}</span></div><div class="sb-bg"><div class="sb-fill" style="width:${(v/max)*100}%"></div></div></div>`;
+                };
+                const kelasMap={}; this.filteredData.forEach(d=>kelasMap[d.kelas||'Lainnya']=(kelasMap[d.kelas||'Lainnya']||0)+1); renderBar('chartKelas', kelasMap);
+                const jenjangMap={}; this.filteredData.forEach(d=>jenjangMap[d.jenjang||'Umum']=(jenjangMap[d.jenjang||'Umum']||0)+1); renderBar('chartJenjang', jenjangMap);
+                
+                const cardGroup = document.getElementById('cardGroupStats'); cardGroup.classList.add('hidden');
+                if (currentUser.role === 'desa') { cardGroup.classList.remove('hidden'); document.getElementById('titleGroupStats').innerText="Statistik Kelompok"; const km={}; this.filteredData.forEach(d=>km[d.kelompok||'Umum']=(km[d.kelompok||'Umum']||0)+1); renderBar('chartGrouping', km); } 
+                else if (currentUser.role === 'daerah') { cardGroup.classList.remove('hidden'); document.getElementById('titleGroupStats').innerText="Rekap per Desa"; const dm={}; this.filteredData.forEach(d=>dm[d.desa||'Umum']=(dm[d.desa||'Umum']||0)+1); renderBar('chartGrouping', dm); }
+            },
+            openModal: function() { document.querySelector('#modalGen form').reset(); document.getElementById('genRowIndex').value=''; document.getElementById('modalGen').style.display='flex'; },
+            saveForm: async function() {
+                const kelas = document.getElementById('genKelas').value;
+                let tgl = document.getElementById('genTglLahir').value; if(tgl){const p=tgl.split('-'); if(p.length===3) tgl=`${p[2]}/${p[1]}/${p[0]}`;}
+                const payload = { rowIndex: document.getElementById('genRowIndex').value, nama: document.getElementById('genNama').value, jk: document.getElementById('genJK').value, kelas: kelas, tempatLahir: document.getElementById('genTmpLahir').value, tanggalLahir: tgl, ayah: document.getElementById('genAyah').value, ibu: document.getElementById('genIbu').value, kelompok: currentUser.lokasi, desa: currentUser.desa };
+                App.loader(true); const action = payload.rowIndex ? 'editData' : 'addData';
+                try { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload }) }); if((await res.json()).status === 'success') { App.toast('Data tersimpan'); document.getElementById('modalGen').style.display='none'; this.init(); } } catch(e){App.toast('Gagal simpan','error');} finally{App.loader(false);}
+            },
+            edit: function(idx) {
+                const item = this.allData.find(d => d.rowIndex == idx); if(!item) return;
+                document.getElementById('genRowIndex').value = item.rowIndex; document.getElementById('genNo').value = item.no; document.getElementById('genNama').value = item.nama; document.getElementById('genJK').value = item.jk; document.getElementById('genKelas').value = item.kelas; document.getElementById('genTmpLahir').value = item.tempatLahir || '';
+                if(item.tanggalLahir){const p=item.tanggalLahir.split('/'); if(p.length===3) document.getElementById('genTglLahir').value=`${p[2]}-${p[1]}-${p[0]}`;} else document.getElementById('genTglLahir').value='';
+                document.getElementById('genAyah').value = item.ayah || ''; document.getElementById('genIbu').value = item.ibu || ''; document.getElementById('modalGen').style.display='flex';
+            },
+            del: async function(idx) { if(!confirm('Hapus?')) return; App.loader(true); try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteData', rowIndex: idx }) }); this.init(); } finally{App.loader(false);} },
+            downloadExcel: function() { if(!this.filteredData.length) return App.toast('Tidak ada data', 'error'); const ws=XLSX.utils.json_to_sheet(this.filteredData); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `Data_${new Date().toISOString().slice(0,10)}.xlsx`); }
+        };
+
+// ==========================================
+// MODULE 2: JURNAL (FINAL UPDATE)
+// ==========================================
+const Jurnal = {
+    members: [], statsData: null, chartInstance: null,
+    allHistoryData: [], currentPage: 1, itemsPerPage: 10,
+
+    init: function() { 
+        document.getElementById('jurnDate').valueAsDate = new Date(); 
+        
+        // Tampilkan filter kelompok jika Desa/Daerah
+        if(currentUser.role !== 'kelompok') {
+            document.getElementById('histFilterKelompok').classList.remove('hidden');
+            document.getElementById('statsKelompokFilterWrapper').classList.remove('hidden');
+            this.populateOptions();
+        } else {
+            document.getElementById('histFilterKelompok').classList.add('hidden');
+            document.getElementById('statsKelompokFilterWrapper').classList.add('hidden');
+        }
+
+        if(currentUser.role === 'kelompok') this.switchTab('input', document.querySelectorAll('.tab-j')[0]);
+        else this.switchTab('stats', document.querySelectorAll('.tab-j')[2]);
+    },
+
+    populateOptions: function() {
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang: '' }) })
+        .then(res => res.json()).then(json => {
+            const kSet = new Set((json.members || []).map(m => m.kelompok).filter(k=>k));
+            const kSel = document.getElementById('histFilterKelompok');
+            const statsKSel = document.getElementById('statsFilterKelompok');
+            
+            [kSel, statsKSel].forEach(sel => {
+                sel.innerHTML = '<option value="">Semua Kelompok</option>';
+                kSet.forEach(k => sel.innerHTML += `<option value="${k}">${k}</option>`);
+            });
+        });
+    },
+
+    switchTab: function(tab, el) {
+        document.querySelectorAll('.tab-j').forEach(t => t.classList.remove('active')); 
+        if(el) el.classList.add('active');
+        document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input');
+        document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history');
+        document.getElementById('jurnal-stats-view').classList.toggle('hidden', tab !== 'stats');
+        
+        if(tab === 'history') {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('histStart').value = today;
+            document.getElementById('histEnd').value = today;
+            this.loadHistory(); 
+        }
+        if(tab === 'stats') this.loadStats();
+    },
+
+    loadMembers: async function() {
+        const jenjang = document.getElementById('jurnJenjang').value;
+        const container = document.getElementById('jurnMemberList'), formArea = document.getElementById('jurnalFormArea');
+        if(!jenjang) { formArea.classList.add('hidden'); return; } formArea.classList.remove('hidden');
+        container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang }) });
+            const json = await res.json(); container.innerHTML = ''; this.members = json.members || [];
+            this.members.forEach(m => {
+                const div = document.createElement('div'); div.className = 'member-card';
+                div.innerHTML = `<span>${m.nama}</span><select id="status_${m.no}" style="padding:5px; border-radius:4px; border:1px solid #ddd;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`;
+                container.appendChild(div);
+            });
+        } catch(e) { App.toast('Gagal muat anggota', 'error'); }
+    },
+
+    save: async function() {
+        const jenjang = document.getElementById('jurnJenjang').value, tgl = document.getElementById('jurnDate').value, materi = document.getElementById('jurnMateri').value;
+        if(!jenjang || !tgl || !materi) return App.toast('Lengkapi data', 'error');
+        const hadirData = []; this.members.forEach(m => hadirData.push({ nama: m.nama, status: document.getElementById(`status_${m.no}`).value }));
+        App.loader(true);
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addJurnal', payload: { tanggal: tgl, kelompok: currentUser.lokasi, desa: currentUser.desa, jenjang, materi, hadir: hadirData } }) });
+            if((await res.json()).status === 'success') { App.toast('Jurnal tersimpan'); document.getElementById('jurnMateri').value = ''; }
+        } catch(e) { App.toast('Gagal simpan', 'error'); } finally { App.loader(false); }
+    },
+
+    // UPDATE: Load History dengan Filter Jenjang
+    loadHistory: async function() {
+        App.loader(true);
+        this.currentPage = 1;
+        
+        // Ambil semua filter
+        const start = document.getElementById('histStart').value; 
+        const end = document.getElementById('histEnd').value;       
+        const kel = document.getElementById('histFilterKelompok').value;
+        const jenjang = document.getElementById('histFilterJenjang').value; // BARU
+
+        const payload = { 
+            action: 'getJurnalHistory', 
+            role: currentUser.role, 
+            lokasi: currentUser.lokasi, 
+            desa: currentUser.desa, 
+            startDate: start || '', 
+            endDate: end || '', 
+            filterKelompok: kel || '',
+            jenjang: jenjang || '' // BARU
+        };
+        
+        const container = document.getElementById('jurnHistoryContainer');
+        container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
+        document.getElementById('historyPagination').classList.add('hidden');
+        
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const json = await res.json(); 
+            this.allHistoryData = json.history || [];
+            this.renderHistoryPage();
+        } catch(e) { App.toast('Gagal muat riwayat', 'error'); }
+        finally { App.loader(false); }
+    },
+
+    renderHistoryPage: function() {
+        const container = document.getElementById('jurnHistoryContainer');
+        container.innerHTML = '';
+        if (this.allHistoryData.length === 0) { container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Tidak ada data riwayat.</div>'; return; }
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        const pageData = this.allHistoryData.slice(start, end);
+        pageData.forEach(h => {
+            let hCount=0, sCount=0, iCount=0, aCount=0;
+            try { const list = JSON.parse(h.kehadiran); list.forEach(x => { if(x.status==='Hadir')hCount++; else if(x.status==='Sakit')sCount++; else if(x.status==='Izin')iCount++; else aCount++; }); }catch(e){}
+            const div = document.createElement('div'); div.className = 'history-card';
+            div.innerHTML = `<div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">${h.tanggal} - ${h.jenjang}</div><div style="font-style:italic; margin-bottom:10px;">"${h.materi}"</div><div style="display:flex; gap:10px; font-size:0.8rem; margin-bottom:10px; color:#555;"><span>H: <b>${hCount}</b></span> <span>S: <b>${sCount}</b></span> <span>I: <b>${iCount}</b></span> <span>A: <b>${aCount}</b></span></div><div style="border-top:1px dashed #ccc; padding-top:10px;"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`;
+            container.appendChild(div);
+        });
+        const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
+        document.getElementById('histPageNum').innerText = `${this.currentPage} / ${totalPages}`;
+        document.querySelector('#historyPagination button:first-child').disabled = this.currentPage === 1;
+        document.querySelector('#historyPagination button:last-child').disabled = this.currentPage === totalPages;
+        document.getElementById('historyPagination').classList.remove('hidden');
+    },
+
+    changePage: function(delta) {
+        const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
+        const newPage = this.currentPage + delta;
+        if(newPage > 0 && newPage <= totalPages) { this.currentPage = newPage; this.renderHistoryPage(); }
+    },
+
+    showDetails: function(encodedData) {
+        const h = JSON.parse(atob(encodedData));
+        const modal = document.getElementById('modalDetail');
+        const listDiv = document.getElementById('modalDetailList');
+        document.getElementById('modalDetailTitle').innerText = `Kehadiran ${h.tanggal} (${h.jenjang})`;
+        document.getElementById('modalDetailMateri').innerText = `"${h.materi}"`;
+        let html = '';
+        try {
+            const list = JSON.parse(h.kehadiran);
+            list.forEach(x => {
+                let badgeClass = 'badge-A';
+                if(x.status === 'Hadir') badgeClass = 'badge-H';
+                else if(x.status === 'Sakit') badgeClass = 'badge-S';
+                else if(x.status === 'Izin') badgeClass = 'badge-I';
+                html += `<div class="detail-item"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`;
+            });
+        } catch(e){ html = '<p style="color:red;">Gagal memuat data.</p>'; }
+        listDiv.innerHTML = html;
+        modal.style.display = 'flex';
+    },
+
+    // UPDATE: Load Stats dengan Tampilan Rata-rata
+    loadStats: async function() {
+        App.loader(true);
+        const jenjangFilter = document.getElementById('statsFilterJenjang').value;
+        const kelompokFilter = document.getElementById('statsFilterKelompok').value;
+        const startDate = document.getElementById('statsStart').value;
+        const endDate = document.getElementById('statsEnd').value;
+
+        let payload = { action: 'getJurnalStats', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjangFilter, startDate: startDate || '', endDate: endDate || '' };
+        if (kelompokFilter) payload.filterKelompok = kelompokFilter;
+        
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const json = await res.json();
+            if(json.status === 'success') {
+                this.statsData = json.history; 
+                this.renderChart(json.chartData);
+                this.renderAnalysis(json.analysis);
+                
+                // HITUNG & TAMPILKAN RATA-RATA
+                const chartData = json.chartData || [];
+                if(chartData.length > 0) {
+                    const totalPct = chartData.reduce((sum, item) => sum + item.percentage, 0);
+                    const avg = Math.round(totalPct / chartData.length);
+                    document.getElementById('avgAttendanceValue').innerText = avg + "%";
+                } else {
+                    document.getElementById('avgAttendanceValue').innerText = "0%";
+                }
+
+            } else { App.toast(json.message, 'error'); }
+        } catch(e) { App.toast('Gagal muat statistik', 'error'); }
+        finally { App.loader(false); }
+    },
+    renderChart: function(data) {
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        if(this.chartInstance) this.chartInstance.destroy();
+        this.chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: data.map(d => d.date), datasets: [{ label: 'Kehadiran (%)', data: data.map(d => d.percentage), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+        });
+    },
+    renderAnalysis: function(analysis) {
+        const renderList = (id, data) => {
+            const el = document.getElementById(id);
+            el.innerHTML = data.length ? '' : '<small style="color:#999">Tidak ada data</small>';
+            data.forEach(item => {
+                let detail = `(${item.stat.H}/${item.stat.Total})`;
+                if(currentUser.role !== 'kelompok' && item.kelompoks) detail += `<br><small style="color:#888;">Kelompok: ${item.kelompoks}</small>`;
+                el.innerHTML += `<div style="padding:4px 0; border-bottom:1px solid #eee;"><b>${item.nama}</b> <span style="font-size:0.8rem; color:#666;">${detail}</span></div>`;
+            });
+        };
+        renderList('listRajin', analysis.rajin);
+        renderList('listIzin', analysis.izin); 
+        renderList('listSakit', analysis.sakit);
+        renderList('listAlpha', analysis.alpha);
+    },
+
+    // UPDATE: Download Laporan PDF (Kolom Materi Diperkecil Jadi 90)
+    downloadRekap: function() {
+        if(!this.statsData) return App.toast('Data statistik belum dimuat. Silakan pilih filter terlebih dahulu.', 'error');
+        if(this.statsData.length === 0) return App.toast('Tidak ada data untuk diunduh.', 'error');
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Ambil Nilai Filter
+        const startDate = document.getElementById('statsStart').value;
+        const endDate = document.getElementById('statsEnd').value;
+        
+        // Format Tanggal
+        const startStr = startDate || 'Awal';
+        const endStr = endDate || 'Akhir';
+        
+        // 1. NAMA FILE
+        const fileName = `Laporan_${currentUser.lokasi}_${startStr}_sd_${endStr}.pdf`;
+        
+        // 2. SUB JUDUL
+        const subTitle = `Periode ${startStr} s.d. ${endStr}`;
+
+        const filterKelompok = document.getElementById('statsFilterKelompok').value; 
+        const filterJenjang = document.getElementById('statsFilterJenjang').value;
+
+        // --- LOGIKA KONTEN ---
+        let title = "";
+        let tableHeaders = [];
+        let tableBody = [];
+        let grandTotalPct = 0;
+        let countAvg = 0;
+
+        // 3. PENGATURAN LEBAR KOLOM
+        let columnStyles = {
+            0: { cellWidth: 15 }, // No: 15 (Cukup untuk 2-3 digit)
+        };
+
+        // --- AKUN KELOMPOK ---
+        if (currentUser.role === 'kelompok') {
+            title = `Laporan Jurnal Pengajian Kelompok ${currentUser.lokasi}`;
+            tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Persentase Kehadiran']];
+            
+            // Materi di-index 2, lebar diset 90
+            columnStyles[2] = { cellWidth: 65 }; 
+
+            this.statsData.forEach((h, i) => {
+                let pct = 0;
+                try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, pct + "%"]);
+                grandTotalPct += pct; countAvg++;
+            });
+        }
+        
+        // --- AKUN DESA ---
+        else if (currentUser.role === 'desa') {
+            if (filterKelompok) {
+                title = `Laporan Jurnal Pengajian Kelompok ${filterKelompok}`;
+            } else {
+                title = `Laporan Jurnal Pengajian Tingkat Desa ${currentUser.desa}`;
+            }
+            tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Kelompok', 'Persentase Kehadiran']];
+            
+            // Materi di-index 2, lebar diset 90
+            columnStyles[2] = { cellWidth: 65 }; 
+            // Kelompok di-index 4, lebar diset 35
+            columnStyles[4] = { cellWidth: 35 }; 
+
+            this.statsData.forEach((h, i) => {
+                let pct = 0;
+                try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, h.kelompok, pct + "%"]);
+                grandTotalPct += pct; countAvg++;
+            });
+        }
+
+        // --- AKUN DAERAH ---
+        else if (currentUser.role === 'daerah') {
+            title = `Rekap Laporan Jurnal Pengajian ${currentUser.lokasi}`;
+            tableHeaders = [['No', 'Jenjang', 'Persentase Kehadiran Kelompok', 'Desa']];
+            
+            // Pengaturan lebar khusus Daerah
+            columnStyles[1] = { cellWidth: 40 }; // Jenjang
+            columnStyles[3] = { cellWidth: 50 }; // Desa
+
+            const groupMap = {}; 
+            this.statsData.forEach(h => {
+                let pct = 0;
+                try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                const key = `${h.jenjang}_${h.kelompok}_${h.desa}`;
+                if (!groupMap[key]) groupMap[key] = { totalPct: 0, count: 0, jenjang: h.jenjang, kelompok: h.kelompok, desa: h.desa };
+                groupMap[key].totalPct += pct; groupMap[key].count++;
+            });
+
+            let index = 1;
+            for (const key in groupMap) {
+                const group = groupMap[key];
+                const avgPct = Math.round(group.totalPct / group.count);
+                tableBody.push([index++, group.jenjang, avgPct + "%", group.desa]);
+                grandTotalPct += avgPct; countAvg++;
+            }
+        }
+
+        // --- RENDER PDF ---
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, 14, 20);
+
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.text(subTitle, 14, 30);
+
+        doc.autoTable({
+            startY: 40,
+            head: tableHeaders,
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [37, 99, 235] }, 
+            styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' }, 
+            columnStyles: columnStyles 
         });
 
-        async function fetchData() {
-            elJenjangView.style.display = 'none';
-            elLoading.style.display = 'block';
+        // Footer: Rata-rata
+        const finalY = doc.lastAutoTable.finalY + 10;
+        let overallAvg = countAvg > 0 ? Math.round(grandTotalPct / countAvg) : 0;
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(`Rata-rata kehadiran keseluruhan: ${overallAvg}%`, 14, finalY);
 
-            try {
-                const response = await fetch(SCRIPT_URL);
-                if (!response.ok) throw new Error("Gagal menghubungi server");
-                allData = await response.json();
-                
-                elLoading.style.display = 'none';
-                elJenjangView.style.display = 'block';
-            } catch (error) {
-                elLoading.innerHTML = `<p style="color:var(--text-muted)">Gagal memuat data. Periksa koneksi internet.</p>`;
+        // Simpan File
+        doc.save(fileName);
+    },
+    downloadReport: function() {
+        if(!this.statsData) return App.toast('Belum ada data statistik', 'error');
+        const excelData = [];
+        this.statsData.forEach(h => {
+            try { const list = JSON.parse(h.kehadiran); list.forEach(s => { excelData.push({ "Tanggal": h.tanggal, "Jenjang": h.jenjang, "Kelompok": h.kelompok, "Materi": h.materi, "Nama Siswa": s.nama, "Status": s.status }); }); } catch(e){}
+        });
+        if(excelData.length === 0) return App.toast('Tidak ada data', 'error');
+        const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail"); XLSX.writeFile(wb, `Detail_Siswa_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+};
+
+        // ==========================================
+        // MODULE 3: KURIKULUM
+        // ==========================================
+        const Kurikulum = {
+            groups: [], config: {}, currentGroupId: null,
+            init: async function() {
+                App.loader(true);
+                try {
+                    const gRes = await fetch(API_URL + "?action=getGroups"); const gJson = await gRes.json();
+                    if(gJson.status === 'success') this.groups = gJson.data;
+                    const cRes = await fetch(API_URL + "?action=getConfig"); const cJson = await cRes.json();
+                    if(cJson.status === 'success') this.config = cJson.data;
+                    const sel = document.getElementById('kurGroupSelect'); sel.innerHTML = '<option value="">-- Pilih Kelompok --</option>';
+                    this.groups.forEach(g => sel.innerHTML += `<option value="${g.id}">${g.name} (${g.desa})</option>`);
+                } catch(e) { App.toast('Gagal inisialisasi', 'error'); } finally { App.loader(false); }
+            },
+            loadProgress: async function() {
+                const gid = document.getElementById('kurGroupSelect').value, content = document.getElementById('kurContent');
+                if(!gid) { content.classList.add('hidden'); return; } content.classList.remove('hidden'); this.currentGroupId = gid; App.loader(true);
+                try {
+                    const pRes = await fetch(API_URL + "?action=getProgress&id=" + gid); const pJson = await pRes.json();
+                    let savedData = {}, jenjang = '';
+                    if(pJson.status === 'success' && pJson.data) { savedData = pJson.data.progressData || {}; jenjang = pJson.data.jenjang; }
+                    const area = document.getElementById('kurChecklistArea'); area.innerHTML = '';
+                    const targetJenjang = jenjang || Object.keys(this.config)[0];
+                    if(!targetJenjang || !this.config[targetJenjang]) { area.innerHTML = '<p class="text-center">Config tidak ditemukan.</p>'; App.loader(false); return; }
+                    const items = this.config[targetJenjang]; let html = ''; let total = 0, checked = 0;
+                    items.forEach((cat, cIdx) => {
+                        html += `<div class="category-section"><div class="category-header">${cat.category}. ${cat.title}</div><div class="item-list">`;
+                        cat.items.forEach((item, iIdx) => {
+                            total++; const key = `${cIdx}-${iIdx}`; const isChecked = savedData[key] ? 'checked' : ''; if(isChecked) checked++;
+                            html += `<div class="checklist-item"><input type="checkbox" id="chk_${key}" ${isChecked}><label for="chk_${key}">${item}</label></div>`;
+                        }); html += `</div></div>`;
+                    });
+                    area.innerHTML = html;
+                    const pct = total > 0 ? Math.round((checked/total)*100) : 0;
+                    document.getElementById('kurPercent').innerText = pct + "%"; document.getElementById('kurBar').style.width = pct + "%";
+                } catch(e) { App.toast('Gagal muat progress', 'error'); } finally { App.loader(false); }
+            },
+            save: async function() {
+                if(!this.currentGroupId) return;
+                const checkboxes = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]');
+                const progressData = {}; checkboxes.forEach(cb => { const key = cb.id.replace('chk_', ''); progressData[key] = cb.checked; });
+                App.loader(true);
+                try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveProgress', id: this.currentGroupId, jenjang: 'Umum', progressData }) }); App.toast('Progress disimpan'); } 
+                catch(e) { App.toast('Gagal simpan', 'error'); } finally { App.loader(false); }
             }
-        }
+        };
 
-        function openJenjang(jenjangName) {
-            const filteredData = allData.filter(item => item.jenjang === jenjangName);
-            elTitle.textContent = "Kurikulum " + jenjangName;
-            elListContainer.innerHTML = '';
-
-            if (filteredData.length === 0) {
-                elListContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        <p>Belum ada data kurikulum untuk jenjang ini.</p>
-                    </div>`;
-            } else {
-                filteredData.forEach(item => {
-                    // PERUBAHAN: Hapus target="_blank" agar tidak buka tab baru
-                    let downloadBtn = '';
-                    if (item.link && item.link.trim() !== '') {
-                        downloadBtn = `<a href="${item.link}" class="btn-download"><i class="fas fa-download"></i> Unduh</a>`;
-                    } else {
-                        downloadBtn = `<span class="btn-download btn-no-link">Tidak ada file</span>`;
-                    }
-
-                    const html = `
-                        <div class="curriculum-item">
-                            <div class="item-content">
-                                <h3>${item.judul}</h3>
-                                <p>${item.deskripsi}</p>
-                            </div>
-                            <div>${downloadBtn}</div>
-                        </div>`;
-                    elListContainer.innerHTML += html;
-                });
-            }
-
-            elJenjangView.style.display = 'none';
-            elCurriculumView.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function resetApp() {
-            elCurriculumView.style.display = 'none';
-            elJenjangView.style.display = 'block';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        window.onload = function() { Auth.init(); };
     </script>
 </body>
 </html>
