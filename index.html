@@ -4,144 +4,232 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ruang Kurikulum</title>
+    <!-- Fonts: Inter (Modern Sans) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Libraries: SheetJS, ChartJS, jsPDF -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
     <style>
-        /* --- CSS VARIABLES --- */
+        /* --- CSS VARIABLES (WHITE & GREEN THEME) --- */
         :root {
-            --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b;
-            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a; --text-light: #64748b;
-            --border: #e2e8f0; --danger: #ef4444; --success: #10b981;
-            --radius: 12px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            --sidebar-width: 250px;
+            /* Primary Green Colors */
+            --primary: #10b981;       /* Emerald 500 */
+            --primary-hover: #059669; /* Emerald 600 */
+            --primary-light: #ecfdf5; /* Emerald 50 */
+            --primary-subtle: #d1fae5; /* Emerald 100 */
+            
+            /* Neutrals */
+            --bg-body: #f8fafc;       /* Slate 50 */
+            --bg-surface: #ffffff;
+            --text-main: #1e293b;     /* Slate 800 */
+            --text-muted: #64748b;    /* Slate 500 */
+            --border: #e2e8f0;        /* Slate 200 */
+            
+            /* Semantic */
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --info: #3b82f6;
+            --info-bg: #eff6ff;
+
+            /* UI Config */
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --sidebar-width: 260px;
+            --header-height: 70px;
         }
+
+        /* --- RESET & BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; overflow-x: hidden; font-size: 14px; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
 
         /* --- UTILS --- */
         .hidden { display: none !important; }
-        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: var(--secondary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
-        .btn-block { width: 100%; }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 8px; } .gap-4 { gap: 16px; }
+        .text-sm { font-size: 0.85rem; } .text-xs { font-size: 0.75rem; }
+        .font-bold { font-weight: 700; } .font-medium { font-weight: 500; }
+        .text-primary { color: var(--primary); } .text-muted { color: var(--text-muted); }
 
-        /* --- LOGIN --- */
-        #login-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s ease; }
+        /* --- BUTTONS --- */
+        .btn { padding: 10px 20px; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; line-height: 1; }
+        .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-secondary { background-color: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-secondary:hover { background-color: var(--bg-body); border-color: #cbd5e1; }
+        .btn-danger { background-color: var(--danger-bg); color: var(--danger); border: 1px solid transparent; }
+        .btn-danger:hover { background-color: #fee2e2; border-color: #fecaca; }
+        .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+        .btn-block { width: 100%; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* --- FORMS --- */
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background: white; transition: 0.2s; color: var(--text-main); }
+        .form-control:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
+        select.form-control { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+
+        /* --- LOGIN SCREEN --- */
+        #login-view { position: fixed; inset: 0; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s ease; }
         #login-view.fade-out { opacity: 0; pointer-events: none; }
-        .login-card { background: white; width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center; }
-        .login-logo { font-size: 3rem; color: var(--primary); margin-bottom: 10px; }
+        .login-card { background: white; width: 100%; max-width: 400px; padding: 40px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; }
+        .login-logo { width: 70px; height: 70px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px; }
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
-        .form-group { margin-bottom: 16px; text-align: left; }
-        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
-        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: 0.2s; }
-        .form-control:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
 
-        /* --- LAYOUT --- */
+        /* --- APP LAYOUT --- */
         #app-layout { display: flex; min-height: 100vh; }
-        .sidebar { width: var(--sidebar-width); background: white; border-right: 1px solid var(--border); position: fixed; height: 100%; z-index: 100; transition: transform 0.3s; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        .nav-links { flex: 1; padding: 20px 10px; overflow-y: auto; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-light); text-decoration: none; border-radius: 8px; margin-bottom: 5px; font-weight: 500; cursor: pointer; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: #eff6ff; color: var(--primary); }
-        .nav-item i { width: 20px; text-align: center; }
-        .user-profile { padding: 15px; border-top: 1px solid var(--border); background: #f8fafc; }
-        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 20px; width: calc(100% - var(--sidebar-width)); }
-        .mobile-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 101; background: white; padding: 8px; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: white; border-right: 1px solid var(--border); position: fixed; height: 100%; z-index: 100; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; left: 0; }
+        .sidebar-header { height: var(--header-height); display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--border); }
+        .brand { font-size: 1.25rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .nav-links { flex: 1; padding: 24px 16px; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--text-muted); border-radius: var(--radius-sm); margin-bottom: 4px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .nav-item:hover { background-color: var(--bg-body); color: var(--text-main); }
+        .nav-item.active { background-color: var(--primary-light); color: var(--primary-hover); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
+        
+        .user-profile { padding: 16px; border-top: 1px solid var(--border); background: var(--bg-body); }
+        .user-info { font-weight: 600; color: var(--text-main); font-size: 0.9rem; }
+        .user-role { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+
+        /* Main Content */
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 32px; width: calc(100% - var(--sidebar-width)); transition: margin 0.3s; }
+        .mobile-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 101; background: white; padding: 10px; border-radius: 50%; box-shadow: var(--shadow-md); border: 1px solid var(--border); color: var(--text-main); cursor: pointer; }
 
         /* --- COMPONENTS --- */
-        .dashboard-stats { margin-bottom: 20px; }
-        .stat-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: var(--surface); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .stat-card h4 { margin: 0 0 10px 0; color: var(--text-light); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .stat-card .big-num { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-        .stat-bar-item { margin-bottom: 8px; font-size: 0.85rem; }
-        .sb-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .sb-bg { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; }
-        .sb-fill { background: var(--primary); height: 100%; border-radius: 4px; }
+        .section-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        
+        /* Stats Cards */
+        .stat-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .stat-card { background: var(--bg-surface); padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: transform 0.2s; position: relative; overflow: hidden; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-card::before { content:''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary); opacity: 0; transition: 0.2s; }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card h4 { margin: 0 0 8px 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .big-num { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+        
+        /* Custom Bar for Charts in Dashboard */
+        .stat-bar-item { margin-bottom: 12px; font-size: 0.85rem; }
+        .sb-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: 500; color: var(--text-main); }
+        .sb-bg { background: #f1f5f9; height: 8px; border-radius: 10px; overflow: hidden; }
+        .sb-fill { background: var(--primary); height: 100%; border-radius: 10px; transition: width 1s ease-in-out; }
 
-        .table-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        /* Filters */
+        .filter-bar { background: var(--bg-surface); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+        .search-box { flex: 1; min-width: 250px; position: relative; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .search-box input { padding-left: 38px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg-body); }
+        .search-box input:focus { background: white; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        /* Tables */
+        .table-card { background: var(--bg-surface); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden; }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: top; }
-        th { background: #f8fafc; font-weight: 600; color: var(--text-light); white-space: nowrap; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #fcfcfc; }
         
-        .filter-bar { background: var(--surface); padding: 15px; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .search-box { flex: 1; min-width: 200px; position: relative; }
-        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
-        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border: 1px solid var(--border); border-radius: 8px; }
+        /* Tabs */
+        .tabs-wrapper { display: inline-flex; background: #f1f5f9; padding: 4px; border-radius: var(--radius); }
+        .tab-btn { padding: 8px 16px; border-radius: 6px; border: none; background: transparent; color: var(--text-muted); font-weight: 500; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-        /* Modal Detail */
-        #modalDetailList { max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
-        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
-        .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
-        .badge-H { background: #dcfce7; color: #166534; } .badge-S { background: #fef9c3; color: #854d0e; }
-        .badge-I { background: #dbeafe; color: #1e40af; } .badge-A { background: #fee2e2; color: #991b1b; }
+        /* Badges */
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; display: inline-block; }
+        .badge-H { background: var(--primary-subtle); color: var(--primary-hover); }
+        .badge-S { background: var(--warning-bg); color: var(--warning); }
+        .badge-I { background: var(--info-bg); color: var(--info); }
+        .badge-A { background: var(--danger-bg); color: var(--danger); }
 
-        /* --- JURNAL & KURIKULUM --- */
-        .tabs-jurnal { display: flex; background: var(--surface); padding: 5px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .tab-j { flex: 1; text-align: center; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--text-light); }
-        .tab-j.active { background: var(--primary); color: white; }
+        /* Cards (History/Jurnal) */
+        .history-card { background: var(--bg-surface); padding: 20px; border-radius: var(--radius); margin-bottom: 16px; border: 1px solid var(--border); transition: 0.2s; }
+        .history-card:hover { border-color: var(--primary-subtle); box-shadow: var(--shadow-md); }
 
-        .member-card { background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
-        .history-card { background: var(--surface); padding: 20px; border-radius: var(--radius); margin-bottom: 15px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        /* Checklist */
+        .category-section { margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .category-header { background: var(--primary-light); color: var(--primary-hover); padding: 12px 16px; font-weight: 600; font-size: 0.95rem; border-bottom: 1px solid var(--border); }
+        .item-list { padding: 16px; background: white; }
+        .checklist-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); }
+        .checklist-item:last-child { border-bottom: none; }
+        .checklist-item input { margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+        .checklist-item input:checked + label { text-decoration: line-through; color: var(--text-muted); }
         
-        /* Pagination Styles */
-        .pagination-container { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-        .page-btn { padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
-        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .page-info { align-self: center; font-size: 0.9rem; color: var(--text-light); }
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 500; inset: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+        .modal.show { display: flex; opacity: 1; }
+        .modal-content { background-color: white; padding: 32px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; transform: translateY(20px); transition: transform 0.3s; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal.show .modal-content { transform: translateY(0); }
 
-        .category-section { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-        .category-header { background: var(--primary); color: white; padding: 10px 15px; font-weight: 600; }
-        .item-list { padding: 15px; background: #fafafa; }
-        .checklist-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px dashed #ddd; }
-        .checklist-item input { margin-right: 12px; transform: scale(1.2); accent-color: var(--primary); }
-        .checklist-item input:checked + label { text-decoration: line-through; color: #888; }
-
-        /* --- TOAST & LOADER --- */
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: #333; color: white; padding: 12px 20px; border-radius: 8px; font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
-        .toast.success { background: var(--success); } .toast.error { background: var(--danger); }
+        /* Toast & Loader */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #1e293b; color: white; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 0.9rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); animation: slideIn 0.3s ease; display: flex; align-items: center; gap: 10px; }
+        .toast.success { background: var(--primary); } .toast.error { background: var(--danger); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .modal { display: none; position: fixed; z-index: 500; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background-color: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s; }
-        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        /* Pagination */
+        .pagination-container { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
+        .page-btn { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-main); font-weight: 500; transition: 0.2s; }
+        .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; width: 100%; padding: 15px; padding-top: 60px; }
-            .mobile-toggle { display: block; }
+            .sidebar { transform: translateX(-100%); box-shadow: var(--shadow-md); } .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; padding: 24px 16px; padding-top: 70px; }
+            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
             .stat-cards-grid { grid-template-columns: 1fr; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .search-box { width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <div id="globalLoader" class="loader-overlay hidden"><div class="spinner"></div><p style="margin-top:10px; font-weight:600;">Memuat...</p></div>
+    <div id="globalLoader" class="loader-overlay hidden"><div class="spinner"></div><p style="margin-top:16px; font-weight:600; color: var(--text-main);">Memuat Data...</p></div>
     <div id="toast-container"></div>
 
     <!-- LOGIN VIEW -->
     <div id="login-view">
         <div class="login-card" id="loginCard">
-            <div class="login-logo"><i class="fas fa-users-rays"></i></div>
-            <h2 style="margin-bottom: 20px; color: var(--primary);">Ruang Kurikulum</h2>
-            <div id="loginMsg" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-bottom:15px; min-height:20px; font-weight:600; background:#fef2f2; padding:8px; border-radius:6px; border:1px solid #fee2e2; display:none;"></div>
+            <div class="login-logo"><i class="fas fa-shapes"></i></div>
+            <h2 style="margin-bottom: 8px; color: var(--text-main);">Ruang Kurikulum</h2>
+            <p style="color:var(--text-muted); margin-bottom: 24px; font-size:0.9rem;">Masuk untuk mengelola data</p>
+            
+            <div id="loginMsg" style="color:var(--danger); font-size:0.85rem; text-align:center; margin-bottom:15px; min-height:20px; font-weight:500; background:var(--danger-bg); padding:10px; border-radius:8px; border:1px solid #fecaca; display:none;"></div>
+            
             <form onsubmit="event.preventDefault(); Auth.login();">
-                <div class="form-group"><label>Username</label><input type="text" id="u" class="form-control" required placeholder="Masukkan username"></div>
-                <div class="form-group"><label>Password</label><input type="password" id="p" class="form-control" required placeholder="Masukkan password"></div>
-                <button type="submit" class="btn btn-primary btn-block" id="btnLogin"><i class="fas fa-sign-in-alt"></i> <span>Masuk Aplikasi</span></button>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="u" class="form-control" required placeholder="Masukkan username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="p" class="form-control" required placeholder="Masukkan password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
+                    <i class="fas fa-sign-in-alt"></i> <span>Masuk Aplikasi</span>
+                </button>
             </form>
         </div>
     </div>
@@ -150,16 +238,18 @@
     <div id="app-layout" class="hidden">
         <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         <nav class="sidebar" id="sidebar">
-            <div class="sidebar-header"><i class="fas fa-layer-group"></i> MENU UTAMA</div>
+            <div class="sidebar-header">
+                <div class="brand"><i class="fas fa-shapes"></i> RUANG KURIKULUM</div>
+            </div>
             <div class="nav-links">
-                <a class="nav-item active" onclick="App.switchModule('generus', this)"><i class="fas fa-database"></i> Data Generus</a>
+                <a class="nav-item active" onclick="App.switchModule('generus', this)"><i class="fas fa-users"></i> Data Generus</a>
                 <a class="nav-item" onclick="App.switchModule('jurnal', this)"><i class="fas fa-book-open"></i> Jurnal Pengajian</a>
-                <a class="nav-item" onclick="App.switchModule('kurikulum', this)"><i class="fas fa-chart-line"></i> Monitoring Kurikulum</a>
+                <a class="nav-item" onclick="App.switchModule('kurikulum', this)"><i class="fas fa-chart-pie"></i> Monitoring Kurikulum</a>
             </div>
             <div class="user-profile">
                 <div class="user-info" id="sidebarUserName">User Name</div>
                 <div class="user-role" id="sidebarUserRole">Role</div>
-                <button class="btn btn-sm btn-danger btn-block" style="margin-top:10px;" onclick="Auth.logout()"><i class="fas fa-power-off"></i> Keluar</button>
+                <button class="btn btn-danger btn-sm btn-block" onclick="Auth.logout()"><i class="fas fa-power-off"></i> Keluar</button>
             </div>
         </nav>
 
@@ -167,230 +257,258 @@
             
             <!-- MODULE 1: GENERUS -->
             <section id="mod-generus">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2><i class="fas fa-database" style="color:var(--primary)"></i> Data Anggota</h2>
-                    <button class="btn btn-primary btn-sm" onclick="Generus.downloadExcel()"><i class="fas fa-file-excel"></i> Unduh Excel</button>
+                <div class="section-header">
+                    <h2 class="page-title"><i class="fas fa-users text-primary"></i> Data Generus</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="Generus.downloadExcel()"><i class="fas fa-file-excel" style="color: #107c41;"></i> Unduh Excel</button>
                 </div>
 
+                <!-- Stats -->
                 <div class="dashboard-stats">
                     <div class="stat-cards-grid">
-                        <div class="stat-card"><h4>Total Anggota</h4><div class="big-num" id="statTotal">0</div></div>
-                        <div class="stat-card" style="border-left: 4px solid #3b82f6;"><h4>Laki-laki</h4><div class="big-num" id="statL">0</div></div>
-                        <div class="stat-card" style="border-left: 4px solid #ec4899;"><h4>Perempuan</h4><div class="big-num" id="statP">0</div></div>
+                        <div class="stat-card"><h4>Total Generus</h4><div class="big-num" id="statTotal">0</div></div>
+                        <div class="stat-card"><h4>Laki-laki</h4><div class="big-num" id="statL">0</div></div>
+                        <div class="stat-card"><h4>Perempuan</h4><div class="big-num" id="statP">0</div></div>
                     </div>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                        <div class="stat-card"><h4>Distribusi Kelas</h4><div id="chartKelas"></div></div>
-                        <div class="stat-card"><h4>Distribusi Jenjang</h4><div id="chartJenjang"></div></div>
-                        <div class="stat-card hidden" id="cardGroupStats"><h4 id="titleGroupStats">Statistik Wilayah</h4><div id="chartGrouping"></div></div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                        <div class="stat-card"><h4 style="margin-bottom:16px;">Distribusi Kelas</h4><div id="chartKelas"></div></div>
+                        <div class="stat-card"><h4 style="margin-bottom:16px;">Distribusi Jenjang</h4><div id="chartJenjang"></div></div>
+                        <div class="stat-card hidden" id="cardGroupStats"><h4 id="titleGroupStats" style="margin-bottom:16px;">Statistik Wilayah</h4><div id="chartGrouping"></div></div>
                     </div>
                 </div>
 
+                <!-- Filter & Table -->
                 <div class="filter-bar">
                     <div class="search-box"><i class="fas fa-search"></i><input type="text" id="genSearch" placeholder="Cari nama..." onkeyup="Generus.applyFilters()"></div>
-                    <select id="filterDesa" class="form-control hidden" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua Desa</option></select>
-                    <select id="filterKelompok" class="form-control hidden" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua Kelompok</option></select>
-                    <select id="filterJenjang" class="form-control" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="TK">TK</option><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option><option value="Mahasiswa">Mahasiswa</option></select>
-                    <select id="filterJK" class="form-control" style="width:auto;" onchange="Generus.applyFilters()"><option value="">Semua JK</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+                    <select id="filterDesa" class="form-control hidden" style="width:180px;" onchange="Generus.applyFilters()"><option value="">Semua Desa</option></select>
+                    <select id="filterKelompok" class="form-control hidden" style="width:180px;" onchange="Generus.applyFilters()"><option value="">Semua Kelompok</option></select>
+                    <select id="filterJenjang" class="form-control" style="width:140px;" onchange="Generus.applyFilters()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="CABERAWIT">CABERAWIT</option><option value="PRA REMAJA">PRA REMAJA</option><option value="REMAJA">REMAJA</option><option value="PRA NIKAH">PRA NIKAH</option></select>
+                    <select id="filterJK" class="form-control" style="width:120px;" onchange="Generus.applyFilters()"><option value="">Semua JK</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
                     <button class="btn btn-primary" onclick="Generus.openModal()" id="btnAddGen"><i class="fas fa-plus"></i> Tambah</button>
                 </div>
 
                 <div class="table-card">
                     <div class="table-responsive">
-                        <table id="genTable"><thead><tr><th>No</th><th>Nama</th><th>L/P</th><th>Umur</th><th>Kelas</th><th>Jenjang</th><th>Lokasi</th><th>Aksi</th></tr></thead><tbody id="genTableBody"></tbody></table>
+                        <table id="genTable">
+                            <thead>
+                                <tr>
+                                    <th width="50">No</th>
+                                    <th>Nama Lengkap</th>
+                                    <th width="60">L/P</th>
+                                    <th width="60">Umur</th>
+                                    <th>Kelas</th>
+                                    <th>Jenjang</th>
+                                    <th>Lokasi</th>
+                                    <th width="100" class="action-col">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="genTableBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
 
             <!-- MODULE 2: JURNAL -->
             <section id="mod-jurnal" class="hidden">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2><i class="fas fa-book-open" style="color:var(--primary)"></i> Jurnal Pengajian</h2>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-secondary btn-sm" onclick="Jurnal.switchTab('input', document.querySelectorAll('.tab-j')[0])"><i class="fas fa-edit"></i> Input</button>
-                        <button class="btn btn-secondary btn-sm" onclick="Jurnal.switchTab('history', document.querySelectorAll('.tab-j')[1])"><i class="fas fa-history"></i> Riwayat</button>
-                        <button class="btn btn-secondary btn-sm" onclick="Jurnal.switchTab('stats', document.querySelectorAll('.tab-j')[2])"><i class="fas fa-chart-pie"></i> Statistik</button>
+                <div class="section-header">
+                    <h2 class="page-title"><i class="fas fa-book-open text-primary"></i> Jurnal Pengajian</h2>
+                    <div class="tabs-wrapper">
+                        <button class="tab-btn active" onclick="Jurnal.switchTab('input', this)" id="tabBtnInput">Input</button>
+                        <button class="tab-btn" onclick="Jurnal.switchTab('history', this)" id="tabBtnHistory">Riwayat</button>
+                        <button class="tab-btn" onclick="Jurnal.switchTab('stats', this)" id="tabBtnStats">Statistik</button>
                     </div>
-                </div>
-
-                <div class="tabs-jurnal">
-                    <div class="tab-j active" onclick="Jurnal.switchTab('input', this)">Input</div>
-                    <div class="tab-j" onclick="Jurnal.switchTab('history', this)">Riwayat</div>
-                    <div class="tab-j" onclick="Jurnal.switchTab('stats', this)">Statistik</div>
                 </div>
 
                 <!-- VIEW 1: INPUT -->
                 <div id="jurnal-input-view">
-                    <div class="form-group"><label>Pilih Jenjang</label><select id="jurnJenjang" class="form-control" onchange="Jurnal.loadMembers()"><option value="">-- Pilih Jenjang --</option><option value="PAUD">PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja">Pra Remaja</option><option value="Remaja">Remaja</option></select></div>
-                    <div id="jurnalFormArea" class="hidden">
-                        <div class="form-group"><label>Tanggal</label><input type="date" id="jurnDate" class="form-control"></div>
-                        <div class="form-group"><label>Materi</label><textarea id="jurnMateri" class="form-control" rows="2" placeholder="Ringkasan materi..."></textarea></div>
-                        <label style="font-weight:600; margin-bottom:10px; display:block;">Daftar Hadir:</label>
-                        <div id="jurnMemberList"></div>
-                        <div style="margin-top:20px;"><button class="btn btn-primary btn-block" onclick="Jurnal.save()">Simpan Jurnal</button></div>
+                    <div class="stat-card" style="max-width: 600px; margin: 0 auto 24px auto;">
+                        <div class="form-group">
+                            <label>Pilih Jenjang</label>
+                            <select id="jurnJenjang" class="form-control" onchange="Jurnal.loadMembers()">
+                                <option value="">-- Pilih Jenjang --</option>
+                                <option value="PAUD">PAUD</option>
+                                <option value="Caberawit">Caberawit</option>
+                                <option value="Pra Remaja">Pra Remaja</option>
+                                <option value="Remaja">Remaja</option>
+                            </select>
+                        </div>
+                        <div id="jurnalFormArea" class="hidden">
+                            <div class="form-group">
+                                <label>Tanggal</label>
+                                <input type="date" id="jurnDate" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Materi Pengajian</label>
+                                <textarea id="jurnMateri" class="form-control" rows="3" placeholder="Ringkasan materi..."></textarea>
+                            </div>
+                            <label class="font-bold" style="display:block; margin-bottom:12px;">Daftar Hadir:</label>
+                            <div id="jurnMemberList" style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px;"></div>
+                            <button class="btn btn-primary btn-block" onclick="Jurnal.save()"><i class="fas fa-save"></i> Simpan Jurnal</button>
+                        </div>
                     </div>
                 </div>
 
-<!-- VIEW 2: RIWAYAT -->
-<div id="jurnal-history-view" class="hidden">
-    <div class="filter-bar" style="background:#fff; padding:10px; border-radius:8px; border:1px solid #eee; margin-bottom:15px;">
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <div class="form-group" style="margin-bottom:0;">
-                <label style="font-size:0.8rem; margin-bottom:5px;">Dari:</label>
-                <input type="date" id="histStart" class="form-control" style="width:auto;" onchange="Jurnal.loadHistory()">
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-                <label style="font-size:0.8rem; margin-bottom:5px;">Sampai:</label>
-                <input type="date" id="histEnd" class="form-control" style="width:auto;" onchange="Jurnal.loadHistory()">
-            </div>
-            <!-- Filter Jenjang (Untuk Semua Role) -->
-            <div class="form-group" style="margin-bottom:0;">
-                <label style="font-size:0.8rem; margin-bottom:5px;">Jenjang:</label>
-                <select id="histFilterJenjang" class="form-control" style="width:auto;" onchange="Jurnal.loadHistory()">
-                    <option value="">Semua Jenjang</option>
-                    <option value="PAUD">PAUD</option>
-                    <option value="Caberawit">Caberawit</option>
-                    <option value="Pra Remaja">Pra Remaja</option>
-                    <option value="Remaja">Remaja</option>
-                </select>
-            </div>
-            <!-- Filter Kelompok (Hanya Desa/Daerah) -->
-            <select id="histFilterKelompok" class="form-control hidden" style="width:auto;" onchange="Jurnal.loadHistory()"><option value="">Semua Kelompok</option></select>
-        </div>
-    </div>
-    <div id="jurnHistoryContainer" style="margin-top:15px;"></div>
-    <!-- Pagination -->
-    <div class="pagination-container hidden" id="historyPagination">
-        <button class="page-btn" onclick="Jurnal.changePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
-        <span class="page-info">Halaman <span id="histPageNum">1</span></span>
-        <button class="page-btn" onclick="Jurnal.changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
-    </div>
-</div>
+                <!-- VIEW 2: RIWAYAT -->
+                <div id="jurnal-history-view" class="hidden">
+                    <div class="filter-bar">
+                        <div class="flex gap-4" style="flex-wrap:wrap;">
+                            <div>
+                                <label class="text-xs font-bold text-muted">Dari</label>
+                                <input type="date" id="histStart" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-muted">Sampai</label>
+                                <input type="date" id="histEnd" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-muted">Jenjang</label>
+                                <select id="histFilterJenjang" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()">
+                                    <option value="">Semua Jenjang</option>
+                                    <option value="PAUD">PAUD</option>
+                                    <option value="Caberawit">Caberawit</option>
+                                    <option value="Pra Remaja">Pra Remaja</option>
+                                    <option value="Remaja">Remaja</option>
+                                </select>
+                            </div>
+                            <div id="histFilterKelompokWrapper" class="hidden">
+                                <label class="text-xs font-bold text-muted">Kelompok</label>
+                                <select id="histFilterKelompok" class="form-control" style="width:160px;" onchange="Jurnal.loadHistory()"><option value="">Semua Kelompok</option></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="jurnHistoryContainer"></div>
+                    <div class="pagination-container hidden" id="historyPagination">
+                        <button class="page-btn" onclick="Jurnal.changePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
+                        <span class="text-sm font-medium text-muted" style="align-self:center;">Halaman <span id="histPageNum">1</span></span>
+                        <button class="page-btn" onclick="Jurnal.changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
 
                 <!-- VIEW 3: STATISTIK -->
-<!-- VIEW 3: STATISTIK -->
-<div id="jurnal-stats-view" class="hidden">
-    <!-- Filter Area -->
-    <div class="stat-card" style="margin-bottom:20px;">
-        <h4>Filter Data</h4>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <div style="display:flex; gap:5px; align-items:center;">
-                <label style="font-size:0.8rem;">Jenjang:</label>
-                <!-- ID statsFilterJenjang untuk semua akun -->
-                <select id="statsFilterJenjang" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()">
-                    <option value="">Semua Jenjang</option>
-                    <option value="PAUD">PAUD</option>
-                    <option value="Caberawit">Caberawit</option>
-                    <option value="Pra Remaja">Pra Remaja</option>
-                    <option value="Remaja">Remaja</option>
-                </select>
-            </div>
-            <div style="display:flex; gap:5px; align-items:center;" id="statsKelompokFilterWrapper" class="hidden">
-                <label style="font-size:0.8rem;">Kelompok:</label>
-                <select id="statsFilterKelompok" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()"><option value="">Semua Kelompok</option></select>
-            </div>
-        </div>
-    </div>
+                <div id="jurnal-stats-view" class="hidden">
+                    <div class="stat-cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                        <div class="stat-card">
+                            <h4>Filter Jenjang</h4>
+                            <select id="statsFilterJenjang" class="form-control" style="margin-top:8px;" onchange="Jurnal.loadStats()">
+                                <option value="">Semua Jenjang</option>
+                                <option value="PAUD">PAUD</option>
+                                <option value="Caberawit">Caberawit</option>
+                                <option value="Pra Remaja">Pra Remaja</option>
+                                <option value="Remaja">Remaja</option>
+                            </select>
+                        </div>
+                        <div class="stat-card hidden" id="statsKelompokFilterWrapper">
+                            <h4>Filter Kelompok</h4>
+                            <select id="statsFilterKelompok" class="form-control" style="margin-top:8px;" onchange="Jurnal.loadStats()"><option value="">Semua Kelompok</option></select>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Periode</h4>
+                            <div class="flex gap-2 items-center" style="margin-top:8px;">
+                                <input type="date" id="statsStart" class="form-control" style="padding:6px;" onchange="Jurnal.loadStats()">
+                                <span class="text-muted">s/d</span>
+                                <input type="date" id="statsEnd" class="form-control" style="padding:6px;" onchange="Jurnal.loadStats()">
+                            </div>
+                        </div>
+                    </div>
 
-    <!-- Filter Tanggal -->
-    <div class="stat-card" style="margin-bottom:20px;">
-        <h4>Periode Tanggal</h4>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <input type="date" id="statsStart" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()">
-            <span>s/d</span>
-            <input type="date" id="statsEnd" class="form-control" style="width:auto;" onchange="Jurnal.loadStats()">
-        </div>
-    </div>
+                    <div class="stat-card" style="margin-bottom:24px;">
+                        <div class="flex justify-between items-center mb-4" style="margin-bottom:16px;">
+                            <h4 style="margin:0;">Tren Kehadiran (%)</h4>
+                            <div style="background:var(--primary-light); padding:6px 12px; border-radius:20px; border:1px solid var(--primary-subtle);">
+                                <span class="text-xs text-primary font-bold">Rata-rata: </span>
+                                <span id="avgAttendanceValue" class="font-bold text-primary">0%</span>
+                            </div>
+                        </div>
+                        <div style="height:300px; width:100%;"><canvas id="attendanceChart"></canvas></div>
+                    </div>
 
-    <!-- Grafik & Rata-rata -->
-    <div class="stat-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h4>Grafik Perkembangan Kehadiran (%)</h4>
-            <!-- Tampilan Rata-rata Baru -->
-            <div style="background:#eff6ff; padding:5px 10px; border-radius:8px; border:1px solid #bfdbfe;">
-                <span style="font-size:0.8rem; color:#1e40af;">Rata-rata: </span>
-                <span id="avgAttendanceValue" style="font-weight:bold; color:#1e40af; font-size:1.1rem;">0%</span>
-            </div>
-        </div>
-        <div style="height:300px; width:100%;"><canvas id="attendanceChart"></canvas></div>
-    </div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:24px;">
+                        <div class="stat-card" style="border-top: 4px solid var(--primary);">
+                            <h4 style="color:var(--primary);">Selalu Hadir (100%)</h4>
+                            <div id="listRajin" style="max-height:200px; overflow-y:auto; margin-top:12px;"></div>
+                        </div>
+                        <div class="stat-card" style="border-top: 4px solid var(--info);">
+                            <h4 style="color:var(--info);">Sering Izin (>50%)</h4>
+                            <div id="listIzin" style="max-height:200px; overflow-y:auto; margin-top:12px;"></div>
+                        </div>
+                        <div class="stat-card" style="border-top: 4px solid var(--warning);">
+                            <h4 style="color:var(--warning);">Sering Sakit (>50%)</h4>
+                            <div id="listSakit" style="max-height:200px; overflow-y:auto; margin-top:12px;"></div>
+                        </div>
+                        <div class="stat-card" style="border-top: 4px solid var(--danger);">
+                            <h4 style="color:var(--danger);">Sering Alpha (>50%)</h4>
+                            <div id="listAlpha" style="max-height:200px; overflow-y:auto; margin-top:12px;"></div>
+                        </div>
+                    </div>
 
-    <!-- Analisis Siswa -->
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-top:20px;">
-        <div class="stat-card" style="border-left: 4px solid var(--success);"><h4 style="color:var(--success)">Selalu Hadir (100%)</h4><div id="listRajin" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
-        <div class="stat-card" style="border-left: 4px solid var(--primary);"><h4 style="color:var(--primary);">Sering Izin (>50%)</h4><div id="listIzin" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
-        <div class="stat-card" style="border-left: 4px solid orange;"><h4 style="color:orange;">Sering Sakit (>50%)</h4><div id="listSakit" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
-        <div class="stat-card" style="border-left: 4px solid var(--danger);"><h4 style="color:var(--danger);">Sering Alpha (>50%)</h4><div id="listAlpha" style="max-height:150px; overflow-y:auto; font-size:0.85rem;"></div></div>
-    </div>
-
-    <!-- Download Laporan -->
-    <div class="stat-card" style="margin-top:20px; text-align:right;">
-        <button class="btn btn-primary" onclick="Jurnal.downloadRekap()">
-            <i class="fas fa-file-alt"></i> Download Laporan Jurnal
-        </button>
-    </div>
-</div>
+                    <div class="text-right" style="margin-top:24px;">
+                        <button class="btn btn-primary" onclick="Jurnal.downloadRekap()">
+                            <i class="fas fa-file-pdf"></i> Download Laporan PDF
+                        </button>
+                    </div>
+                </div>
             </section>
-            <!-- MODULE 3: KURIKULUMUM (UPDATE DASHBOARD & FILTER) -->
+
+            <!-- MODULE 3: KURIKULUM -->
             <section id="mod-kurikulum" class="hidden">
-                <h2 style="margin-bottom:20px;"><i class="fas fa-chart-line" style="color:var(--primary)"></i> Monitoring Kurikulum</h2>
-                
-                <!-- Tab Navigasi (Untuk Desa/Daerah) -->
-                <div class="tabs-jurnal" style="margin-bottom: 20px;">
-                    <div class="tab-j active" onclick="Kurikulum.switchView('dashboard', this)">Rekapitulasi Kelompok</div>
-                    <div class="tab-j" onclick="Kurikulum.switchView('detail', this)">Detail Siswa</div>
-                </div>
-
-                <!-- VIEW 1: REKAPITULASI DASHBOARD (DEFAULT UNTUK DESA/DAERAH) -->
-                <div id="kur-dashboard-view">
+                <div class="section-header">
+                    <h2 class="page-title"><i class="fas fa-chart-pie text-primary"></i> Monitoring Kurikulum</h2>
                     
-                    <div class="filter-bar">
-                        <label style="align-self:center;">Filter Jenjang:</label>
-                        <select id="kurDashboardFilterJenjang" class="form-control" style="width:auto;" onchange="Kurikulum.loadDashboard()">
-                            <option value="">Semua Jenjang</option>
-                            <!-- Opsi akan diisi otomatis oleh JS -->
-                        </select>
-                    </div>
-
-                    <div id="kurDashboardContent">
-                        <!-- Kartu Rekapitulasi -->
+                    <div class="tabs-wrapper">
+                        <div class="tab-btn active" onclick="Kurikulum.switchView('dashboard', this)" id="tabKurDashboard">Rekap Kelompok</div>
+                        <div class="tab-btn" onclick="Kurikulum.switchView('detail', this)" id="tabKurDetail">Detail Siswa</div>
                     </div>
                 </div>
-
-                <!-- VIEW 2: DETAIL SISWA -->
-                <div id="kur-detail-view" class="hidden">
-                    <div class="filter-bar">
-                        <label style="align-self:center;">Filter Siswa:</label>
-                        <!-- Dropdown Filter Jenjang -->
-                        <select id="kurFilterJenjang" class="form-control" style="width:auto;" onchange="Kurikulum.populateStudentList()">
+                
+                <!-- VIEW 1: DASHBOARD -->
+                <div id="kur-dashboard-view">
+                    <div class="filter-bar" style="display:inline-flex; width:100%; max-width:400px;">
+                        <label class="font-medium" style="margin-right:10px;">Filter Jenjang:</label>
+                        <select id="kurDashboardFilterJenjang" class="form-control" onchange="Kurikulum.loadDashboard()">
                             <option value="">Semua Jenjang</option>
-                            <!-- Opsi diisi otomatis -->
                         </select>
-                        
-                        <label style="align-self:center; margin-left: 15px;">Pilih Siswa:</label>
-                        <select id="kurStudentSelect" class="form-control" style="width:auto; min-width:250px;" onchange="Kurikulum.loadStudentDetail()">
-                            <option value="">-- Pilih Siswa --</option>
-                        </select>
+                    </div>
+                    <div id="kurDashboardContent" style="margin-top:24px;"></div>
+                </div>
+
+                <!-- VIEW 2: DETAIL -->
+                <div id="kur-detail-view" class="hidden">
+                    <div class="stat-card" style="margin-bottom:24px;">
+                        <div class="flex gap-4 items-center" style="flex-wrap:wrap;">
+                            <div class="flex items-center gap-2">
+                                <label class="font-bold text-sm">Filter Jenjang:</label>
+                                <select id="kurFilterJenjang" class="form-control" style="width:auto;" onchange="Kurikulum.populateStudentList()">
+                                    <option value="">Semua Jenjang</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2" style="margin-left: 20px;">
+                                <label class="font-bold text-sm">Pilih Siswa:</label>
+                                <select id="kurStudentSelect" class="form-control" style="width:300px;" onchange="Kurikulum.loadStudentDetail()">
+                                    <option value="">-- Pilih Siswa --</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="kurContent" class="hidden">
-                        <div style="background:#eff6ff; padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid #bfdbfe;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="background:var(--bg-surface); padding:20px; border-radius:12px; margin-bottom:24px; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <h4 style="margin:0; color:var(--primary-dark);">Siswa: <span id="kurStudentNameDisplay" style="color:var(--text);">-</span></h4>
-                                    <small style="color:var(--secondary);">Jenjang: <span id="kurJenjangDisplay">-</span></small>
+                                    <h4 class="text-primary font-bold" style="margin-bottom:4px;"><span id="kurStudentNameDisplay">-</span></h4>
+                                    <span class="text-xs text-muted font-medium bg-gray-100 px-2 py-1 rounded">Jenjang: <span id="kurJenjangDisplay">-</span></span>
                                 </div>
-                                <div style="text-align:right;">
-                                    <div style="font-size:0.9rem; color:#666;">Pencapaian</div>
-                                    <div style="font-size:1.5rem; font-weight:bold; color:var(--primary);"><span id="kurPercent">0%</span></div>
+                                <div class="text-right">
+                                    <div class="text-xs text-muted font-bold uppercase tracking-wide">Pencapaian</div>
+                                    <div class="text-3xl font-bold text-primary" id="kurPercent">0%</div>
                                 </div>
                             </div>
-                            <div style="background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden; margin-top:10px;">
-                                <div id="kurBar" style="width:0%; background:var(--success); height:100%; transition:width 0.5s;"></div>
+                            <div style="background:#e2e8f0; height:10px; border-radius:5px; overflow:hidden; margin-top:16px;">
+                                <div id="kurBar" style="width:0%; background:var(--primary); height:100%; transition:width 0.6s ease;"></div>
                             </div>
                         </div>
-
                         <div id="kurChecklistArea"></div>
-                        <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="Kurikulum.save()"><i class="fas fa-save"></i> Simpan Progress Siswa</button>
+                        <div style="margin-top:24px;">
+                            <button class="btn btn-primary btn-block" onclick="Kurikulum.save()"><i class="fas fa-save"></i> Simpan Progress Siswa</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -400,22 +518,22 @@
     <!-- MODAL ADD GENERUS -->
     <div id="modalGen" class="modal">
         <div class="modal-content">
-            <h3 style="margin-bottom:15px;">Form Data Anggota</h3>
+            <h3 class="font-bold text-lg mb-4" style="margin-bottom:20px;">Form Data Generus</h3>
             <form onsubmit="event.preventDefault(); Generus.saveForm();">
                 <input type="hidden" id="genRowIndex"><input type="hidden" id="genNo">
-                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="genNama" class="form-control" required></div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div class="form-group"><label>Jenis Kelamin</label><select id="genJK" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-                    <div class="form-group"><label>Kelas</label><select id="genKelas" class="form-control" required><option value="Belum Sekolah">Belum Sekolah</option><option value="PAUD">PAUD</option><option value="TK">TK</option><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option><option value="7">Kelas 7</option><option value="8">Kelas 8</option><option value="9">Kelas 9</option><option value="10">Kelas 10</option><option value="11">Kelas 11</option><option value="12">Kelas 12</option><option value="Mahasiswa">Mahasiswa</option><option value="S1">S1</option><option value="S2">S2</option></select></div>
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="genNama" class="form-control" required placeholder="Nama lengkap..."></div>
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex:1;"><label>Jenis Kelamin</label><select id="genJK" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+                    <div class="form-group" style="flex:1;"><label>Kelas</label><select id="genKelas" class="form-control" required><option value="Belum Sekolah">Belum Sekolah</option><option value="PAUD">PAUD</option><option value="TK">TK</option><option value="1">Kelas 1</option><option value="2">Kelas 2</option><option value="3">Kelas 3</option><option value="4">Kelas 4</option><option value="5">Kelas 5</option><option value="6">Kelas 6</option><option value="7">Kelas 7</option><option value="8">Kelas 8</option><option value="9">Kelas 9</option><option value="10">Kelas 10</option><option value="11">Kelas 11</option><option value="12">Kelas 12</option><option value="Mahasiswa">Mahasiswa</option><option value="S1">S1</option><option value="S2">S2</option></select></div>
                 </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <div class="form-group"><label>Tempat Lahir</label><input type="text" id="genTmpLahir" class="form-control"></div>
-                    <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="genTglLahir" class="form-control"></div>
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex:1;"><label>Tempat Lahir</label><input type="text" id="genTmpLahir" class="form-control"></div>
+                    <div class="form-group" style="flex:1;"><label>Tanggal Lahir</label><input type="date" id="genTglLahir" class="form-control"></div>
                 </div>
                 <div class="form-group"><label>Nama Ayah</label><input type="text" id="genAyah" class="form-control"></div>
                 <div class="form-group"><label>Nama Ibu</label><input type="text" id="genIbu" class="form-control"></div>
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="document.getElementById('modalGen').style.display='none'">Batal</button>
+                <div class="flex gap-2 mt-4" style="margin-top:24px;">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="UI.closeModal('modalGen')">Batal</button>
                     <button type="submit" class="btn btn-primary" style="flex:1;">Simpan</button>
                 </div>
             </form>
@@ -425,13 +543,13 @@
     <!-- MODAL DETAIL JURNAL -->
     <div id="modalDetail" class="modal">
         <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 id="modalDetailTitle" style="margin:0;">Detail Kehadiran</h3>
-                <i class="fas fa-times" style="cursor:pointer; font-size:1.2rem;" onclick="document.getElementById('modalDetail').style.display='none'"></i>
+            <div class="flex justify-between items-center mb-4" style="margin-bottom:16px;">
+                <h3 class="font-bold text-lg" id="modalDetailTitle">Detail Kehadiran</h3>
+                <i class="fas fa-times text-muted cursor-pointer text-lg" onclick="UI.closeModal('modalDetail')"></i>
             </div>
-            <p id="modalDetailMateri" style="font-style:italic; color:#666; margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:8px;"></p>
-            <div id="modalDetailList"></div>
-            <button class="btn btn-primary btn-block" style="margin-top:20px;" onclick="document.getElementById('modalDetail').style.display='none'">Tutup</button>
+            <p id="modalDetailMateri" style="font-style:italic; color:var(--text-muted); margin-bottom:16px; background:var(--bg-body); padding:12px; border-radius:8px; border-left: 4px solid var(--primary);"></p>
+            <div id="modalDetailList" style="max-height: 400px; overflow-y: auto;"></div>
+            <button class="btn btn-primary btn-block mt-4" style="margin-top:20px;" onclick="UI.closeModal('modalDetail')">Tutup</button>
         </div>
     </div>
 
@@ -443,18 +561,53 @@
         let currentUser = null;
 
         // ==========================================
+        // UI HELPERS
+        // ==========================================
+        const UI = {
+            loader: (show) => { 
+                const el = document.getElementById('globalLoader'); 
+                if(show) el.classList.remove('hidden'); else el.classList.add('hidden'); 
+            },
+            toast: (msg, type = 'success') => {
+                const container = document.getElementById('toast-container');
+                const div = document.createElement('div'); 
+                div.className = `toast ${type}`;
+                div.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> <span>${msg}</span>`;
+                container.appendChild(div); 
+                setTimeout(() => { div.style.opacity='0'; setTimeout(()=>div.remove(), 300); }, 3000);
+            },
+            closeModal: (id) => {
+                const el = document.getElementById(id);
+                el.classList.remove('show');
+                setTimeout(() => { el.style.display = 'none'; }, 300);
+            },
+            openModal: (id) => {
+                const el = document.getElementById(id);
+                el.style.display = 'flex';
+                // Trigger reflow
+                void el.offsetWidth;
+                el.classList.add('show');
+            }
+        };
+
+        // ==========================================
         // AUTH & APP LOGIC
         // ==========================================
         const Auth = {
             init: function() {
                 const savedUser = localStorage.getItem('sso_user');
-                if (savedUser) { currentUser = JSON.parse(savedUser); Auth.showApp(); } 
-                else document.getElementById('login-view').style.display = 'flex';
+                if (savedUser) { 
+                    currentUser = JSON.parse(savedUser); 
+                    Auth.showApp(); 
+                } else { 
+                    document.getElementById('login-view').style.display = 'flex'; 
+                }
             },
             login: async function() {
                 const u = document.getElementById('u').value, p = document.getElementById('p').value;
                 const btn = document.getElementById('btnLogin'), msg = document.getElementById('loginMsg'), card = document.getElementById('loginCard');
-                btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border-width:2px;"></div> Memproses...';
+                btn.disabled = true; 
+                btn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border-width:2px;"></div> Memproses...';
                 msg.style.display = 'none'; card.classList.remove('shake');
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: u, password: p }) });
@@ -464,7 +617,7 @@
                         localStorage.setItem('sso_user', JSON.stringify(currentUser));
                         document.getElementById('login-view').classList.add('fade-out');
                         setTimeout(() => Auth.showApp(), 500);
-                    } else throw new Error("Username/Password salah");
+                    } else { throw new Error("Username/Password salah"); }
                 } catch (err) {
                     msg.innerText = err.message || "Terjadi kesalahan koneksi"; msg.style.display = 'block';
                     card.classList.add('shake'); setTimeout(() => card.classList.remove('shake'), 500);
@@ -481,18 +634,13 @@
         };
 
         const App = {
-            loader: function(show) { const el = document.getElementById('globalLoader'); if(show) el.classList.remove('hidden'); else el.classList.add('hidden'); },
-            toast: function(msg, type = 'success') {
-                const container = document.getElementById('toast-container');
-                const div = document.createElement('div'); div.className = `toast ${type}`;
-                div.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
-                container.appendChild(div); setTimeout(() => div.remove(), 3000);
-            },
             switchModule: function(modName, navEl) {
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); if(navEl) navEl.classList.add('active');
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
+                if(navEl) navEl.classList.add('active');
                 document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
                 document.getElementById(`mod-${modName}`).classList.remove('hidden');
                 if(window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+                
                 if(modName === 'generus') Generus.init();
                 if(modName === 'jurnal') Jurnal.init();
                 if(modName === 'kurikulum') Kurikulum.init();
@@ -501,20 +649,20 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
         // ==========================================
-        // MODULE 1: GENERUS (SHORTENED)
+        // MODULE 1: GENERUS
         // ==========================================
         const Generus = {
             allData: [], filteredData: [],
             init: async function() {
-                App.loader(true);
+                UI.loader(true);
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', role: currentUser.role, lokasi: currentUser.lokasi }) });
                     const json = await res.json();
                     this.allData = json.data || [];
                     this.setupFilters();
                     this.applyFilters();
-                } catch(e) { App.toast('Gagal memuat data Generus', 'error'); }
-                finally { App.loader(false); }
+                } catch(e) { UI.toast('Gagal memuat data Generus', 'error'); }
+                finally { UI.loader(false); }
             },
             setupFilters: function() {
                 const fDesa = document.getElementById('filterDesa');
@@ -552,14 +700,34 @@
             },
             renderTable: function() {
                 const tbody = document.getElementById('genTableBody'); tbody.innerHTML = '';
-                if (this.filteredData.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">Tidak ada data</td></tr>`; return; }
-                this.filteredData.forEach(d => {
+                if (this.filteredData.length === 0) { tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-4">Tidak ada data</td></tr>`; return; }
+                this.filteredData.forEach((d, index) => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${d.no}</td><td><b>${d.nama}</b><br><small style="color:#888;">A: ${d.ayah||'-'} | I: ${d.ibu||'-'}</small></td><td><span style="color:${d.jk==='L'?'blue':'pink'}; font-weight:bold;">${d.jk}</span></td><td>${d.umur || '-'}</td><td>${d.kelas}</td><td><span style="background:#eff6ff; color:#1e40af; padding:2px 8px; border-radius:4px; font-size:0.75rem;">${d.jenjang||'-'}</span></td><td><small>${d.kelompok || '-'} <br> ${d.desa || '-'}</small></td><td><button class="btn btn-sm btn-primary" onclick="Generus.edit(${d.rowIndex})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="Generus.del(${d.rowIndex})"><i class="fas fa-trash"></i></button></td>`;
+                    tr.innerHTML = `<td>${d.no}</td>
+                    <td>
+                        <div class="font-bold text-main">${d.nama}</div>
+                        <div class="text-xs text-muted">A: ${d.ayah||'-'} | I: ${d.ibu||'-'}</div>
+                    </td>
+                    <td><span class="badge-${d.jk==='L'?'H':'S'} status-badge" style="background:${d.jk==='L'?'#e0f2fe':'#fce7f3'}; color:${d.jk==='L'?'#0284c7':'#db2777'}">${d.jk}</span></td>
+                    <td>${d.umur || '-'}</td>
+                    <td>${d.kelas}</td>
+                    <td><span style="background:var(--primary-light); color:var(--primary-hover); padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600;">${d.jenjang||'-'}</span></td>
+                    <td><small class="text-muted">${d.kelompok || '-'} <br> ${d.desa || '-'}</small></td>
+                    <td class="action-col">
+                        <button class="btn btn-sm btn-secondary" onclick="Generus.edit(${d.rowIndex})"><i class="fas fa-edit"></i></button> 
+                        <button class="btn btn-sm btn-danger" onclick="Generus.del(${d.rowIndex})"><i class="fas fa-trash"></i></button>
+                    </td>`;
                     tbody.appendChild(tr);
                 });
-                if(currentUser.role !== 'kelompok') { document.getElementById('btnAddGen').style.display = 'none'; document.querySelectorAll('#genTable th:last-child, #genTable td:last-child').forEach(el => el.style.display = 'none'); } 
-                else { document.getElementById('btnAddGen').style.display = 'inline-flex'; document.querySelectorAll('#genTable th:last-child, #genTable td:last-child').forEach(el => el.style.display = 'table-cell'); }
+                // Action Visibility
+                const actionEls = document.querySelectorAll('.action-col');
+                if(currentUser.role !== 'kelompok') { 
+                    document.getElementById('btnAddGen').style.display = 'none'; 
+                    actionEls.forEach(el => el.style.display = 'none'); 
+                } else { 
+                    document.getElementById('btnAddGen').style.display = 'inline-flex'; 
+                    actionEls.forEach(el => el.style.display = 'table-cell'); 
+                }
             },
             renderStats: function() {
                 const total = this.filteredData.length;
@@ -570,35 +738,94 @@
                 const renderBar = (id, map) => {
                     const el = document.getElementById(id); el.innerHTML = '';
                     const max = Math.max(...Object.values(map), 1);
-                    for (const [k, v] of Object.entries(map)) el.innerHTML += `<div class="stat-bar-item"><div class="sb-label"><span>${k}</span><span>${v}</span></div><div class="sb-bg"><div class="sb-fill" style="width:${(v/max)*100}%"></div></div></div>`;
+                    for (const [k, v] of Object.entries(map)) {
+                        const pct = (v/max)*100;
+                        el.innerHTML += `<div class="stat-bar-item"><div class="sb-label"><span>${k}</span><span>${v}</span></div><div class="sb-bg"><div class="sb-fill" style="width:${pct}%"></div></div></div>`;
+                    }
                 };
                 const kelasMap={}; this.filteredData.forEach(d=>kelasMap[d.kelas||'Lainnya']=(kelasMap[d.kelas||'Lainnya']||0)+1); renderBar('chartKelas', kelasMap);
                 const jenjangMap={}; this.filteredData.forEach(d=>jenjangMap[d.jenjang||'Umum']=(jenjangMap[d.jenjang||'Umum']||0)+1); renderBar('chartJenjang', jenjangMap);
                 
                 const cardGroup = document.getElementById('cardGroupStats'); cardGroup.classList.add('hidden');
-                if (currentUser.role === 'desa') { cardGroup.classList.remove('hidden'); document.getElementById('titleGroupStats').innerText="Statistik Kelompok"; const km={}; this.filteredData.forEach(d=>km[d.kelompok||'Umum']=(km[d.kelompok||'Umum']||0)+1); renderBar('chartGrouping', km); } 
-                else if (currentUser.role === 'daerah') { cardGroup.classList.remove('hidden'); document.getElementById('titleGroupStats').innerText="Rekap per Desa"; const dm={}; this.filteredData.forEach(d=>dm[d.desa||'Umum']=(dm[d.desa||'Umum']||0)+1); renderBar('chartGrouping', dm); }
+                if (currentUser.role === 'desa') { 
+                    cardGroup.classList.remove('hidden'); document.getElementById('titleGroupStats').innerText="Statistik Kelompok"; 
+                    const km={}; this.filteredData.forEach(d=>km[d.kelompok||'Umum']=(km[d.kelompok||'Umum']||0)+1); renderBar('chartGrouping', km); 
+                } else if (currentUser.role === 'daerah') { 
+                    cardGroup.classList.remove('hidden'); document.getElementById('titleGroupStats').innerText="Rekap per Desa"; 
+                    const dm={}; this.filteredData.forEach(d=>dm[d.desa||'Umum']=(dm[d.desa||'Umum']||0)+1); renderBar('chartGrouping', dm); 
+                }
             },
-            openModal: function() { document.querySelector('#modalGen form').reset(); document.getElementById('genRowIndex').value=''; document.getElementById('modalGen').style.display='flex'; },
-            saveForm: async function() {
-                const kelas = document.getElementById('genKelas').value;
-                let tgl = document.getElementById('genTglLahir').value; if(tgl){const p=tgl.split('-'); if(p.length===3) tgl=`${p[2]}/${p[1]}/${p[0]}`;}
-                const payload = { rowIndex: document.getElementById('genRowIndex').value, nama: document.getElementById('genNama').value, jk: document.getElementById('genJK').value, kelas: kelas, tempatLahir: document.getElementById('genTmpLahir').value, tanggalLahir: tgl, ayah: document.getElementById('genAyah').value, ibu: document.getElementById('genIbu').value, kelompok: currentUser.lokasi, desa: currentUser.desa };
-                App.loader(true); const action = payload.rowIndex ? 'editData' : 'addData';
-                try { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload }) }); if((await res.json()).status === 'success') { App.toast('Data tersimpan'); document.getElementById('modalGen').style.display='none'; this.init(); } } catch(e){App.toast('Gagal simpan','error');} finally{App.loader(false);}
-            },
+            openModal: function() { document.querySelector('#modalGen form').reset(); document.getElementById('genRowIndex').value=''; UI.openModal('modalGen'); },
+    saveForm: async function() {
+        // Fungsi kecil untuk mencegah data kosong agar kolom tidak bergeser
+        const valOrSpace = (val) => (val === undefined || val === null || val === "") ? " " : val;
+
+        const kelas = document.getElementById('genKelas').value;
+        const tglInput = document.getElementById('genTglLahir').value;
+        
+        // Cek apakah user data valid
+        if (!currentUser || !currentUser.lokasi) {
+            alert("Sesi login tidak valid atau Lokasi Kelompok belum terdeteksi. Silakan refresh halaman.");
+            return;
+        }
+
+        // Format Tanggal (dd/mm/yyyy)
+        let tgl = "";
+        if(tglInput){const p=tglInput.split('-'); if(p.length===3) tgl=`${p[2]}/${p[1]}/${p[0]}`;}
+
+        // Payload sesuai urutan Sheet: No, Nama, JK, TmpLahir, TglLahir, Umur, Kelas, Jenjang, Ayah, Ibu, Kelompok, Desa
+        // Kita gunakan urutan yang SANGAT JELAS agar sesuai index kolom
+        const payload = { 
+            rowIndex: document.getElementById('genRowIndex').value, 
+            no: valOrSpace(document.getElementById('genNo').value),
+            nama: valOrSpace(document.getElementById('genNama').value), 
+            jk: valOrSpace(document.getElementById('genJK').value), 
+            tempatLahir: valOrSpace(document.getElementById('genTmpLahir').value), 
+            tanggalLahir: valOrSpace(tgl), 
+            umur: " ",       // Kolom penjaga agar posisi tetap
+            kelas: valOrSpace(kelas), 
+            jenjang: " ",    // Kolom penjaga agar posisi tetap
+            ayah: valOrSpace(document.getElementById('genAyah').value), 
+            ibu: valOrSpace(document.getElementById('genIbu').value),       // KUNCI: Paksa spasi jika kosong
+            kelompok: valOrSpace(currentUser.lokasi),  // KUNCI: Pastikan ini terisi
+            desa: valOrSpace(currentUser.desa) 
+        };
+        
+        UI.loader(true); 
+        const action = payload.rowIndex ? 'editData' : 'addData';
+        try { 
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload }) }); 
+            if((await res.json()).status === 'success') { 
+                UI.toast('Data tersimpan'); UI.closeModal('modalGen'); this.init(); 
+            } 
+        } catch(e){ console.error(e); UI.toast('Gagal simpan','error'); } 
+        finally{UI.loader(false);}
+    },
             edit: function(idx) {
                 const item = this.allData.find(d => d.rowIndex == idx); if(!item) return;
-                document.getElementById('genRowIndex').value = item.rowIndex; document.getElementById('genNo').value = item.no; document.getElementById('genNama').value = item.nama; document.getElementById('genJK').value = item.jk; document.getElementById('genKelas').value = item.kelas; document.getElementById('genTmpLahir').value = item.tempatLahir || '';
+                document.getElementById('genRowIndex').value = item.rowIndex; 
+                document.getElementById('genNo').value = item.no; 
+                document.getElementById('genNama').value = item.nama; 
+                document.getElementById('genJK').value = item.jk; 
+                document.getElementById('genKelas').value = item.kelas; 
+                document.getElementById('genTmpLahir').value = item.tempatLahir || '';
                 if(item.tanggalLahir){const p=item.tanggalLahir.split('/'); if(p.length===3) document.getElementById('genTglLahir').value=`${p[2]}-${p[1]}-${p[0]}`;} else document.getElementById('genTglLahir').value='';
-                document.getElementById('genAyah').value = item.ayah || ''; document.getElementById('genIbu').value = item.ibu || ''; document.getElementById('modalGen').style.display='flex';
+                document.getElementById('genAyah').value = item.ayah || ''; 
+                document.getElementById('genIbu').value = item.ibu || ''; 
+                UI.openModal('modalGen');
             },
-            del: async function(idx) { if(!confirm('Hapus?')) return; App.loader(true); try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteData', rowIndex: idx }) }); this.init(); } finally{App.loader(false);} },
-            downloadExcel: function() { if(!this.filteredData.length) return App.toast('Tidak ada data', 'error'); const ws=XLSX.utils.json_to_sheet(this.filteredData); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `Data_${new Date().toISOString().slice(0,10)}.xlsx`); }
+            del: async function(idx) { if(!confirm('Hapus data ini?')) return; UI.loader(true); try { await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteData', rowIndex: idx }) }); this.init(); } finally{UI.loader(false);} },
+            downloadExcel: function() { 
+                if(!this.filteredData.length) return UI.toast('Tidak ada data', 'error'); 
+                const ws=XLSX.utils.json_to_sheet(this.filteredData); 
+                const wb=XLSX.utils.book_new(); 
+                XLSX.utils.book_append_sheet(wb, ws, "Data"); 
+                XLSX.writeFile(wb, `Data_${new Date().toISOString().slice(0,10)}.xlsx`); 
+            }
         };
 
         // ==========================================
-        // MODULE 2: JURNAL (FINAL UPDATE)
+        // MODULE 2: JURNAL
         // ==========================================
         const Jurnal = {
             members: [], statsData: null, chartInstance: null,
@@ -607,18 +834,22 @@
             init: function() { 
                 document.getElementById('jurnDate').valueAsDate = new Date(); 
                 
-                // Tampilkan filter kelompok jika Desa/Daerah
-                if(currentUser.role !== 'kelompok') {
-                    document.getElementById('histFilterKelompok').classList.remove('hidden');
-                    document.getElementById('statsKelompokFilterWrapper').classList.remove('hidden');
+                // Role based visibility
+                const isKelompok = currentUser.role === 'kelompok';
+                const histKelFilter = document.getElementById('histFilterKelompokWrapper');
+                const statsKelFilter = document.getElementById('statsKelompokFilterWrapper');
+                
+                if(!isKelompok) {
+                    histKelFilter.classList.remove('hidden');
+                    statsKelFilter.classList.remove('hidden');
                     this.populateOptions();
                 } else {
-                    document.getElementById('histFilterKelompok').classList.add('hidden');
-                    document.getElementById('statsKelompokFilterWrapper').classList.add('hidden');
+                    histKelFilter.classList.add('hidden');
+                    statsKelFilter.classList.add('hidden');
                 }
 
-                if(currentUser.role === 'kelompok') this.switchTab('input', document.querySelectorAll('.tab-j')[0]);
-                else this.switchTab('stats', document.querySelectorAll('.tab-j')[2]);
+                if(isKelompok) this.switchTab('input', document.getElementById('tabBtnInput'));
+                else this.switchTab('stats', document.getElementById('tabBtnStats'));
             },
 
             populateOptions: function() {
@@ -636,7 +867,7 @@
             },
 
             switchTab: function(tab, el) {
-                document.querySelectorAll('.tab-j').forEach(t => t.classList.remove('active')); 
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active')); 
                 if(el) el.classList.add('active');
                 document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input');
                 document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history');
@@ -654,82 +885,93 @@
             loadMembers: async function() {
                 const jenjang = document.getElementById('jurnJenjang').value;
                 const container = document.getElementById('jurnMemberList'), formArea = document.getElementById('jurnalFormArea');
-                if(!jenjang) { formArea.classList.add('hidden'); return; } formArea.classList.remove('hidden');
-                container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
+                if(!jenjang) { formArea.classList.add('hidden'); return; } 
+                formArea.classList.remove('hidden');
+                container.innerHTML = '<div class="text-center p-4"><div class="spinner" style="margin:0 auto;"></div></div>';
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang }) });
                     const json = await res.json(); container.innerHTML = ''; this.members = json.members || [];
+                    if(this.members.length === 0) {
+                        container.innerHTML = '<p class="text-center text-muted">Tidak ada generus di jenjang ini.</p>';
+                        return;
+                    }
                     this.members.forEach(m => {
-                        const div = document.createElement('div'); div.className = 'member-card';
-                        div.innerHTML = `<span>${m.nama}</span><select id="status_${m.no}" style="padding:5px; border-radius:4px; border:1px solid #ddd;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`;
+                        const div = document.createElement('div'); 
+                        div.className = 'flex justify-between items-center p-2 mb-2 bg-white border rounded hover:bg-gray-50';
+                        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; background:white; border:1px solid #e2e8f0; border-radius:8px;";
+                        div.innerHTML = `<span class="font-medium text-sm">${m.nama}</span><select id="status_${m.no}" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; background:white; font-size:0.85rem;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`;
                         container.appendChild(div);
                     });
-                } catch(e) { App.toast('Gagal muat anggota', 'error'); }
+                } catch(e) { UI.toast('Gagal muat generus', 'error'); }
             },
 
             save: async function() {
                 const jenjang = document.getElementById('jurnJenjang').value, tgl = document.getElementById('jurnDate').value, materi = document.getElementById('jurnMateri').value;
-                if(!jenjang || !tgl || !materi) return App.toast('Lengkapi data', 'error');
+                if(!jenjang || !tgl || !materi) return UI.toast('Lengkapi data', 'error');
                 const hadirData = []; this.members.forEach(m => hadirData.push({ nama: m.nama, status: document.getElementById(`status_${m.no}`).value }));
-                App.loader(true);
+                UI.loader(true);
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addJurnal', payload: { tanggal: tgl, kelompok: currentUser.lokasi, desa: currentUser.desa, jenjang, materi, hadir: hadirData } }) });
-                    if((await res.json()).status === 'success') { App.toast('Jurnal tersimpan'); document.getElementById('jurnMateri').value = ''; }
-                } catch(e) { App.toast('Gagal simpan', 'error'); } finally { App.loader(false); }
+                    if((await res.json()).status === 'success') { UI.toast('Jurnal tersimpan'); document.getElementById('jurnMateri').value = ''; }
+                } catch(e) { UI.toast('Gagal simpan', 'error'); } finally { UI.loader(false); }
             },
 
             loadHistory: async function() {
-                App.loader(true);
+                UI.loader(true);
                 this.currentPage = 1;
-                
                 const start = document.getElementById('histStart').value; 
                 const end = document.getElementById('histEnd').value;       
                 const kel = document.getElementById('histFilterKelompok').value;
                 const jenjang = document.getElementById('histFilterJenjang').value; 
-
-                const payload = { 
-                    action: 'getJurnalHistory', 
-                    role: currentUser.role, 
-                    lokasi: currentUser.lokasi, 
-                    desa: currentUser.desa, 
-                    startDate: start || '', 
-                    endDate: end || '', 
-                    filterKelompok: kel || '',
-                    jenjang: jenjang || '' 
-                };
-                
+                const payload = { action: 'getJurnalHistory', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, startDate: start || '', endDate: end || '', filterKelompok: kel || '', jenjang: jenjang || '' };
                 const container = document.getElementById('jurnHistoryContainer');
-                container.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div></div>';
+                container.innerHTML = '<div class="text-center p-4"><div class="spinner" style="margin:0 auto;"></div></div>';
                 document.getElementById('historyPagination').classList.add('hidden');
-                
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                     const json = await res.json(); 
                     this.allHistoryData = json.history || [];
                     this.renderHistoryPage();
-                } catch(e) { App.toast('Gagal muat riwayat', 'error'); }
-                finally { App.loader(false); }
+                } catch(e) { UI.toast('Gagal muat riwayat', 'error'); }
+                finally { UI.loader(false); }
             },
 
             renderHistoryPage: function() {
                 const container = document.getElementById('jurnHistoryContainer');
                 container.innerHTML = '';
-                if (this.allHistoryData.length === 0) { container.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Tidak ada data riwayat.</div>'; return; }
+                if (this.allHistoryData.length === 0) { container.innerHTML = '<div class="text-center text-muted p-4 bg-white border rounded">Tidak ada data riwayat.</div>'; return; }
                 const start = (this.currentPage - 1) * this.itemsPerPage;
                 const end = start + this.itemsPerPage;
                 const pageData = this.allHistoryData.slice(start, end);
                 pageData.forEach(h => {
                     let hCount=0, sCount=0, iCount=0, aCount=0;
                     try { const list = JSON.parse(h.kehadiran); list.forEach(x => { if(x.status==='Hadir')hCount++; else if(x.status==='Sakit')sCount++; else if(x.status==='Izin')iCount++; else aCount++; }); }catch(e){}
-                    const div = document.createElement('div'); div.className = 'history-card';
-                    div.innerHTML = `<div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">${h.tanggal} - ${h.jenjang}</div><div style="font-style:italic; margin-bottom:10px;">"${h.materi}"</div><div style="display:flex; gap:10px; font-size:0.8rem; margin-bottom:10px; color:#555;"><span>H: <b>${hCount}</b></span> <span>S: <b>${sCount}</b></span> <span>I: <b>${iCount}</b></span> <span>A: <b>${aCount}</b></span></div><div style="border-top:1px dashed #ccc; padding-top:10px;"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`;
+                    const div = document.createElement('div'); 
+                    div.className = 'history-card';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-bold text-primary text-lg">${h.tanggal}</div>
+                                <div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? '• ' + h.kelompok : ''}</div>
+                            </div>
+                            <div class="flex gap-2 text-xs font-bold">
+                                <span class="badge-H status-badge">H:${hCount}</span>
+                                <span class="badge-S status-badge">S:${sCount}</span>
+                                <span class="badge-I status-badge">I:${iCount}</span>
+                                <span class="badge-A status-badge">A:${aCount}</span>
+                            </div>
+                        </div>
+                        <div class="text-sm text-muted italic mb-3 border-l-2 border-gray-200 pl-3">"${h.materi}"</div>
+                        <div class="pt-2 border-t border-dashed border-gray-200">
+                            <button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button>
+                        </div>`;
                     container.appendChild(div);
                 });
                 const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
                 document.getElementById('histPageNum').innerText = `${this.currentPage} / ${totalPages}`;
                 document.querySelector('#historyPagination button:first-child').disabled = this.currentPage === 1;
                 document.querySelector('#historyPagination button:last-child').disabled = this.currentPage === totalPages;
-                document.getElementById('historyPagination').classList.remove('hidden');
+                document.getElementById('historyPagination').classList.toggle('hidden', totalPages <= 1);
             },
 
             changePage: function(delta) {
@@ -740,11 +982,10 @@
 
             showDetails: function(encodedData) {
                 const h = JSON.parse(atob(encodedData));
-                const modal = document.getElementById('modalDetail');
                 const listDiv = document.getElementById('modalDetailList');
                 document.getElementById('modalDetailTitle').innerText = `Kehadiran ${h.tanggal} (${h.jenjang})`;
                 document.getElementById('modalDetailMateri').innerText = `"${h.materi}"`;
-                let html = '';
+                let html = '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">';
                 try {
                     const list = JSON.parse(h.kehadiran);
                     list.forEach(x => {
@@ -752,23 +993,22 @@
                         if(x.status === 'Hadir') badgeClass = 'badge-H';
                         else if(x.status === 'Sakit') badgeClass = 'badge-S';
                         else if(x.status === 'Izin') badgeClass = 'badge-I';
-                        html += `<div class="detail-item"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`;
+                        html += `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8fafc; border-radius:6px; font-size:0.85rem;"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`;
                     });
-                } catch(e){ html = '<p style="color:red;">Gagal memuat data.</p>'; }
+                } catch(e){ html = '<p class="text-danger">Gagal memuat data.</p>'; }
+                html += '</div>';
                 listDiv.innerHTML = html;
-                modal.style.display = 'flex';
+                UI.openModal('modalDetail');
             },
 
             loadStats: async function() {
-                App.loader(true);
+                UI.loader(true);
                 const jenjangFilter = document.getElementById('statsFilterJenjang').value;
                 const kelompokFilter = document.getElementById('statsFilterKelompok').value;
                 const startDate = document.getElementById('statsStart').value;
                 const endDate = document.getElementById('statsEnd').value;
-
                 let payload = { action: 'getJurnalStats', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjangFilter, startDate: startDate || '', endDate: endDate || '' };
                 if (kelompokFilter) payload.filterKelompok = kelompokFilter;
-                
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                     const json = await res.json();
@@ -776,37 +1016,52 @@
                         this.statsData = json.history; 
                         this.renderChart(json.chartData);
                         this.renderAnalysis(json.analysis);
-                        
                         const chartData = json.chartData || [];
                         if(chartData.length > 0) {
                             const totalPct = chartData.reduce((sum, item) => sum + item.percentage, 0);
                             const avg = Math.round(totalPct / chartData.length);
                             document.getElementById('avgAttendanceValue').innerText = avg + "%";
-                        } else {
-                            document.getElementById('avgAttendanceValue').innerText = "0%";
-                        }
-
-                    } else { App.toast(json.message, 'error'); }
-                } catch(e) { App.toast('Gagal muat statistik', 'error'); }
-                finally { App.loader(false); }
+                        } else { document.getElementById('avgAttendanceValue').innerText = "0%"; }
+                    } else { UI.toast(json.message, 'error'); }
+                } catch(e) { UI.toast('Gagal muat statistik', 'error'); }
+                finally { UI.loader(false); }
             },
             renderChart: function(data) {
                 const ctx = document.getElementById('attendanceChart').getContext('2d');
                 if(this.chartInstance) this.chartInstance.destroy();
+                // Updated to Green Theme
                 this.chartInstance = new Chart(ctx, {
                     type: 'line',
-                    data: { labels: data.map(d => d.date), datasets: [{ label: 'Kehadiran (%)', data: data.map(d => d.percentage), borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+                    data: { 
+                        labels: data.map(d => d.date), 
+                        datasets: [{ 
+                            label: 'Kehadiran (%)', 
+                            data: data.map(d => d.percentage), 
+                            borderColor: '#10b981', // Primary Green
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)', 
+                            fill: true, 
+                            tension: 0.4,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#10b981',
+                            pointBorderWidth: 2
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } 
+                    }
                 });
             },
             renderAnalysis: function(analysis) {
                 const renderList = (id, data) => {
                     const el = document.getElementById(id);
-                    el.innerHTML = data.length ? '' : '<small style="color:#999">Tidak ada data</small>';
+                    el.innerHTML = data.length ? '' : '<small class="text-muted">Tidak ada data</small>';
                     data.forEach(item => {
                         let detail = `(${item.stat.H}/${item.stat.Total})`;
-                        if(currentUser.role !== 'kelompok' && item.kelompoks) detail += `<br><small style="color:#888;">Kelompok: ${item.kelompoks}</small>`;
-                        el.innerHTML += `<div style="padding:4px 0; border-bottom:1px solid #eee;"><b>${item.nama}</b> <span style="font-size:0.8rem; color:#666;">${detail}</span></div>`;
+                        if(currentUser.role !== 'kelompok' && item.kelompoks) detail += `<br><small class="text-muted" style="font-size:0.7rem;">${item.kelompoks}</small>`;
+                        el.innerHTML += `<div style="padding:6px 0; border-bottom:1px solid #f1f5f9; font-size:0.85rem;"><b>${item.nama}</b> <span class="text-muted text-xs block">${detail}</span></div>`;
                     });
                 };
                 renderList('listRajin', analysis.rajin);
@@ -816,62 +1071,47 @@
             },
 
             downloadRekap: function() {
-                if(!this.statsData) return App.toast('Data statistik belum dimuat. Silakan pilih filter terlebih dahulu.', 'error');
-                if(this.statsData.length === 0) return App.toast('Tidak ada data untuk diunduh.', 'error');
-
+                if(!this.statsData || this.statsData.length === 0) return UI.toast('Tidak ada data untuk diunduh.', 'error');
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                
                 const startDate = document.getElementById('statsStart').value;
                 const endDate = document.getElementById('statsEnd').value;
                 const startStr = startDate || 'Awal';
                 const endStr = endDate || 'Akhir';
                 const fileName = `Laporan_${currentUser.lokasi}_${startStr}_sd_${endStr}.pdf`;
                 const subTitle = `Periode ${startStr} s.d. ${endStr}`;
-
                 const filterKelompok = document.getElementById('statsFilterKelompok').value; 
                 const filterJenjang = document.getElementById('statsFilterJenjang').value;
-
-                let title = "";
-                let tableHeaders = [];
-                let tableBody = [];
-                let grandTotalPct = 0;
-                let countAvg = 0;
-                let columnStyles = { 0: { cellWidth: 15 } };
+                let title = "", tableHeaders = [], tableBody = [], grandTotalPct = 0, countAvg = 0, columnStyles = { 0: { cellWidth: 15 } };
 
                 if (currentUser.role === 'kelompok') {
                     title = `Laporan Jurnal Pengajian Kelompok ${currentUser.lokasi}`;
-                    tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Persentase Kehadiran']];
+                    tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Hadir (%)']];
                     columnStyles[2] = { cellWidth: 65 }; 
                     this.statsData.forEach((h, i) => {
                         let pct = 0;
-                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
                         tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, pct + "%"]);
                         grandTotalPct += pct; countAvg++;
                     });
-                }
-                else if (currentUser.role === 'desa') {
-                    if (filterKelompok) title = `Laporan Jurnal Pengajian Kelompok ${filterKelompok}`;
-                    else title = `Laporan Jurnal Pengajian Tingkat Desa ${currentUser.desa}`;
-                    tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Kelompok', 'Persentase Kehadiran']];
-                    columnStyles[2] = { cellWidth: 65 }; 
-                    columnStyles[4] = { cellWidth: 35 }; 
+                } else if (currentUser.role === 'desa') {
+                    title = filterKelompok ? `Laporan Jurnal Kelompok ${filterKelompok}` : `Laporan Jurnal Desa ${currentUser.desa}`;
+                    tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Kelompok', 'Hadir (%)']];
+                    columnStyles[2] = { cellWidth: 55 }; columnStyles[4] = { cellWidth: 35 }; 
                     this.statsData.forEach((h, i) => {
                         let pct = 0;
-                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
                         tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, h.kelompok, pct + "%"]);
                         grandTotalPct += pct; countAvg++;
                     });
-                }
-                else if (currentUser.role === 'daerah') {
-                    title = `Rekap Laporan Jurnal Pengajian ${currentUser.lokasi}`;
-                    tableHeaders = [['No', 'Jenjang', 'Persentase Kehadiran Kelompok', 'Desa']];
-                    columnStyles[1] = { cellWidth: 40 }; 
-                    columnStyles[3] = { cellWidth: 50 }; 
+                } else if (currentUser.role === 'daerah') {
+                    title = `Rekap Laporan Jurnal ${currentUser.lokasi}`;
+                    tableHeaders = [['No', 'Jenjang', 'Rata-rata Hadir', 'Desa']];
+                    columnStyles[1] = { cellWidth: 40 }; columnStyles[3] = { cellWidth: 50 }; 
                     const groupMap = {}; 
                     this.statsData.forEach(h => {
                         let pct = 0;
-                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e) {}
+                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
                         const key = `${h.jenjang}_${h.kelompok}_${h.desa}`;
                         if (!groupMap[key]) groupMap[key] = { totalPct: 0, count: 0, jenjang: h.jenjang, kelompok: h.kelompok, desa: h.desa };
                         groupMap[key].totalPct += pct; groupMap[key].count++;
@@ -885,80 +1125,44 @@
                     }
                 }
 
-                doc.setFontSize(16);
-                doc.setFont("helvetica", "bold");
-                doc.text(title, 14, 20);
-
-                doc.setFontSize(11);
-                doc.setFont("helvetica", "normal");
-                doc.text(subTitle, 14, 30);
-
+                doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(title, 14, 20);
+                doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text(subTitle, 14, 30);
+                
                 doc.autoTable({
                     startY: 40,
                     head: tableHeaders,
                     body: tableBody,
-                    theme: 'grid',
-                    headStyles: { fillColor: [37, 99, 235] }, 
+                    theme: 'striped',
+                    headStyles: { fillColor: [16, 185, 129] }, // Green Header
                     styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' }, 
                     columnStyles: columnStyles 
                 });
 
                 const finalY = doc.lastAutoTable.finalY + 10;
                 let overallAvg = countAvg > 0 ? Math.round(grandTotalPct / countAvg) : 0;
-                doc.setFontSize(11);
-                doc.setFont("helvetica", "bold");
-                doc.text(`Rata-rata kehadiran keseluruhan: ${overallAvg}%`, 14, finalY);
+                doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text(`Rata-rata kehadiran keseluruhan: ${overallAvg}%`, 14, finalY);
                 doc.save(fileName);
-            },
-            downloadReport: function() {
-                if(!this.statsData) return App.toast('Belum ada data statistik', 'error');
-                const excelData = [];
-                this.statsData.forEach(h => {
-                    try { const list = JSON.parse(h.kehadiran); list.forEach(s => { excelData.push({ "Tanggal": h.tanggal, "Jenjang": h.jenjang, "Kelompok": h.kelompok, "Materi": h.materi, "Nama Siswa": s.nama, "Status": s.status }); }); } catch(e){}
-                });
-                if(excelData.length === 0) return App.toast('Tidak ada data', 'error');
-                const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Detail"); XLSX.writeFile(wb, `Detail_Siswa_${new Date().toISOString().slice(0,10)}.xlsx`);
             }
         };
 
         // ==========================================
-        // MODULE 3: KURIKULUMUM (COMPLETE UPDATE)
+        // MODULE 3: KURIKULUM
         // ==========================================
         const Kurikulum = {
-            allStudents: [], 
-            allProgress: [], // Menyimpan semua progress untuk kebutuhan Rekapitulasi
-            config: {},      
-            currentStudent: null,
-            currentView: 'dashboard', // 'dashboard' atau 'detail'
-
+            allStudents: [], allProgress: [], config: {}, currentStudent: null, currentView: 'dashboard',
             init: async function() {
-                App.loader(true);
+                UI.loader(true);
                 try {
-                    // 1. Tentukan tampilan default
-                    // FIX 1: Mengubah 'currentRole' menjadi 'currentUser.role'
-                    if (currentUser.role === 'kelompok') {
-                        this.currentView = 'detail';
-                    } else {
-                        this.currentView = 'dashboard';
-                    }
+                    this.currentView = currentUser.role === 'kelompok' ? 'detail' : 'dashboard';
                     
-                    // 2. Ambil Data Siswa dari Sheet Data
-                    const sRes = await fetch(API_URL, { 
-                        method: 'post', 
-                        body: JSON.stringify({ action: 'getData', role: currentUser.role, lokasi: currentUser.lokasi }) 
-                    });
+                    const sRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', role: currentUser.role, lokasi: currentUser.lokasi }) });
                     const sJson = await sRes.json();
                     this.allStudents = sJson.data || [];
 
-                    // 3. Ambil Config Kurikulum (Menggunakan POST)
-                    const cRes = await fetch(API_URL, { 
-                        method: 'POST', 
-                        body: JSON.stringify({ action: 'getConfig' }) 
-                    });
+                    const cRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getConfig' }) });
                     const cJson = await cRes.json();
                     if(cJson.status === 'success') this.config = cJson.data;
 
-                    // 4. Isi Filter Jenjang
                     const jenjangSet = new Set(this.allStudents.map(s => s.jenjang).filter(j => j));
                     const filterSel = document.getElementById('kurDashboardFilterJenjang');
                     const detailFilterSel = document.getElementById('kurFilterJenjang');
@@ -968,301 +1172,155 @@
                         jenjangSet.forEach(j => sel.innerHTML += `<option value="${j}">${j}</option>`);
                     });
 
-                    // 5. Tampilkan View yang Sesuai
-                    if (this.currentView === 'dashboard') {
-                        this.loadDashboard();
-                    } else {
-                        this.populateStudentList(); // Siapkan list siswa
-                    }
-
-                } catch(e) { 
-                    console.error(e);
-                    App.toast('Gagal inisialisasi kurikulum', 'error'); 
-                } 
-                finally { App.loader(false); }
+                    if (this.currentView === 'dashboard') this.loadDashboard();
+                    else this.populateStudentList();
+                } catch(e) { UI.toast('Gagal inisialisasi kurikulum', 'error'); } 
+                finally { UI.loader(false); }
             },
-
-            // --- NAVIGASI VIEW ---
             switchView: function(view, btnElement) {
                 this.currentView = view;
-                
-                // Update class active pada Tab
-                document.querySelectorAll('#mod-kurikulum .tab-j').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('#mod-kurikulum .tab-btn').forEach(t => t.classList.remove('active'));
                 if(btnElement) btnElement.classList.add('active');
-
-                // Tampilkan/sembunyikan container
-                if(view === 'dashboard') {
-                    document.getElementById('kur-dashboard-view').classList.remove('hidden');
-                    document.getElementById('kur-detail-view').classList.add('hidden');
-                    this.loadDashboard();
-                } else {
-                    document.getElementById('kur-dashboard-view').classList.add('hidden');
-                    document.getElementById('kur-detail-view').classList.remove('hidden');
+                document.getElementById('kur-dashboard-view').classList.toggle('hidden', view !== 'dashboard');
+                document.getElementById('kur-detail-view').classList.toggle('hidden', view !== 'detail');
+                if(view === 'dashboard') this.loadDashboard();
+                else {
                     document.getElementById('kurContent').classList.add('hidden');
-                    // Reset pilihan detail
                     document.getElementById('kurStudentSelect').value = "";
                 }
             },
-
-            // --- LOGIKA DASHBOARD (REKAPITULASI KELOMPOK) ---
             loadDashboard: async function() {
                 const content = document.getElementById('kurDashboardContent');
-                content.innerHTML = '<div class="text-center"><div class="spinner" style="margin:20px auto;"></div><p>Memuat data rekapitulasi...</p></div>';
-
+                content.innerHTML = '<div class="text-center p-4"><div class="spinner" style="margin:0 auto;"></div><p class="text-muted mt-2">Memuat rekapitulasi...</p></div>';
                 try {
-                    // 1. Ambil Filter Jenjang Dashboard
                     const filterJenjang = document.getElementById('kurDashboardFilterJenjang').value;
-
-                    // 2. Ambil semua data progress dari Backend (Sekali Request)
                     const pRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllProgressData' }) });
                     const pJson = await pRes.json();
-
                     if(pJson.status === 'success' && pJson.data) {
-                        // progressMap: { "Nama Siswa": { "0-0": true, "0-1": false } }
-                        // groupStats: { "Kelompok A": { totalItems: 10, checkedItems: 5, memberCount: 2 } }
-                        
                         let groupStats = {}; 
-
-                        // Mapping data progress ke Siswa
                         const progressMap = {}; 
-                        pJson.data.forEach(p => {
-                            progressMap[p.student] = p.progressData;
-                        });
-
-                        // Loop siswa untuk mengelompokkan dan menghitung statistik
+                        pJson.data.forEach(p => { progressMap[p.student] = p.progressData; });
                         this.allStudents.forEach(student => {
-                            // Skip jika siswa tidak ada progress sama sekali
                             if (!progressMap[student.nama]) return;
-
-                            // Filter Jenjang Dashboard
                             if (filterJenjang && student.jenjang !== filterJenjang) return;
-
-                            // Tentukan Key Grup
                             let groupKey = "";
-                            if(currentUser.role === 'daerah') {
-                                groupKey = `${student.kelompok} - ${student.desa}`;
-                            } else if (currentUser.role === 'desa') {
-                                groupKey = student.kelompok;
-                            }
-
-                            // Inisialisasi Group jika belum ada
-                            if (!groupStats[groupKey]) {
-                                groupStats[groupKey] = { 
-                                    name: groupKey, 
-                                    totalItems: 0, checkedItems: 0, 
-                                    memberCount: 0 
-                                };
-                            }
-                            
+                            if(currentUser.role === 'daerah') groupKey = `${student.kelompok} - ${student.desa}`;
+                            else if (currentUser.role === 'desa') groupKey = student.kelompok;
+                            if (!groupStats[groupKey]) groupStats[groupKey] = { name: groupKey, totalItems: 0, checkedItems: 0, memberCount: 0 };
                             const pData = progressMap[student.nama] || {};
                             const total = Object.keys(pData).length;
                             const checked = Object.values(pData).filter(v => v).length;
-                            
                             groupStats[groupKey].totalItems += total;
                             groupStats[groupKey].checkedItems += checked;
                             groupStats[groupKey].memberCount++;
                         });
-
-                        // Render Cards
-                        // FIX 2: Menggunakan variabel string sementara ('dashboardHtml') alih-alih langsung mengakses DOM elemen
                         let dashboardHtml = '';
                         const sortedKeys = Object.keys(groupStats).sort(); 
-
                         if (sortedKeys.length === 0) {
-                            dashboardHtml = '<div class="text-center" style="padding:20px;">Tidak ada data kurikulum ditemukan untuk jenjang ini.</div>';
+                            dashboardHtml = '<div class="text-center p-4 bg-white border rounded text-muted">Tidak ada data kurikulum ditemukan.</div>';
                         } else {
                             sortedKeys.forEach(key => {
                                 const stats = groupStats[key];
-                                // Hitung rata-rata persentase
-                                let pct = 0;
-                                if (stats.totalItems > 0) {
-                                    pct = Math.round((stats.checkedItems / stats.totalItems) * 100);
-                                }
-
-                                // Parse Nama untuk tampilan rapi (Hilangkan info desa jika role desa)
+                                let pct = stats.totalItems > 0 ? Math.round((stats.checkedItems / stats.totalItems) * 100) : 0;
                                 let displayName = key;
-                                if (currentUser.role === 'desa') {
-                                    displayName = key.split(' - ')[0]; // Ambil bagian depan nama kelompok
-                                }
-
+                                if (currentUser.role === 'desa') displayName = key.split(' - ')[0];
                                 dashboardHtml += `
-                                    <div class="stat-card" style="margin-bottom:15px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                                            <h4 style="margin:0; font-size:1rem; color:var(--primary);">${displayName}</h4>
-                                            <div style="text-align:right;">
-                                                <div style="font-size:0.8rem; color:#666;">Pencapaian</div>
-                                                <div style="font-size:1.5rem; font-weight:bold; color:var(--primary);">${pct}%</div>
+                                    <div class="stat-card">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <h4 class="font-bold text-primary m-0" style="font-size:1.1rem;">${displayName}</h4>
+                                            <div class="text-right">
+                                                <div class="text-xs text-muted font-bold uppercase">Pencapaian</div>
+                                                <div class="text-xl font-bold text-primary">${pct}%</div>
                                             </div>
                                         </div>
-                                        <div style="background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden; margin-top:5px;">
-                                            <div style="width:${pct}%; background:var(--success); height:100%; transition:width 0.5s;"></div>
+                                        <div class="bg-gray-100 rounded-full h-2 overflow-hidden" style="background:#e2e8f0; height:8px; border-radius:4px;">
+                                            <div style="width:${pct}%; background:var(--primary); height:100%; transition:width 0.6s;"></div>
                                         </div>
-                                        <div style="margin-top:5px; font-size:0.8rem; color:#666;">
-                                            ${stats.checkedItems} dari ${stats.totalItems} Materi Tercapai
-                                            <br><small>(${stats.memberCount} Siswa)</small>
+                                        <div class="mt-2 text-xs text-muted">
+                                            ${stats.checkedItems} dari ${stats.totalItems} Materi Tercapai <br> <span class="font-bold text-main">(${stats.memberCount} Siswa)</span>
                                         </div>
-                                    </div>
-                                `;
+                                    </div>`;
                             });
                         }
-                        
                         content.innerHTML = dashboardHtml;
-
-                    } else {
-                        content.innerHTML = '<p class="text-center">Gagal memuat data rekapitulasi.</p>';
-                    }
-
-                } catch(e) {
-                    console.error(e);
-                    App.toast('Gagal memuat dashboard', 'error');
-                    content.innerHTML = '<p class="text-center" style="color:red;">Terjadi kesalahan sistem.</p>';
-                }
+                    } else { content.innerHTML = '<p class="text-center text-danger">Gagal memuat data.</p>'; }
+                } catch(e) { UI.toast('Gagal memuat dashboard', 'error'); content.innerHTML = '<p class="text-center text-danger">Terjadi kesalahan.</p>'; }
             },
-
-            // --- LOGIKA DETAIL (SISWA INDIVIDU) ---
-
             populateStudentList: function() {
                 const filterJenjang = document.getElementById('kurFilterJenjang').value;
-                
-                // Filter list siswa
-                const filteredStudents = filterJenjang 
-                    ? this.allStudents.filter(s => s.jenjang === filterJenjang)
-                    : this.allStudents;
-
+                const filteredStudents = filterJenjang ? this.allStudents.filter(s => s.jenjang === filterJenjang) : this.allStudents;
                 const sel = document.getElementById('kurStudentSelect');
                 const prevValue = sel.value;
                 sel.innerHTML = '<option value="">-- Pilih Siswa --</option>';
-                
                 filteredStudents.forEach(s => {
                     const jenjang = s.jenjang || "Umum";
-                    // Pertahankan pilihan
                     const selected = s.nama === prevValue ? 'selected' : '';
                     sel.innerHTML += `<option value="${s.nama}" data-jenjang="${jenjang}" ${selected}>${s.nama} (${s.kelompok || '-'})</option>`;
                 });
-
-                // Jika user ganti filter dan pilihan lama hilang, reset tampilan
-                if (prevValue && !filteredStudents.some(s => s.nama === prevValue)) {
-                    document.getElementById('kurContent').classList.add('hidden');
-                }
+                if (prevValue && !filteredStudents.some(s => s.nama === prevValue)) document.getElementById('kurContent').classList.add('hidden');
             },
-
             loadStudentDetail: async function() {
                 const select = document.getElementById('kurStudentSelect');
                 const selectedName = select.value;
                 const content = document.getElementById('kurContent');
-                
-                if(!selectedName) { 
-                    content.classList.add('hidden'); 
-                    return; 
-                }
-                
-                content.classList.remove('hidden'); 
-                App.loader(true);
-                
+                if(!selectedName) { content.classList.add('hidden'); return; }
+                content.classList.remove('hidden'); UI.loader(true);
                 try {
                     const selectedOption = select.options[select.selectedIndex];
                     const jenjang = selectedOption.getAttribute('data-jenjang');
-
-                    // Update UI Info
                     document.getElementById('kurStudentNameDisplay').innerText = selectedName;
                     document.getElementById('kurJenjangDisplay').innerText = jenjang;
-
-                    // Ambil Isi Kurikulum
                     const curriculumData = this.config[jenjang];
-
                     if(!curriculumData) {
                         const area = document.getElementById('kurChecklistArea'); 
-                        area.innerHTML = `<div style="text-align:center; padding:20px; color:#d97706; background:#fef3c7; border-radius:8px;">
-                            <i class="fas fa-exclamation-triangle"></i> Tidak ditemukan kurikulum untuk jenjang <b>${jenjang}</b>.
-                        </div>`;
-                        this.updateProgressBar(0);
-                        App.loader(false); 
-                        return; 
+                        area.innerHTML = `<div class="text-center p-4 rounded bg-yellow-50 text-yellow-700 border border-yellow-200"><i class="fas fa-exclamation-triangle"></i> Kurikulum tidak ditemukan untuk <b>${jenjang}</b>.</div>`;
+                        this.updateProgressBar(0); UI.loader(false); return; 
                     }
-
-                    // Ambil Progress tersimpan
                     const pRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getProgress', student: selectedName, jenjang: jenjang }) });
                     const pJson = await pRes.json();
-                    
                     let savedData = {};
-                    if(pJson.status === 'success' && pJson.data) { 
-                        savedData = pJson.data.progressData || {}; 
-                    }
-
-                    // Render Checklist dengan Event Click Update
-                    const area = document.getElementById('kurChecklistArea'); 
-                    area.innerHTML = '';
-                    
+                    if(pJson.status === 'success' && pJson.data) { savedData = pJson.data.progressData || {}; }
+                    const area = document.getElementById('kurChecklistArea'); area.innerHTML = '';
                     let html = ''; 
-                    
                     curriculumData.forEach((cat, cIdx) => {
                         html += `<div class="category-section"><div class="category-header">${cat.category}. ${cat.title}</div><div class="item-list">`;
                         cat.items.forEach((item, iIdx) => {
-                            const key = `${cIdx}-${iIdx}`; 
-                            const isChecked = savedData[key] ? 'checked' : ''; 
-                            
-                            html += `<div class="checklist-item"><input type="checkbox" id="chk_${key}" ${isChecked} onchange="Kurikulum.updateLocalProgress()"><label for="chk_${key}">${item}</label></div>`;
+                            const key = `${cIdx}-${iIdx}`; const isChecked = savedData[key] ? 'checked' : ''; 
+                            html += `<div class="checklist-item"><input type="checkbox" id="chk_${key}" ${isChecked} onchange="Kurikulum.updateLocalProgress()"><label for="chk_${key}" class="cursor-pointer">${item}</label></div>`;
                         }); 
                         html += `</div></div>`;
                     });
-                    
                     area.innerHTML = html;
-                    
-                    // Hitung progress awal
                     const checkboxes = area.querySelectorAll('input[type="checkbox"]');
-                    const total = checkboxes.length;
-                    const checked = area.querySelectorAll('input[type="checkbox"]:checked').length;
+                    const total = checkboxes.length; const checked = area.querySelectorAll('input[type="checkbox"]:checked').length;
                     this.updateProgressUI(checked, total);
-
-                } catch(e) { App.toast('Gagal muat progress siswa', 'error'); console.error(e); } 
-                finally { App.loader(false); }
+                } catch(e) { UI.toast('Gagal muat progress siswa', 'error'); } 
+                finally { UI.loader(false); }
             },
-
-            // --- LOGIKA UPDATE PROGRESS ---
-            
             updateLocalProgress: function() {
                 const checkboxes = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]');
-                const total = checkboxes.length;
-                const checked = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]:checked').length;
-                
+                const total = checkboxes.length; const checked = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]:checked').length;
                 this.updateProgressUI(checked, total);
             },
-
             updateProgressUI: function(checked, total) {
                 const pct = total > 0 ? Math.round((checked/total)*100) : 0;
                 document.getElementById('kurPercent').innerText = pct + "%"; 
                 document.getElementById('kurBar').style.width = pct + "%";
             },
-
             save: async function() {
                 const selectedName = document.getElementById('kurStudentSelect').value;
                 const selectedOption = document.getElementById('kurStudentSelect').options[document.getElementById('kurStudentSelect').selectedIndex];
                 const jenjang = selectedOption.getAttribute('data-jenjang');
-
-                if(!selectedName) return App.toast('Pilih siswa terlebih dahulu', 'error');
-
+                if(!selectedName) return UI.toast('Pilih siswa terlebih dahulu', 'error');
                 const checkboxes = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]');
                 const progressData = {}; 
-                checkboxes.forEach(cb => { 
-                    const key = cb.id.replace('chk_', ''); 
-                    progressData[key] = cb.checked; 
-                });
-                
-                App.loader(true);
+                checkboxes.forEach(cb => { const key = cb.id.replace('chk_', ''); progressData[key] = cb.checked; });
+                UI.loader(true);
                 try { 
-                    await fetch(API_URL, { 
-                        method: 'POST', 
-                        body: JSON.stringify({ 
-                            action: 'saveProgress', 
-                            student: selectedName, 
-                            jenjang: jenjang, 
-                            progressData: progressData 
-                        }) 
-                    }); 
-                    App.toast('Progress siswa berhasil disimpan'); 
-                } 
-                catch(e) { App.toast('Gagal simpan', 'error'); } 
-                finally { App.loader(false); }
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveProgress', student: selectedName, jenjang: jenjang, progressData: progressData }) }); 
+                    UI.toast('Progress tersimpan'); 
+                } catch(e) { UI.toast('Gagal simpan', 'error'); } 
+                finally { UI.loader(false); }
             }
         };
         window.onload = function() { Auth.init(); };
