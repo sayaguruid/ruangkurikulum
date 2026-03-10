@@ -4,6 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ruang Kurikulum</title>
+    
+    <!-- PWA CONFIGURATION -->
+    <meta name="theme-color" content="#10b981">
+    <meta name="msapplication-TileColor" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ruang Kurikulum">
+    <!-- Placeholder Icon (Ganti URL ini jika sudah punya icon sendiri) -->
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/10b981/ffffff?text=RK">
+    
+    <script type="application/manifest+json">
+    {
+      "name": "Ruang Kurikulum",
+      "short_name": "RuangKurikulum",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#f8fafc",
+      "theme_color": "#10b981",
+      "orientation": "portrait",
+      "icons": [
+        {
+          "src": "https://placehold.co/192x192/10b981/ffffff?text=RK",
+          "sizes": "192x192",
+          "type": "image/png"
+        },
+        {
+          "src": "https://placehold.co/512x512/10b981/ffffff?text=RK",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+    </script>
+
     <!-- Fonts: Inter (Modern Sans) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Icons: FontAwesome -->
@@ -192,6 +226,13 @@
         .page-btn { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-main); font-weight: 500; transition: 0.2s; }
         .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
         .page-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; }
+
+        /* --- PWA INSTALLER UI --- */
+        #ios-install-guide { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); color: white; z-index: 9999; padding: 20px; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-align: center; }
+        #ios-install-guide.show { transform: translateY(0); }
+        .ios-icon { display: inline-block; background: #007aff; border-radius: 8px; padding: 6px; margin: 0 4px; font-size: 14px; width: 24px; height: 24px; line-height: 24px; vertical-align: middle; }
+        .btn-install-pwa { display: none; position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: white; border: none; border-radius: 50px; padding: 12px 24px; font-weight: bold; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); z-index: 9000; cursor: pointer; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
 
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); box-shadow: var(--shadow-md); } .sidebar.open { transform: translateX(0); }
@@ -553,6 +594,19 @@
         </div>
     </div>
 
+    <!-- INSTALLER UI COMPONENTS -->
+    <button id="btnInstallAndroid" class="btn-install-pwa"><i class="fas fa-download"></i> Install Aplikasi</button>
+    <div id="ios-install-guide">
+        <div style="max-width: 400px; margin: 0 auto;">
+            <h3 style="margin-bottom: 10px; color: var(--primary);">Install Aplikasi</h3>
+            <p style="margin-bottom: 15px; font-size: 0.9rem; opacity: 0.9;">Untuk pengalaman terbaik, pasang aplikasi ini di Home Screen:</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                <p style="margin: 0; font-size: 0.95rem;">1. Tekan tombol <span class="ios-icon"><i class="fas fa-share"></i></span> <b>Share</b><br>2. Pilih <b>"Add to Home Screen"</b></p>
+            </div>
+            <button onclick="closeInstallGuide()" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 20px; border-radius: 20px; cursor: pointer;">Tutup</button>
+        </div>
+    </div>
+
     <script>
         // ==========================================
         // CONFIG
@@ -756,51 +810,35 @@
                 }
             },
             openModal: function() { document.querySelector('#modalGen form').reset(); document.getElementById('genRowIndex').value=''; UI.openModal('modalGen'); },
-    saveForm: async function() {
-        // Fungsi kecil untuk mencegah data kosong agar kolom tidak bergeser
-        const valOrSpace = (val) => (val === undefined || val === null || val === "") ? " " : val;
-
-        const kelas = document.getElementById('genKelas').value;
-        const tglInput = document.getElementById('genTglLahir').value;
-        
-        // Cek apakah user data valid
-        if (!currentUser || !currentUser.lokasi) {
-            alert("Sesi login tidak valid atau Lokasi Kelompok belum terdeteksi. Silakan refresh halaman.");
-            return;
-        }
-
-        // Format Tanggal (dd/mm/yyyy)
-        let tgl = "";
-        if(tglInput){const p=tglInput.split('-'); if(p.length===3) tgl=`${p[2]}/${p[1]}/${p[0]}`;}
-
-        // Payload sesuai urutan Sheet: No, Nama, JK, TmpLahir, TglLahir, Umur, Kelas, Jenjang, Ayah, Ibu, Kelompok, Desa
-        // Kita gunakan urutan yang SANGAT JELAS agar sesuai index kolom
-        const payload = { 
-            rowIndex: document.getElementById('genRowIndex').value, 
-            no: valOrSpace(document.getElementById('genNo').value),
-            nama: valOrSpace(document.getElementById('genNama').value), 
-            jk: valOrSpace(document.getElementById('genJK').value), 
-            tempatLahir: valOrSpace(document.getElementById('genTmpLahir').value), 
-            tanggalLahir: valOrSpace(tgl), 
-            umur: " ",       // Kolom penjaga agar posisi tetap
-            kelas: valOrSpace(kelas), 
-            jenjang: " ",    // Kolom penjaga agar posisi tetap
-            ayah: valOrSpace(document.getElementById('genAyah').value), 
-            ibu: valOrSpace(document.getElementById('genIbu').value),       // KUNCI: Paksa spasi jika kosong
-            kelompok: valOrSpace(currentUser.lokasi),  // KUNCI: Pastikan ini terisi
-            desa: valOrSpace(currentUser.desa) 
-        };
-        
-        UI.loader(true); 
-        const action = payload.rowIndex ? 'editData' : 'addData';
-        try { 
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload }) }); 
-            if((await res.json()).status === 'success') { 
-                UI.toast('Data tersimpan'); UI.closeModal('modalGen'); this.init(); 
-            } 
-        } catch(e){ console.error(e); UI.toast('Gagal simpan','error'); } 
-        finally{UI.loader(false);}
-    },
+            saveForm: async function() {
+                const valOrSpace = (val) => (val === undefined || val === null || val === "") ? " " : val;
+                const kelas = document.getElementById('genKelas').value;
+                const tglInput = document.getElementById('genTglLahir').value;
+                if (!currentUser || !currentUser.lokasi) { alert("Sesi login tidak valid. Refresh halaman."); return; }
+                let tgl = ""; if(tglInput){const p=tglInput.split('-'); if(p.length===3) tgl=`${p[2]}/${p[1]}/${p[0]}`;}
+                const payload = { 
+                    rowIndex: document.getElementById('genRowIndex').value, 
+                    no: valOrSpace(document.getElementById('genNo').value),
+                    nama: valOrSpace(document.getElementById('genNama').value), 
+                    jk: valOrSpace(document.getElementById('genJK').value), 
+                    tempatLahir: valOrSpace(document.getElementById('genTmpLahir').value), 
+                    tanggalLahir: valOrSpace(tgl), 
+                    umur: " ", kelas: valOrSpace(kelas), jenjang: " ", 
+                    ayah: valOrSpace(document.getElementById('genAyah').value), 
+                    ibu: valOrSpace(document.getElementById('genIbu').value),       
+                    kelompok: valOrSpace(currentUser.lokasi),  
+                    desa: valOrSpace(currentUser.desa) 
+                };
+                UI.loader(true); 
+                const action = payload.rowIndex ? 'editData' : 'addData';
+                try { 
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload }) }); 
+                    if((await res.json()).status === 'success') { 
+                        UI.toast('Data tersimpan'); UI.closeModal('modalGen'); this.init(); 
+                    } 
+                } catch(e){ console.error(e); UI.toast('Gagal simpan','error'); } 
+                finally{UI.loader(false);}
+            },
             edit: function(idx) {
                 const item = this.allData.find(d => d.rowIndex == idx); if(!item) return;
                 document.getElementById('genRowIndex').value = item.rowIndex; 
@@ -833,21 +871,11 @@
 
             init: function() { 
                 document.getElementById('jurnDate').valueAsDate = new Date(); 
-                
-                // Role based visibility
                 const isKelompok = currentUser.role === 'kelompok';
                 const histKelFilter = document.getElementById('histFilterKelompokWrapper');
                 const statsKelFilter = document.getElementById('statsKelompokFilterWrapper');
-                
-                if(!isKelompok) {
-                    histKelFilter.classList.remove('hidden');
-                    statsKelFilter.classList.remove('hidden');
-                    this.populateOptions();
-                } else {
-                    histKelFilter.classList.add('hidden');
-                    statsKelFilter.classList.add('hidden');
-                }
-
+                if(!isKelompok) { histKelFilter.classList.remove('hidden'); statsKelFilter.classList.remove('hidden'); this.populateOptions(); } 
+                else { histKelFilter.classList.add('hidden'); statsKelFilter.classList.add('hidden'); }
                 if(isKelompok) this.switchTab('input', document.getElementById('tabBtnInput'));
                 else this.switchTab('stats', document.getElementById('tabBtnStats'));
             },
@@ -858,11 +886,7 @@
                     const kSet = new Set((json.members || []).map(m => m.kelompok).filter(k=>k));
                     const kSel = document.getElementById('histFilterKelompok');
                     const statsKSel = document.getElementById('statsFilterKelompok');
-                    
-                    [kSel, statsKSel].forEach(sel => {
-                        sel.innerHTML = '<option value="">Semua Kelompok</option>';
-                        kSet.forEach(k => sel.innerHTML += `<option value="${k}">${k}</option>`);
-                    });
+                    [kSel, statsKSel].forEach(sel => { sel.innerHTML = '<option value="">Semua Kelompok</option>'; kSet.forEach(k => sel.innerHTML += `<option value="${k}">${k}</option>`); });
                 });
             },
 
@@ -872,12 +896,9 @@
                 document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input');
                 document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history');
                 document.getElementById('jurnal-stats-view').classList.toggle('hidden', tab !== 'stats');
-                
                 if(tab === 'history') {
                     const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('histStart').value = today;
-                    document.getElementById('histEnd').value = today;
-                    this.loadHistory(); 
+                    document.getElementById('histStart').value = today; document.getElementById('histEnd').value = today; this.loadHistory(); 
                 }
                 if(tab === 'stats') this.loadStats();
             },
@@ -885,16 +906,12 @@
             loadMembers: async function() {
                 const jenjang = document.getElementById('jurnJenjang').value;
                 const container = document.getElementById('jurnMemberList'), formArea = document.getElementById('jurnalFormArea');
-                if(!jenjang) { formArea.classList.add('hidden'); return; } 
-                formArea.classList.remove('hidden');
+                if(!jenjang) { formArea.classList.add('hidden'); return; } formArea.classList.remove('hidden');
                 container.innerHTML = '<div class="text-center p-4"><div class="spinner" style="margin:0 auto;"></div></div>';
                 try {
                     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang }) });
                     const json = await res.json(); container.innerHTML = ''; this.members = json.members || [];
-                    if(this.members.length === 0) {
-                        container.innerHTML = '<p class="text-center text-muted">Tidak ada generus di jenjang ini.</p>';
-                        return;
-                    }
+                    if(this.members.length === 0) { container.innerHTML = '<p class="text-center text-muted">Tidak ada generus di jenjang ini.</p>'; return; }
                     this.members.forEach(m => {
                         const div = document.createElement('div'); 
                         div.className = 'flex justify-between items-center p-2 mb-2 bg-white border rounded hover:bg-gray-50';
@@ -917,8 +934,7 @@
             },
 
             loadHistory: async function() {
-                UI.loader(true);
-                this.currentPage = 1;
+                UI.loader(true); this.currentPage = 1;
                 const start = document.getElementById('histStart').value; 
                 const end = document.getElementById('histEnd').value;       
                 const kel = document.getElementById('histFilterKelompok').value;
@@ -950,21 +966,11 @@
                     div.className = 'history-card';
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <div class="font-bold text-primary text-lg">${h.tanggal}</div>
-                                <div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? '• ' + h.kelompok : ''}</div>
-                            </div>
-                            <div class="flex gap-2 text-xs font-bold">
-                                <span class="badge-H status-badge">H:${hCount}</span>
-                                <span class="badge-S status-badge">S:${sCount}</span>
-                                <span class="badge-I status-badge">I:${iCount}</span>
-                                <span class="badge-A status-badge">A:${aCount}</span>
-                            </div>
+                            <div><div class="font-bold text-primary text-lg">${h.tanggal}</div><div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? '• ' + h.kelompok : ''}</div></div>
+                            <div class="flex gap-2 text-xs font-bold"><span class="badge-H status-badge">H:${hCount}</span><span class="badge-S status-badge">S:${sCount}</span><span class="badge-I status-badge">I:${iCount}</span><span class="badge-A status-badge">A:${aCount}</span></div>
                         </div>
                         <div class="text-sm text-muted italic mb-3 border-l-2 border-gray-200 pl-3">"${h.materi}"</div>
-                        <div class="pt-2 border-t border-dashed border-gray-200">
-                            <button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button>
-                        </div>`;
+                        <div class="pt-2 border-t border-dashed border-gray-200"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`;
                     container.appendChild(div);
                 });
                 const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
@@ -996,9 +1002,7 @@
                         html += `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8fafc; border-radius:6px; font-size:0.85rem;"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`;
                     });
                 } catch(e){ html = '<p class="text-danger">Gagal memuat data.</p>'; }
-                html += '</div>';
-                listDiv.innerHTML = html;
-                UI.openModal('modalDetail');
+                html += '</div>'; listDiv.innerHTML = html; UI.openModal('modalDetail');
             },
 
             loadStats: async function() {
@@ -1029,7 +1033,6 @@
             renderChart: function(data) {
                 const ctx = document.getElementById('attendanceChart').getContext('2d');
                 if(this.chartInstance) this.chartInstance.destroy();
-                // Updated to Green Theme
                 this.chartInstance = new Chart(ctx, {
                     type: 'line',
                     data: { 
@@ -1089,20 +1092,16 @@
                     tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Hadir (%)']];
                     columnStyles[2] = { cellWidth: 65 }; 
                     this.statsData.forEach((h, i) => {
-                        let pct = 0;
-                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
-                        tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, pct + "%"]);
-                        grandTotalPct += pct; countAvg++;
+                        let pct = 0; try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
+                        tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, pct + "%"]); grandTotalPct += pct; countAvg++;
                     });
                 } else if (currentUser.role === 'desa') {
                     title = filterKelompok ? `Laporan Jurnal Kelompok ${filterKelompok}` : `Laporan Jurnal Desa ${currentUser.desa}`;
                     tableHeaders = [['No', 'Tanggal', 'Materi', 'Jenjang', 'Kelompok', 'Hadir (%)']];
                     columnStyles[2] = { cellWidth: 55 }; columnStyles[4] = { cellWidth: 35 }; 
                     this.statsData.forEach((h, i) => {
-                        let pct = 0;
-                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
-                        tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, h.kelompok, pct + "%"]);
-                        grandTotalPct += pct; countAvg++;
+                        let pct = 0; try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
+                        tableBody.push([i + 1, h.tanggal, h.materi, h.jenjang, h.kelompok, pct + "%"]); grandTotalPct += pct; countAvg++;
                     });
                 } else if (currentUser.role === 'daerah') {
                     title = `Rekap Laporan Jurnal ${currentUser.lokasi}`;
@@ -1110,8 +1109,7 @@
                     columnStyles[1] = { cellWidth: 40 }; columnStyles[3] = { cellWidth: 50 }; 
                     const groupMap = {}; 
                     this.statsData.forEach(h => {
-                        let pct = 0;
-                        try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
+                        let pct = 0; try { const list = JSON.parse(h.kehadiran); if (list.length > 0) pct = Math.round((list.filter(x => x.status === 'Hadir').length / list.length) * 100); } catch(e){}
                         const key = `${h.jenjang}_${h.kelompok}_${h.desa}`;
                         if (!groupMap[key]) groupMap[key] = { totalPct: 0, count: 0, jenjang: h.jenjang, kelompok: h.kelompok, desa: h.desa };
                         groupMap[key].totalPct += pct; groupMap[key].count++;
@@ -1120,24 +1118,12 @@
                     for (const key in groupMap) {
                         const group = groupMap[key];
                         const avgPct = Math.round(group.totalPct / group.count);
-                        tableBody.push([index++, group.jenjang, avgPct + "%", group.desa]);
-                        grandTotalPct += avgPct; countAvg++;
+                        tableBody.push([index++, group.jenjang, avgPct + "%", group.desa]); grandTotalPct += avgPct; countAvg++;
                     }
                 }
-
                 doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(title, 14, 20);
                 doc.setFontSize(11); doc.setFont("helvetica", "normal"); doc.text(subTitle, 14, 30);
-                
-                doc.autoTable({
-                    startY: 40,
-                    head: tableHeaders,
-                    body: tableBody,
-                    theme: 'striped',
-                    headStyles: { fillColor: [16, 185, 129] }, // Green Header
-                    styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' }, 
-                    columnStyles: columnStyles 
-                });
-
+                doc.autoTable({ startY: 40, head: tableHeaders, body: tableBody, theme: 'striped', headStyles: { fillColor: [16, 185, 129] }, styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' }, columnStyles: columnStyles });
                 const finalY = doc.lastAutoTable.finalY + 10;
                 let overallAvg = countAvg > 0 ? Math.round(grandTotalPct / countAvg) : 0;
                 doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text(`Rata-rata kehadiran keseluruhan: ${overallAvg}%`, 14, finalY);
@@ -1154,28 +1140,17 @@
                 UI.loader(true);
                 try {
                     this.currentView = currentUser.role === 'kelompok' ? 'detail' : 'dashboard';
-                    
                     const sRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', role: currentUser.role, lokasi: currentUser.lokasi }) });
-                    const sJson = await sRes.json();
-                    this.allStudents = sJson.data || [];
-
+                    const sJson = await sRes.json(); this.allStudents = sJson.data || [];
                     const cRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getConfig' }) });
-                    const cJson = await cRes.json();
-                    if(cJson.status === 'success') this.config = cJson.data;
-
+                    const cJson = await cRes.json(); if(cJson.status === 'success') this.config = cJson.data;
                     const jenjangSet = new Set(this.allStudents.map(s => s.jenjang).filter(j => j));
                     const filterSel = document.getElementById('kurDashboardFilterJenjang');
                     const detailFilterSel = document.getElementById('kurFilterJenjang');
-                    
-                    [filterSel, detailFilterSel].forEach(sel => {
-                        sel.innerHTML = '<option value="">Semua Jenjang</option>';
-                        jenjangSet.forEach(j => sel.innerHTML += `<option value="${j}">${j}</option>`);
-                    });
-
+                    [filterSel, detailFilterSel].forEach(sel => { sel.innerHTML = '<option value="">Semua Jenjang</option>'; jenjangSet.forEach(j => sel.innerHTML += `<option value="${j}">${j}</option>`); });
                     if (this.currentView === 'dashboard') this.loadDashboard();
                     else this.populateStudentList();
-                } catch(e) { UI.toast('Gagal inisialisasi kurikulum', 'error'); } 
-                finally { UI.loader(false); }
+                } catch(e) { UI.toast('Gagal inisialisasi kurikulum', 'error'); } finally { UI.loader(false); }
             },
             switchView: function(view, btnElement) {
                 this.currentView = view;
@@ -1184,10 +1159,7 @@
                 document.getElementById('kur-dashboard-view').classList.toggle('hidden', view !== 'dashboard');
                 document.getElementById('kur-detail-view').classList.toggle('hidden', view !== 'detail');
                 if(view === 'dashboard') this.loadDashboard();
-                else {
-                    document.getElementById('kurContent').classList.add('hidden');
-                    document.getElementById('kurStudentSelect').value = "";
-                }
+                else { document.getElementById('kurContent').classList.add('hidden'); document.getElementById('kurStudentSelect').value = ""; }
             },
             loadDashboard: async function() {
                 const content = document.getElementById('kurDashboardContent');
@@ -1197,49 +1169,23 @@
                     const pRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAllProgressData' }) });
                     const pJson = await pRes.json();
                     if(pJson.status === 'success' && pJson.data) {
-                        let groupStats = {}; 
-                        const progressMap = {}; 
-                        pJson.data.forEach(p => { progressMap[p.student] = p.progressData; });
+                        let groupStats = {}; const progressMap = {}; pJson.data.forEach(p => { progressMap[p.student] = p.progressData; });
                         this.allStudents.forEach(student => {
-                            if (!progressMap[student.nama]) return;
-                            if (filterJenjang && student.jenjang !== filterJenjang) return;
+                            if (!progressMap[student.nama]) return; if (filterJenjang && student.jenjang !== filterJenjang) return;
                             let groupKey = "";
                             if(currentUser.role === 'daerah') groupKey = `${student.kelompok} - ${student.desa}`;
                             else if (currentUser.role === 'desa') groupKey = student.kelompok;
                             if (!groupStats[groupKey]) groupStats[groupKey] = { name: groupKey, totalItems: 0, checkedItems: 0, memberCount: 0 };
-                            const pData = progressMap[student.nama] || {};
-                            const total = Object.keys(pData).length;
-                            const checked = Object.values(pData).filter(v => v).length;
-                            groupStats[groupKey].totalItems += total;
-                            groupStats[groupKey].checkedItems += checked;
-                            groupStats[groupKey].memberCount++;
+                            const pData = progressMap[student.nama] || {}; const total = Object.keys(pData).length; const checked = Object.values(pData).filter(v => v).length;
+                            groupStats[groupKey].totalItems += total; groupStats[groupKey].checkedItems += checked; groupStats[groupKey].memberCount++;
                         });
-                        let dashboardHtml = '';
-                        const sortedKeys = Object.keys(groupStats).sort(); 
-                        if (sortedKeys.length === 0) {
-                            dashboardHtml = '<div class="text-center p-4 bg-white border rounded text-muted">Tidak ada data kurikulum ditemukan.</div>';
-                        } else {
+                        let dashboardHtml = ''; const sortedKeys = Object.keys(groupStats).sort(); 
+                        if (sortedKeys.length === 0) { dashboardHtml = '<div class="text-center p-4 bg-white border rounded text-muted">Tidak ada data kurikulum ditemukan.</div>'; } 
+                        else {
                             sortedKeys.forEach(key => {
-                                const stats = groupStats[key];
-                                let pct = stats.totalItems > 0 ? Math.round((stats.checkedItems / stats.totalItems) * 100) : 0;
-                                let displayName = key;
+                                const stats = groupStats[key]; let pct = stats.totalItems > 0 ? Math.round((stats.checkedItems / stats.totalItems) * 100) : 0; let displayName = key;
                                 if (currentUser.role === 'desa') displayName = key.split(' - ')[0];
-                                dashboardHtml += `
-                                    <div class="stat-card">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <h4 class="font-bold text-primary m-0" style="font-size:1.1rem;">${displayName}</h4>
-                                            <div class="text-right">
-                                                <div class="text-xs text-muted font-bold uppercase">Pencapaian</div>
-                                                <div class="text-xl font-bold text-primary">${pct}%</div>
-                                            </div>
-                                        </div>
-                                        <div class="bg-gray-100 rounded-full h-2 overflow-hidden" style="background:#e2e8f0; height:8px; border-radius:4px;">
-                                            <div style="width:${pct}%; background:var(--primary); height:100%; transition:width 0.6s;"></div>
-                                        </div>
-                                        <div class="mt-2 text-xs text-muted">
-                                            ${stats.checkedItems} dari ${stats.totalItems} Materi Tercapai <br> <span class="font-bold text-main">(${stats.memberCount} Siswa)</span>
-                                        </div>
-                                    </div>`;
+                                dashboardHtml += `<div class="stat-card"><div class="flex justify-between items-center mb-2"><h4 class="font-bold text-primary m-0" style="font-size:1.1rem;">${displayName}</h4><div class="text-right"><div class="text-xs text-muted font-bold uppercase">Pencapaian</div><div class="text-xl font-bold text-primary">${pct}%</div></div></div><div class="bg-gray-100 rounded-full h-2 overflow-hidden" style="background:#e2e8f0; height:8px; border-radius:4px;"><div style="width:${pct}%; background:var(--primary); height:100%; transition:width 0.6s;"></div></div><div class="mt-2 text-xs text-muted">${stats.checkedItems} dari ${stats.totalItems} Materi Tercapai <br> <span class="font-bold text-main">(${stats.memberCount} Siswa)</span></div></div>`;
                             });
                         }
                         content.innerHTML = dashboardHtml;
@@ -1249,27 +1195,22 @@
             populateStudentList: function() {
                 const filterJenjang = document.getElementById('kurFilterJenjang').value;
                 const filteredStudents = filterJenjang ? this.allStudents.filter(s => s.jenjang === filterJenjang) : this.allStudents;
-                const sel = document.getElementById('kurStudentSelect');
-                const prevValue = sel.value;
+                const sel = document.getElementById('kurStudentSelect'); const prevValue = sel.value;
                 sel.innerHTML = '<option value="">-- Pilih Siswa --</option>';
                 filteredStudents.forEach(s => {
-                    const jenjang = s.jenjang || "Umum";
-                    const selected = s.nama === prevValue ? 'selected' : '';
+                    const jenjang = s.jenjang || "Umum"; const selected = s.nama === prevValue ? 'selected' : '';
                     sel.innerHTML += `<option value="${s.nama}" data-jenjang="${jenjang}" ${selected}>${s.nama} (${s.kelompok || '-'})</option>`;
                 });
                 if (prevValue && !filteredStudents.some(s => s.nama === prevValue)) document.getElementById('kurContent').classList.add('hidden');
             },
             loadStudentDetail: async function() {
-                const select = document.getElementById('kurStudentSelect');
-                const selectedName = select.value;
+                const select = document.getElementById('kurStudentSelect'); const selectedName = select.value;
                 const content = document.getElementById('kurContent');
                 if(!selectedName) { content.classList.add('hidden'); return; }
                 content.classList.remove('hidden'); UI.loader(true);
                 try {
-                    const selectedOption = select.options[select.selectedIndex];
-                    const jenjang = selectedOption.getAttribute('data-jenjang');
-                    document.getElementById('kurStudentNameDisplay').innerText = selectedName;
-                    document.getElementById('kurJenjangDisplay').innerText = jenjang;
+                    const selectedOption = select.options[select.selectedIndex]; const jenjang = selectedOption.getAttribute('data-jenjang');
+                    document.getElementById('kurStudentNameDisplay').innerText = selectedName; document.getElementById('kurJenjangDisplay').innerText = jenjang;
                     const curriculumData = this.config[jenjang];
                     if(!curriculumData) {
                         const area = document.getElementById('kurChecklistArea'); 
@@ -1277,11 +1218,9 @@
                         this.updateProgressBar(0); UI.loader(false); return; 
                     }
                     const pRes = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getProgress', student: selectedName, jenjang: jenjang }) });
-                    const pJson = await pRes.json();
-                    let savedData = {};
+                    const pJson = await pRes.json(); let savedData = {};
                     if(pJson.status === 'success' && pJson.data) { savedData = pJson.data.progressData || {}; }
-                    const area = document.getElementById('kurChecklistArea'); area.innerHTML = '';
-                    let html = ''; 
+                    const area = document.getElementById('kurChecklistArea'); area.innerHTML = ''; let html = ''; 
                     curriculumData.forEach((cat, cIdx) => {
                         html += `<div class="category-section"><div class="category-header">${cat.category}. ${cat.title}</div><div class="item-list">`;
                         cat.items.forEach((item, iIdx) => {
@@ -1294,8 +1233,7 @@
                     const checkboxes = area.querySelectorAll('input[type="checkbox"]');
                     const total = checkboxes.length; const checked = area.querySelectorAll('input[type="checkbox"]:checked').length;
                     this.updateProgressUI(checked, total);
-                } catch(e) { UI.toast('Gagal muat progress siswa', 'error'); } 
-                finally { UI.loader(false); }
+                } catch(e) { UI.toast('Gagal muat progress siswa', 'error'); } finally { UI.loader(false); }
             },
             updateLocalProgress: function() {
                 const checkboxes = document.querySelectorAll('#kurChecklistArea input[type="checkbox"]');
@@ -1304,8 +1242,7 @@
             },
             updateProgressUI: function(checked, total) {
                 const pct = total > 0 ? Math.round((checked/total)*100) : 0;
-                document.getElementById('kurPercent').innerText = pct + "%"; 
-                document.getElementById('kurBar').style.width = pct + "%";
+                document.getElementById('kurPercent').innerText = pct + "%"; document.getElementById('kurBar').style.width = pct + "%";
             },
             save: async function() {
                 const selectedName = document.getElementById('kurStudentSelect').value;
@@ -1319,10 +1256,62 @@
                 try { 
                     await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveProgress', student: selectedName, jenjang: jenjang, progressData: progressData }) }); 
                     UI.toast('Progress tersimpan'); 
-                } catch(e) { UI.toast('Gagal simpan', 'error'); } 
-                finally { UI.loader(false); }
+                } catch(e) { UI.toast('Gagal simpan', 'error'); } finally { UI.loader(false); }
             }
         };
+
+        // ==========================================
+        // INSTALLER LOGIC (PWA)
+        // ==========================================
+        let deferredPrompt; 
+        const btnInstallAndroid = document.getElementById('btnInstallAndroid'); 
+        const iosGuide = document.getElementById('ios-install-guide');
+
+        const isIos = () => { 
+            const userAgent = window.navigator.userAgent.toLowerCase(); 
+            return /iphone|ipad|ipod/.test( userAgent ); 
+        };
+        
+        const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+        window.addEventListener('load', () => {
+            if (isInStandaloneMode()) return; // Jika sudah diinstall, jangan tampilkan apa-apa
+            
+            if (isIos() && !localStorage.getItem('iosInstallPromptClosed')) { 
+                setTimeout(() => { iosGuide.classList.add('show'); }, 2000); // Delay 2 detik biar smooth
+            }
+        });
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Mencegah Chrome menampilkan prompt native bawaan
+            e.preventDefault(); 
+            // Simpan event agar bisa dipicu nanti via tombol kita
+            deferredPrompt = e; 
+            // Tampilkan tombol Install kustom
+            btnInstallAndroid.style.display = 'flex';
+        });
+
+        btnInstallAndroid.addEventListener('click', async () => {
+            if (deferredPrompt) { 
+                // Tampilkan prompt native Chrome
+                deferredPrompt.prompt(); 
+                // Tunggu respon user
+                const { outcome } = await deferredPrompt.userChoice; 
+                if (outcome === 'accepted') { 
+                    console.log('User accepted the install prompt'); 
+                } 
+                // Reset variabel
+                deferredPrompt = null; 
+                // Sembunyikan tombol
+                btnInstallAndroid.style.display = 'none'; 
+            }
+        });
+
+        function closeInstallGuide() { 
+            iosGuide.classList.remove('show'); 
+            localStorage.setItem('iosInstallPromptClosed', 'true'); // Jangan tampilkan lagi besok
+        }
+
         window.onload = function() { Auth.init(); };
     </script>
 </body>
