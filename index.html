@@ -11,7 +11,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ruang Kurikulum">
-    <!-- Placeholder Icon (Ganti URL ini jika sudah punya icon sendiri) -->
     <link rel="apple-touch-icon" href="https://placehold.co/192x192/10b981/ffffff?text=RK">
     
     <script type="application/manifest+json">
@@ -24,55 +23,37 @@
       "theme_color": "#10b981",
       "orientation": "portrait",
       "icons": [
-        {
-          "src": "https://placehold.co/192x192/10b981/ffffff?text=RK",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": "https://placehold.co/512x512/10b981/ffffff?text=RK",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
+        { "src": "https://placehold.co/192x192/10b981/ffffff?text=RK", "sizes": "192x192", "type": "image/png" },
+        { "src": "https://placehold.co/512x512/10b981/ffffff?text=RK", "sizes": "512x512", "type": "image/png" }
       ]
     }
     </script>
 
-    <!-- Fonts: Inter (Modern Sans) -->
+    <!-- Fonts & Libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Icons: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Libraries: SheetJS, ChartJS, jsPDF -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* --- CSS VARIABLES (WHITE & GREEN THEME) --- */
         :root {
-            /* Primary Green Colors */
-            --primary: #10b981;       /* Emerald 500 */
-            --primary-hover: #059669; /* Emerald 600 */
-            --primary-light: #ecfdf5; /* Emerald 50 */
-            --primary-subtle: #d1fae5; /* Emerald 100 */
-            
-            /* Neutrals */
-            --bg-body: #f8fafc;       /* Slate 50 */
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --primary-light: #ecfdf5;
+            --primary-subtle: #d1fae5;
+            --bg-body: #f8fafc;
             --bg-surface: #ffffff;
-            --text-main: #1e293b;     /* Slate 800 */
-            --text-muted: #64748b;    /* Slate 500 */
-            --border: #e2e8f0;        /* Slate 200 */
-            
-            /* Semantic */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
             --danger: #ef4444;
             --danger-bg: #fef2f2;
             --warning: #f59e0b;
             --warning-bg: #fffbeb;
             --info: #3b82f6;
             --info-bg: #eff6ff;
-
-            /* UI Config */
             --radius: 12px;
             --radius-sm: 8px;
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -81,13 +62,11 @@
             --header-height: 70px;
         }
 
-        /* --- RESET & BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; overflow-x: hidden; font-size: 14px; }
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
 
-        /* --- UTILS --- */
         .hidden { display: none !important; }
         .flex { display: flex; }
         .items-center { align-items: center; }
@@ -97,7 +76,7 @@
         .font-bold { font-weight: 700; } .font-medium { font-weight: 500; }
         .text-primary { color: var(--primary); } .text-muted { color: var(--text-muted); }
 
-        /* --- BUTTONS --- */
+        /* Buttons */
         .btn { padding: 10px 20px; border: none; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; line-height: 1; }
         .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2); }
         .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
@@ -109,14 +88,14 @@
         .btn-block { width: 100%; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        /* --- FORMS --- */
+        /* Forms */
         .form-group { margin-bottom: 16px; text-align: left; }
         .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
         .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.95rem; background: white; transition: 0.2s; color: var(--text-main); }
         .form-control:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
         select.form-control { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 
-        /* --- LOGIN SCREEN --- */
+        /* Login Screen */
         #login-view { position: fixed; inset: 0; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s ease; }
         #login-view.fade-out { opacity: 0; pointer-events: none; }
         .login-card { background: white; width: 100%; max-width: 400px; padding: 40px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); text-align: center; }
@@ -124,7 +103,7 @@
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
 
-        /* --- APP LAYOUT --- */
+        /* App Layout */
         #app-layout { display: flex; min-height: 100vh; }
         
         /* Sidebar */
@@ -146,8 +125,8 @@
         .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 32px; width: calc(100% - var(--sidebar-width)); transition: margin 0.3s; }
         .mobile-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 101; background: white; padding: 10px; border-radius: 50%; box-shadow: var(--shadow-md); border: 1px solid var(--border); color: var(--text-main); cursor: pointer; }
 
-        /* --- COMPONENTS --- */
-        .section-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+        /* Components */
+        .section-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
         .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
         
         /* Stats Cards */
@@ -159,7 +138,7 @@
         .stat-card h4 { margin: 0 0 8px 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-card .big-num { font-size: 2rem; font-weight: 700; color: var(--text-main); }
         
-        /* Custom Bar for Charts in Dashboard */
+        /* Custom Bar for Charts */
         .stat-bar-item { margin-bottom: 12px; font-size: 0.85rem; }
         .sb-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: 500; color: var(--text-main); }
         .sb-bg { background: #f1f5f9; height: 8px; border-radius: 10px; overflow: hidden; }
@@ -192,8 +171,15 @@
         .badge-S { background: var(--warning-bg); color: var(--warning); }
         .badge-I { background: var(--info-bg); color: var(--info); }
         .badge-A { background: var(--danger-bg); color: var(--danger); }
+        
+        /* Status Guru Badges */
+        .badge-MT { background: #fef3c7; color: #d97706; }
+        .badge-MS { background: #dbeafe; color: #2563eb; }
+        .badge-GB { background: #f3e8ff; color: #9333ea; }
+        .badge-YA { background: var(--primary-subtle); color: var(--primary-hover); }
+        .badge-TIDAK { background: #fee2e2; color: #dc2626; }
 
-        /* Cards (History/Jurnal) */
+        /* Cards */
         .history-card { background: var(--bg-surface); padding: 20px; border-radius: var(--radius); margin-bottom: 16px; border: 1px solid var(--border); transition: 0.2s; }
         .history-card:hover { border-color: var(--primary-subtle); box-shadow: var(--shadow-md); }
 
@@ -222,12 +208,17 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Pagination */
-        .pagination-container { display: flex; justify-content: center; gap: 10px; margin-top: 24px; }
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 24px; padding: 16px; background: white; border-radius: var(--radius-sm); border: 1px solid var(--border); }
         .page-btn { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-main); font-weight: 500; transition: 0.2s; }
         .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
         .page-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; }
+        .page-info { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .page-num { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; border: 1px solid transparent; }
+        .page-num:hover { background: var(--bg-body); }
+        .page-num.active { background: var(--primary); color: white; }
+        .page-ellipsis { padding: 0 8px; color: var(--text-muted); }
 
-        /* --- PWA INSTALLER UI --- */
+        /* PWA Installer */
         #ios-install-guide { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); color: white; z-index: 9999; padding: 20px; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); text-align: center; }
         #ios-install-guide.show { transform: translateY(0); }
         .ios-icon { display: inline-block; background: #007aff; border-radius: 8px; padding: 6px; margin: 0 4px; font-size: 14px; width: 24px; height: 24px; line-height: 24px; vertical-align: middle; }
@@ -239,7 +230,6 @@
             .main-content { margin-left: 0; width: 100%; padding: 24px 16px; padding-top: 70px; }
             .mobile-toggle { display: flex; align-items: center; justify-content: center; }
             .stat-cards-grid { grid-template-columns: 1fr; }
-            .section-header { flex-direction: column; align-items: flex-start; gap: 12px; }
             .filter-bar { flex-direction: column; align-items: stretch; }
             .search-box { width: 100%; }
         }
@@ -284,6 +274,7 @@
             </div>
             <div class="nav-links">
                 <a class="nav-item active" onclick="App.switchModule('generus', this)"><i class="fas fa-users"></i> Data Generus</a>
+                <a class="nav-item" onclick="App.switchModule('guru', this)"><i class="fas fa-chalkboard-teacher"></i> Data Guru</a>
                 <a class="nav-item" onclick="App.switchModule('jurnal', this)"><i class="fas fa-book-open"></i> Jurnal Pengajian</a>
                 <a class="nav-item" onclick="App.switchModule('kurikulum', this)"><i class="fas fa-chart-pie"></i> Monitoring Kurikulum</a>
             </div>
@@ -303,7 +294,6 @@
                     <button class="btn btn-secondary btn-sm" onclick="Generus.downloadExcel()"><i class="fas fa-file-excel" style="color: #107c41;"></i> Unduh Excel</button>
                 </div>
 
-                <!-- Stats -->
                 <div class="dashboard-stats">
                     <div class="stat-cards-grid">
                         <div class="stat-card"><h4>Total Generus</h4><div class="big-num" id="statTotal">0</div></div>
@@ -317,7 +307,6 @@
                     </div>
                 </div>
 
-                <!-- Filter & Table -->
                 <div class="filter-bar">
                     <div class="search-box"><i class="fas fa-search"></i><input type="text" id="genSearch" placeholder="Cari nama..." onkeyup="Generus.applyFilters()"></div>
                     <select id="filterDesa" class="form-control hidden" style="width:180px;" onchange="Generus.applyFilters()"><option value="">Semua Desa</option></select>
@@ -346,9 +335,72 @@
                         </table>
                     </div>
                 </div>
+                <div class="pagination-container hidden" id="genPagination"></div>
             </section>
 
-            <!-- MODULE 2: JURNAL -->
+            <!-- MODULE 2: DATA GURU -->
+            <section id="mod-guru" class="hidden">
+                <div class="section-header">
+                    <h2 class="page-title"><i class="fas fa-chalkboard-teacher text-primary"></i> Data Guru</h2>
+                    <button class="btn btn-secondary btn-sm" onclick="Guru.downloadExcel()"><i class="fas fa-file-excel" style="color: #107c41;"></i> Unduh Excel</button>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-cards-grid">
+                        <div class="stat-card"><h4>Total Guru</h4><div class="big-num" id="statGuruTotal">0</div></div>
+                        <div class="stat-card"><h4>Guru Laki-laki</h4><div class="big-num" id="statGuruL">0</div></div>
+                        <div class="stat-card"><h4>Guru Perempuan</h4><div class="big-num" id="statGuruP">0</div></div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                        <div class="stat-card"><h4 style="margin-bottom:16px;">Distribusi Status</h4><div id="chartGuruStatus"></div></div>
+                        <div class="stat-card"><h4 style="margin-bottom:16px;">Mengajar Generus</h4><div id="chartGuruMengajar"></div></div>
+                    </div>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="search-box"><i class="fas fa-search"></i><input type="text" id="guruSearch" placeholder="Cari nama guru..." onkeyup="Guru.applyFilters()"></div>
+                    <select id="filterGuruStatus" class="form-control" style="width:140px;" onchange="Guru.applyFilters()">
+                        <option value="">Semua Status</option>
+                        <option value="MT">MT</option>
+                        <option value="MS">MS</option>
+                        <option value="Guru Bantu">Guru Bantu</option>
+                    </select>
+                    <select id="filterGuruJK" class="form-control" style="width:120px;" onchange="Guru.applyFilters()">
+                        <option value="">Semua JK</option>
+                        <option value="L">Laki-laki</option>
+                        <option value="P">Perempuan</option>
+                    </select>
+                    <select id="filterGuruMengajar" class="form-control" style="width:140px;" onchange="Guru.applyFilters()">
+                        <option value="">Semua Status Mengajar</option>
+                        <option value="YA">YA</option>
+                        <option value="TIDAK">TIDAK</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="Guru.openModal()" id="btnAddGuru"><i class="fas fa-plus"></i> Tambah</button>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table id="guruTable">
+                            <thead>
+                                <tr>
+                                    <th width="50">No</th>
+                                    <th>Nama Lengkap</th>
+                                    <th width="60">L/P</th>
+                                    <th width="100">Status</th>
+                                    <th>Nomor HP</th>
+                                    <th width="100">Mengajar</th>
+                                    <th>Lokasi</th>
+                                    <th width="100" class="action-col-guru">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guruTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="pagination-container hidden" id="guruPagination"></div>
+            </section>
+
+            <!-- MODULE 3: JURNAL -->
             <section id="mod-jurnal" class="hidden">
                 <div class="section-header">
                     <h2 class="page-title"><i class="fas fa-book-open text-primary"></i> Jurnal Pengajian</h2>
@@ -359,7 +411,6 @@
                     </div>
                 </div>
 
-                <!-- VIEW 1: INPUT -->
                 <div id="jurnal-input-view">
                     <div class="stat-card" style="max-width: 600px; margin: 0 auto 24px auto;">
                         <div class="form-group">
@@ -388,7 +439,6 @@
                     </div>
                 </div>
 
-                <!-- VIEW 2: RIWAYAT -->
                 <div id="jurnal-history-view" class="hidden">
                     <div class="filter-bar">
                         <div class="flex gap-4" style="flex-wrap:wrap;">
@@ -417,14 +467,9 @@
                         </div>
                     </div>
                     <div id="jurnHistoryContainer"></div>
-                    <div class="pagination-container hidden" id="historyPagination">
-                        <button class="page-btn" onclick="Jurnal.changePage(-1)"><i class="fas fa-chevron-left"></i> Prev</button>
-                        <span class="text-sm font-medium text-muted" style="align-self:center;">Halaman <span id="histPageNum">1</span></span>
-                        <button class="page-btn" onclick="Jurnal.changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
-                    </div>
+                    <div class="pagination-container hidden" id="historyPagination"></div>
                 </div>
 
-                <!-- VIEW 3: STATISTIK -->
                 <div id="jurnal-stats-view" class="hidden">
                     <div class="stat-cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
                         <div class="stat-card">
@@ -489,18 +534,16 @@
                 </div>
             </section>
 
-            <!-- MODULE 3: KURIKULUM -->
+            <!-- MODULE 4: KURIKULUM -->
             <section id="mod-kurikulum" class="hidden">
                 <div class="section-header">
                     <h2 class="page-title"><i class="fas fa-chart-pie text-primary"></i> Monitoring Kurikulum</h2>
-                    
                     <div class="tabs-wrapper">
                         <div class="tab-btn active" onclick="Kurikulum.switchView('dashboard', this)" id="tabKurDashboard">Rekap Kelompok</div>
                         <div class="tab-btn" onclick="Kurikulum.switchView('detail', this)" id="tabKurDetail">Detail Siswa</div>
                     </div>
                 </div>
                 
-                <!-- VIEW 1: DASHBOARD -->
                 <div id="kur-dashboard-view">
                     <div class="filter-bar" style="display:inline-flex; width:100%; max-width:400px;">
                         <label class="font-medium" style="margin-right:10px;">Filter Jenjang:</label>
@@ -511,7 +554,6 @@
                     <div id="kurDashboardContent" style="margin-top:24px;"></div>
                 </div>
 
-                <!-- VIEW 2: DETAIL -->
                 <div id="kur-detail-view" class="hidden">
                     <div class="stat-card" style="margin-bottom:24px;">
                         <div class="flex gap-4 items-center" style="flex-wrap:wrap;">
@@ -581,6 +623,27 @@
         </div>
     </div>
 
+    <!-- MODAL ADD GURU -->
+    <div id="modalGuru" class="modal">
+        <div class="modal-content">
+            <h3 class="font-bold text-lg mb-4" style="margin-bottom:20px;">Form Data Guru</h3>
+            <form onsubmit="event.preventDefault(); Guru.saveForm();">
+                <input type="hidden" id="guruRowIndex"><input type="hidden" id="guruNo">
+                <div class="form-group"><label>Nama Lengkap</label><input type="text" id="guruNama" class="form-control" required placeholder="Nama lengkap..."></div>
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex:1;"><label>Jenis Kelamin</label><select id="guruJK" class="form-control"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+                    <div class="form-group" style="flex:1;"><label>Status</label><select id="guruStatus" class="form-control" required><option value="MT">MT</option><option value="MS">MS</option><option value="Guru Bantu">Guru Bantu</option></select></div>
+                </div>
+                <div class="form-group"><label>Nomor HP</label><input type="tel" id="guruHP" class="form-control" placeholder="Contoh: 08123456789"></div>
+                <div class="form-group"><label>Mengajar Generus</label><select id="guruMengajar" class="form-control"><option value="YA">YA</option><option value="TIDAK">TIDAK</option></select></div>
+                <div class="flex gap-2 mt-4" style="margin-top:24px;">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="UI.closeModal('modalGuru')">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL DETAIL JURNAL -->
     <div id="modalDetail" class="modal">
         <div class="modal-content">
@@ -638,9 +701,24 @@
             openModal: (id) => {
                 const el = document.getElementById(id);
                 el.style.display = 'flex';
-                // Trigger reflow
                 void el.offsetWidth;
                 el.classList.add('show');
+            },
+            // Pagination Helper
+            renderPagination: function(containerId, totalItems, currentPage, itemsPerPage, onPageChange) {
+                const container = document.getElementById(containerId);
+                if (totalItems <= itemsPerPage) {
+                    container.classList.add('hidden');
+                    return;
+                }
+                container.classList.remove('hidden');
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                
+                let html = `<button class="page-btn" onclick="${onPageChange}(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+                html += `<span class="page-info">Halaman ${currentPage} dari ${totalPages}</span>`;
+                html += `<button class="page-btn" onclick="${onPageChange}(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+                
+                container.innerHTML = html;
             }
         };
 
@@ -696,6 +774,7 @@
                 if(window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
                 
                 if(modName === 'generus') Generus.init();
+                if(modName === 'guru') Guru.init();
                 if(modName === 'jurnal') Jurnal.init();
                 if(modName === 'kurikulum') Kurikulum.init();
             }
@@ -703,10 +782,12 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 
         // ==========================================
-        // MODULE 1: GENERUS
+        // MODULE 1: GENERUS (WITH PAGINATION)
         // ==========================================
         const Generus = {
             allData: [], filteredData: [],
+            currentPage: 1, itemsPerPage: 15,
+            
             init: async function() {
                 UI.loader(true);
                 try {
@@ -750,12 +831,24 @@
                     const matchKel = fKelompok ? d.kelompok === fKelompok : true;
                     return matchSearch && matchJk && matchJenjang && matchDesa && matchKel;
                 });
+                this.currentPage = 1;
                 this.renderTable(); this.renderStats();
             },
             renderTable: function() {
-                const tbody = document.getElementById('genTableBody'); tbody.innerHTML = '';
-                if (this.filteredData.length === 0) { tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-4">Tidak ada data</td></tr>`; return; }
-                this.filteredData.forEach((d, index) => {
+                const tbody = document.getElementById('genTableBody'); 
+                tbody.innerHTML = '';
+                
+                const start = (this.currentPage - 1) * this.itemsPerPage;
+                const end = start + this.itemsPerPage;
+                const pageData = this.filteredData.slice(start, end);
+                
+                if (pageData.length === 0) { 
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-4">Tidak ada data</td></tr>`; 
+                    document.getElementById('genPagination').classList.add('hidden');
+                    return; 
+                }
+                
+                pageData.forEach((d) => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${d.no}</td>
                     <td>
@@ -773,6 +866,10 @@
                     </td>`;
                     tbody.appendChild(tr);
                 });
+                
+                // Pagination
+                UI.renderPagination('genPagination', this.filteredData.length, this.currentPage, this.itemsPerPage, 'Generus.changePage');
+                
                 // Action Visibility
                 const actionEls = document.querySelectorAll('.action-col');
                 if(currentUser.role !== 'kelompok') { 
@@ -781,6 +878,14 @@
                 } else { 
                     document.getElementById('btnAddGen').style.display = 'inline-flex'; 
                     actionEls.forEach(el => el.style.display = 'table-cell'); 
+                }
+            },
+            changePage: function(page) {
+                const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+                if (page >= 1 && page <= totalPages) {
+                    this.currentPage = page;
+                    this.renderTable();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             },
             renderStats: function() {
@@ -858,12 +963,183 @@
                 const ws=XLSX.utils.json_to_sheet(this.filteredData); 
                 const wb=XLSX.utils.book_new(); 
                 XLSX.utils.book_append_sheet(wb, ws, "Data"); 
-                XLSX.writeFile(wb, `Data_${new Date().toISOString().slice(0,10)}.xlsx`); 
+                XLSX.writeFile(wb, `Data_Generus_${new Date().toISOString().slice(0,10)}.xlsx`); 
             }
         };
 
         // ==========================================
-        // MODULE 2: JURNAL
+        // MODULE 2: DATA GURU (WITH PAGINATION)
+        // ==========================================
+        const Guru = {
+            allData: [], filteredData: [],
+            currentPage: 1, itemsPerPage: 15,
+            
+            init: async function() {
+                UI.loader(true);
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getGuruData', role: currentUser.role, lokasi: currentUser.lokasi }) });
+                    const json = await res.json();
+                    this.allData = json.data || [];
+                    this.applyFilters();
+                } catch(e) { UI.toast('Gagal memuat data Guru', 'error'); }
+                finally { UI.loader(false); }
+            },
+            applyFilters: function() {
+                const search = document.getElementById('guruSearch').value.toLowerCase();
+                const fStatus = document.getElementById('filterGuruStatus').value;
+                const fJK = document.getElementById('filterGuruJK').value;
+                const fMengajar = document.getElementById('filterGuruMengajar').value;
+                
+                this.filteredData = this.allData.filter(d => {
+                    const matchSearch = d.nama.toLowerCase().includes(search);
+                    const matchStatus = fStatus ? d.status === fStatus : true;
+                    const matchJK = fJK ? d.jk === fJK : true;
+                    const matchMengajar = fMengajar ? d.mengajar === fMengajar : true;
+                    return matchSearch && matchStatus && matchJK && matchMengajar;
+                });
+                this.currentPage = 1;
+                this.renderTable(); this.renderStats();
+            },
+            renderTable: function() {
+                const tbody = document.getElementById('guruTableBody'); 
+                tbody.innerHTML = '';
+                
+                const start = (this.currentPage - 1) * this.itemsPerPage;
+                const end = start + this.itemsPerPage;
+                const pageData = this.filteredData.slice(start, end);
+                
+                if (pageData.length === 0) { 
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-4">Tidak ada data</td></tr>`; 
+                    document.getElementById('guruPagination').classList.add('hidden');
+                    return; 
+                }
+                
+                pageData.forEach((d) => {
+                    const statusBadge = d.status === 'MT' ? 'badge-MT' : d.status === 'MS' ? 'badge-MS' : 'badge-GB';
+                    const mengajarBadge = d.mengajar === 'YA' ? 'badge-YA' : 'badge-TIDAK';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${d.no}</td>
+                    <td><div class="font-bold text-main">${d.nama}</div></td>
+                    <td><span class="badge-${d.jk==='L'?'H':'S'} status-badge" style="background:${d.jk==='L'?'#e0f2fe':'#fce7f3'}; color:${d.jk==='L'?'#0284c7':'#db2777'}">${d.jk}</span></td>
+                    <td><span class="status-badge ${statusBadge}">${d.status}</span></td>
+                    <td>${d.hp || '-'}</td>
+                    <td><span class="status-badge ${mengajarBadge}">${d.mengajar}</span></td>
+                    <td><small class="text-muted">${d.kelompok || '-'} <br> ${d.desa || '-'}</small></td>
+                    <td class="action-col-guru">
+                        <button class="btn btn-sm btn-secondary" onclick="Guru.edit(${d.rowIndex})"><i class="fas fa-edit"></i></button> 
+                        <button class="btn btn-sm btn-danger" onclick="Guru.del(${d.rowIndex})"><i class="fas fa-trash"></i></button>
+                    </td>`;
+                    tbody.appendChild(tr);
+                });
+                
+                // Pagination
+                UI.renderPagination('guruPagination', this.filteredData.length, this.currentPage, this.itemsPerPage, 'Guru.changePage');
+                
+                // Action Visibility
+                const actionEls = document.querySelectorAll('.action-col-guru');
+                if(currentUser.role !== 'kelompok') { 
+                    document.getElementById('btnAddGuru').style.display = 'none'; 
+                    actionEls.forEach(el => el.style.display = 'none'); 
+                } else { 
+                    document.getElementById('btnAddGuru').style.display = 'inline-flex'; 
+                    actionEls.forEach(el => el.style.display = 'table-cell'); 
+                }
+            },
+            changePage: function(page) {
+                const totalPages = Math.ceil(this.filteredData.length / this.itemsPerPage);
+                if (page >= 1 && page <= totalPages) {
+                    this.currentPage = page;
+                    this.renderTable();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            },
+            renderStats: function() {
+                const total = this.filteredData.length;
+                document.getElementById('statGuruTotal').innerText = total;
+                document.getElementById('statGuruL').innerText = this.filteredData.filter(d => d.jk === 'L').length;
+                document.getElementById('statGuruP').innerText = this.filteredData.filter(d => d.jk === 'P').length;
+                
+                const renderBar = (id, map) => {
+                    const el = document.getElementById(id); el.innerHTML = '';
+                    const max = Math.max(...Object.values(map), 1);
+                    for (const [k, v] of Object.entries(map)) {
+                        const pct = (v/max)*100;
+                        el.innerHTML += `<div class="stat-bar-item"><div class="sb-label"><span>${k}</span><span>${v}</span></div><div class="sb-bg"><div class="sb-fill" style="width:${pct}%"></div></div></div>`;
+                    }
+                };
+                
+                // Status distribution
+                const statusMap = {};
+                this.filteredData.forEach(d => statusMap[d.status] = (statusMap[d.status] || 0) + 1);
+                renderBar('chartGuruStatus', statusMap);
+                
+                // Mengajar distribution
+                const mengajarMap = {};
+                this.filteredData.forEach(d => mengajarMap[d.mengajar] = (mengajarMap[d.mengajar] || 0) + 1);
+                renderBar('chartGuruMengajar', mengajarMap);
+            },
+            openModal: function() { 
+                document.querySelector('#modalGuru form').reset(); 
+                document.getElementById('guruRowIndex').value = ''; 
+                UI.openModal('modalGuru'); 
+            },
+            saveForm: async function() {
+                const valOrSpace = (val) => (val === undefined || val === null || val === "") ? " " : val;
+                if (!currentUser || !currentUser.lokasi) { alert("Sesi login tidak valid. Refresh halaman."); return; }
+                
+                const payload = { 
+                    rowIndex: document.getElementById('guruRowIndex').value, 
+                    no: valOrSpace(document.getElementById('guruNo').value),
+                    nama: valOrSpace(document.getElementById('guruNama').value), 
+                    jk: valOrSpace(document.getElementById('guruJK').value), 
+                    status: valOrSpace(document.getElementById('guruStatus').value),
+                    hp: valOrSpace(document.getElementById('guruHP').value),
+                    mengajar: valOrSpace(document.getElementById('guruMengajar').value),
+                    kelompok: valOrSpace(currentUser.lokasi),  
+                    desa: valOrSpace(currentUser.desa) 
+                };
+                
+                UI.loader(true); 
+                const action = payload.rowIndex ? 'editGuruData' : 'addGuruData';
+                try { 
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, payload }) }); 
+                    if((await res.json()).status === 'success') { 
+                        UI.toast('Data guru tersimpan'); UI.closeModal('modalGuru'); this.init(); 
+                    } 
+                } catch(e){ console.error(e); UI.toast('Gagal simpan','error'); } 
+                finally{UI.loader(false);}
+            },
+            edit: function(idx) {
+                const item = this.allData.find(d => d.rowIndex == idx); if(!item) return;
+                document.getElementById('guruRowIndex').value = item.rowIndex; 
+                document.getElementById('guruNo').value = item.no; 
+                document.getElementById('guruNama').value = item.nama; 
+                document.getElementById('guruJK').value = item.jk; 
+                document.getElementById('guruStatus').value = item.status; 
+                document.getElementById('guruHP').value = item.hp || ''; 
+                document.getElementById('guruMengajar').value = item.mengajar; 
+                UI.openModal('modalGuru');
+            },
+            del: async function(idx) { 
+                if(!confirm('Hapus data guru ini?')) return; 
+                UI.loader(true); 
+                try { 
+                    await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteGuruData', rowIndex: idx }) }); 
+                    this.init(); 
+                } finally{UI.loader(false);} 
+            },
+            downloadExcel: function() { 
+                if(!this.filteredData.length) return UI.toast('Tidak ada data', 'error'); 
+                const ws=XLSX.utils.json_to_sheet(this.filteredData); 
+                const wb=XLSX.utils.book_new(); 
+                XLSX.utils.book_append_sheet(wb, ws, "DataGuru"); 
+                XLSX.writeFile(wb, `Data_Guru_${new Date().toISOString().slice(0,10)}.xlsx`); 
+            }
+        };
+
+        // ==========================================
+        // MODULE 3: JURNAL
         // ==========================================
         const Jurnal = {
             members: [], statsData: null, chartInstance: null,
@@ -891,7 +1167,7 @@
             },
 
             switchTab: function(tab, el) {
-                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active')); 
+                document.querySelectorAll('#mod-jurnal .tab-btn').forEach(t => t.classList.remove('active')); 
                 if(el) el.classList.add('active');
                 document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input');
                 document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history');
@@ -914,7 +1190,6 @@
                     if(this.members.length === 0) { container.innerHTML = '<p class="text-center text-muted">Tidak ada generus di jenjang ini.</p>'; return; }
                     this.members.forEach(m => {
                         const div = document.createElement('div'); 
-                        div.className = 'flex justify-between items-center p-2 mb-2 bg-white border rounded hover:bg-gray-50';
                         div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; background:white; border:1px solid #e2e8f0; border-radius:8px;";
                         div.innerHTML = `<span class="font-medium text-sm">${m.nama}</span><select id="status_${m.no}" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; background:white; font-size:0.85rem;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`;
                         container.appendChild(div);
@@ -966,24 +1241,23 @@
                     div.className = 'history-card';
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-2">
-                            <div><div class="font-bold text-primary text-lg">${h.tanggal}</div><div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? '• ' + h.kelompok : ''}</div></div>
+                            <div><div class="font-bold text-primary text-lg">${h.tanggal}</div><div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? ' - ' + h.kelompok : ''}</div></div>
                             <div class="flex gap-2 text-xs font-bold"><span class="badge-H status-badge">H:${hCount}</span><span class="badge-S status-badge">S:${sCount}</span><span class="badge-I status-badge">I:${iCount}</span><span class="badge-A status-badge">A:${aCount}</span></div>
                         </div>
                         <div class="text-sm text-muted italic mb-3 border-l-2 border-gray-200 pl-3">"${h.materi}"</div>
                         <div class="pt-2 border-t border-dashed border-gray-200"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`;
                     container.appendChild(div);
                 });
-                const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
-                document.getElementById('histPageNum').innerText = `${this.currentPage} / ${totalPages}`;
-                document.querySelector('#historyPagination button:first-child').disabled = this.currentPage === 1;
-                document.querySelector('#historyPagination button:last-child').disabled = this.currentPage === totalPages;
-                document.getElementById('historyPagination').classList.toggle('hidden', totalPages <= 1);
+                
+                UI.renderPagination('historyPagination', this.allHistoryData.length, this.currentPage, this.itemsPerPage, 'Jurnal.changePage');
             },
 
-            changePage: function(delta) {
+            changePage: function(page) {
                 const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage);
-                const newPage = this.currentPage + delta;
-                if(newPage > 0 && newPage <= totalPages) { this.currentPage = newPage; this.renderHistoryPage(); }
+                if (page >= 1 && page <= totalPages) {
+                    this.currentPage = page;
+                    this.renderHistoryPage();
+                }
             },
 
             showDetails: function(encodedData) {
@@ -1040,7 +1314,7 @@
                         datasets: [{ 
                             label: 'Kehadiran (%)', 
                             data: data.map(d => d.percentage), 
-                            borderColor: '#10b981', // Primary Green
+                            borderColor: '#10b981',
                             backgroundColor: 'rgba(16, 185, 129, 0.1)', 
                             fill: true, 
                             tension: 0.4,
@@ -1081,7 +1355,7 @@
                 const endDate = document.getElementById('statsEnd').value;
                 const startStr = startDate || 'Awal';
                 const endStr = endDate || 'Akhir';
-                const fileName = `Laporan_${currentUser.lokasi}_${startStr}_sd_${endStr}.pdf`;
+                const fileName = `Laporan_Jurnal_${currentUser.lokasi}_${startStr}_sd_${endStr}.pdf`;
                 const subTitle = `Periode ${startStr} s.d. ${endStr}`;
                 const filterKelompok = document.getElementById('statsFilterKelompok').value; 
                 const filterJenjang = document.getElementById('statsFilterJenjang').value;
@@ -1132,7 +1406,7 @@
         };
 
         // ==========================================
-        // MODULE 3: KURIKULUM
+        // MODULE 4: KURIKULUM
         // ==========================================
         const Kurikulum = {
             allStudents: [], allProgress: [], config: {}, currentStudent: null, currentView: 'dashboard',
@@ -1275,41 +1549,31 @@
         const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
 
         window.addEventListener('load', () => {
-            if (isInStandaloneMode()) return; // Jika sudah diinstall, jangan tampilkan apa-apa
-            
+            if (isInStandaloneMode()) return;
             if (isIos() && !localStorage.getItem('iosInstallPromptClosed')) { 
-                setTimeout(() => { iosGuide.classList.add('show'); }, 2000); // Delay 2 detik biar smooth
+                setTimeout(() => { iosGuide.classList.add('show'); }, 2000);
             }
         });
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah Chrome menampilkan prompt native bawaan
             e.preventDefault(); 
-            // Simpan event agar bisa dipicu nanti via tombol kita
             deferredPrompt = e; 
-            // Tampilkan tombol Install kustom
             btnInstallAndroid.style.display = 'flex';
         });
 
         btnInstallAndroid.addEventListener('click', async () => {
             if (deferredPrompt) { 
-                // Tampilkan prompt native Chrome
                 deferredPrompt.prompt(); 
-                // Tunggu respon user
                 const { outcome } = await deferredPrompt.userChoice; 
-                if (outcome === 'accepted') { 
-                    console.log('User accepted the install prompt'); 
-                } 
-                // Reset variabel
+                if (outcome === 'accepted') { console.log('User accepted the install prompt'); } 
                 deferredPrompt = null; 
-                // Sembunyikan tombol
                 btnInstallAndroid.style.display = 'none'; 
             }
         });
 
         function closeInstallGuide() { 
             iosGuide.classList.remove('show'); 
-            localStorage.setItem('iosInstallPromptClosed', 'true'); // Jangan tampilkan lagi besok
+            localStorage.setItem('iosInstallPromptClosed', 'true');
         }
 
         window.onload = function() { Auth.init(); };
