@@ -513,6 +513,7 @@
                                 <option value="Caberawit">Caberawit</option>
                                 <option value="Pra Remaja">Pra Remaja</option>
                                 <option value="Remaja">Remaja</option>
+                                <option value="Pra Nikah">Pra Nikah</option>
                             </select>
                         </div>
                         <div id="jurnalFormArea" class="hidden">
@@ -536,7 +537,7 @@
                         <div class="flex gap-4" style="flex-wrap:wrap;">
                             <div><label class="text-xs font-bold text-muted">Dari</label><input type="date" id="histStart" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()"></div>
                             <div><label class="text-xs font-bold text-muted">Sampai</label><input type="date" id="histEnd" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()"></div>
-                            <div><label class="text-xs font-bold text-muted">Jenjang</label><select id="histFilterJenjang" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja">Pra Remaja</option><option value="Remaja">Remaja</option></select></div>
+                            <div><label class="text-xs font-bold text-muted">Jenjang</label><select id="histFilterJenjang" class="form-control" style="width:140px;" onchange="Jurnal.loadHistory()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja">Pra Remaja</option><option value="Remaja">Remaja</option><option value="Pra Nikah">Pra Nikah</option></select></div>
                             <div id="histFilterKelompokWrapper" class="hidden"><label class="text-xs font-bold text-muted">Kelompok</label><select id="histFilterKelompok" class="form-control" style="width:160px;" onchange="Jurnal.loadHistory()"><option value="">Semua Kelompok</option></select></div>
                         </div>
                     </div>
@@ -548,7 +549,7 @@
                     <div class="stat-cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
                         <div class="stat-card">
                             <h4>Filter Jenjang</h4>
-                            <select id="statsFilterJenjang" class="form-control" style="margin-top:8px;" onchange="Jurnal.loadStats()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja">Pra Remaja</option><option value="Remaja">Remaja</option></select>
+                            <select id="statsFilterJenjang" class="form-control" style="margin-top:8px;" onchange="Jurnal.loadStats()"><option value="">Semua Jenjang</option><option value="PAUD">PAUD</option><option value="Caberawit">Caberawit</option><option value="Pra Remaja">Pra Remaja</option><option value="Remaja">Remaja</option><option value="Pra Nikah">Pra Nikah</option></select>
                         </div>
                         <div class="stat-card hidden" id="statsKelompokFilterWrapper">
                             <h4>Filter Kelompok</h4>
