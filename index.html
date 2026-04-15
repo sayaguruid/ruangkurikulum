@@ -894,7 +894,37 @@
             <button class="btn btn-primary btn-block mt-4" style="margin-top:20px;" onclick="UI.closeModal('modalDetail')">Tutup</button>
         </div>
     </div>
-
+<!-- TAMBAHKAN MODAL EDIT INI DI BAWAHNYA -->
+    <div id="modalEditJurnal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="flex justify-between items-center mb-4" style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h3 class="font-bold text-lg text-primary">Edit Riwayat Jurnal</h3>
+                <i class="fas fa-times text-muted cursor-pointer text-lg" onclick="UI.closeModal('modalEditJurnal')"></i>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); Jurnal.saveEdit();">
+                <input type="hidden" id="editJurnalRowIndex">
+                
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="editJurnalDate" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Materi Pengajian</label>
+                    <textarea id="editJurnalMateri" class="form-control" rows="3" placeholder="Ringkasan materi..."></textarea>
+                </div>
+                
+                <label class="font-bold" style="display:block; margin-bottom:12px;">Daftar Hadir (Edit):</label>
+                <div id="editJurnalMemberList" style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 16px; max-height: 300px; overflow-y: auto;"></div>
+                
+                <div class="flex gap-2 mt-4" style="margin-top:24px;">
+                    <button type="button" class="btn btn-secondary" style="flex:1;" onclick="UI.closeModal('modalEditJurnal')">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Update Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <!-- MODAL ADD JADWAL -->
 <!-- MODAL ADD/EDIT JADWAL (TAMPILAN RAPI) -->
 <div id="modalJadwal" class="modal">
@@ -1251,8 +1281,148 @@
             switchTab: function(tab, el) { document.querySelectorAll('#mod-jurnal .tab-btn').forEach(t => t.classList.remove('active')); if(el) el.classList.add('active'); document.getElementById('jurnal-input-view').classList.toggle('hidden', tab !== 'input'); document.getElementById('jurnal-history-view').classList.toggle('hidden', tab !== 'history'); document.getElementById('jurnal-stats-view').classList.toggle('hidden', tab !== 'stats'); if(tab === 'history') { const today = new Date().toISOString().split('T')[0]; document.getElementById('histStart').value = today; document.getElementById('histEnd').value = today; this.loadHistory(); } if(tab === 'stats') this.loadStats(); },
             loadMembers: async function() { const jenjang = document.getElementById('jurnJenjang').value; const container = document.getElementById('jurnMemberList'), formArea = document.getElementById('jurnalFormArea'); if(!jenjang) { formArea.classList.add('hidden'); return; } formArea.classList.remove('hidden'); container.innerHTML = '<div class="text-center p-4"><div class="spinner" style="margin:0 auto;"></div></div>'; try { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getMemberList', role: currentUser.role, lokasi: currentUser.lokasi, jenjang }) }); const json = await res.json(); container.innerHTML = ''; this.members = json.members || []; if(this.members.length === 0) { container.innerHTML = '<p class="text-center text-muted">Tidak ada generus di jenjang ini.</p>'; return; } this.members.forEach(m => { const div = document.createElement('div'); div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; background:white; border:1px solid #e2e8f0; border-radius:8px;"; div.innerHTML = `<span class="font-medium text-sm">${m.nama}</span><select id="status_${m.no}" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; background:white; font-size:0.85rem;"><option value="Hadir">Hadir</option><option value="Sakit">Sakit</option><option value="Izin">Izin</option><option value="Alpha">Alpha</option></select>`; container.appendChild(div); }); } catch(e) { UI.toast('Gagal muat generus', 'error'); } },
             save: async function() { const jenjang = document.getElementById('jurnJenjang').value, tgl = document.getElementById('jurnDate').value, materi = document.getElementById('jurnMateri').value; if(!jenjang || !tgl || !materi) return UI.toast('Lengkapi data', 'error'); const hadirData = []; this.members.forEach(m => hadirData.push({ nama: m.nama, status: document.getElementById(`status_${m.no}`).value })); UI.loader(true); try { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addJurnal', payload: { tanggal: tgl, kelompok: currentUser.lokasi, desa: currentUser.desa, jenjang, materi, hadir: hadirData } }) }); if((await res.json()).status === 'success') { UI.toast('Jurnal tersimpan'); document.getElementById('jurnMateri').value = ''; } } catch(e) { UI.toast('Gagal simpan', 'error'); } finally { UI.loader(false); } },
+                        // ... kode Jurnal.save ...
+            // TAMBAHKAN 3 FUNGSI INI DI BAWAHNYA:
+
+            // 1. Fungsi Persiapan Edit (Membuka Modal)
+            prepareEdit: function(id) {
+                const data = this.allHistoryData.find(d => d.rowIndex == id);
+                if(!data) return;
+
+                // Isi form
+                document.getElementById('editJurnalRowIndex').value = data.rowIndex;
+                document.getElementById('editJurnalDate').value = data.tanggal.split('/').reverse().join('-'); 
+                document.getElementById('editJurnalMateri').value = data.materi;
+
+                // Render ulang list kehadiran berdasarkan data tersimpan
+                const container = document.getElementById('editJurnalMemberList');
+                container.innerHTML = '';
+                let attendanceList = [];
+                try { attendanceList = JSON.parse(data.kehadiran); } catch(e) { attendanceList = []; }
+
+                if(attendanceList.length === 0) {
+                    container.innerHTML = '<p class="text-center text-muted">Data kehadiran kosong.</p>';
+                } else {
+                    attendanceList.forEach((m) => {
+                        const div = document.createElement('div');
+                        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:10px; margin-bottom:8px; background:white; border:1px solid #e2e8f0; border-radius:8px;";
+                        div.innerHTML = `<span class="font-medium text-sm">${m.nama}</span>
+                        <select id="edit_status_${m.nama.replace(/\s/g,'_')}" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; background:white; font-size:0.85rem;">
+                            <option value="Hadir" ${m.status === 'Hadir' ? 'selected' : ''}>Hadir</option>
+                            <option value="Sakit" ${m.status === 'Sakit' ? 'selected' : ''}>Sakit</option>
+                            <option value="Izin" ${m.status === 'Izin' ? 'selected' : ''}>Izin</option>
+                            <option value="Alpha" ${m.status === 'Alpha' ? 'selected' : ''}>Alpha</option>
+                        </select>`;
+                        container.appendChild(div);
+                    });
+                }
+                UI.openModal('modalEditJurnal');
+            },
+
+            // 2. Fungsi Simpan Edit
+            saveEdit: async function() {
+                const rowIndex = document.getElementById('editJurnalRowIndex').value;
+                const tgl = document.getElementById('editJurnalDate').value;
+                const materi = document.getElementById('editJurnalMateri').value;
+                
+                // Ambil data kehadiran dari list yang dirender
+                const hadirData = [];
+                const container = document.getElementById('editJurnalMemberList');
+                const rows = container.querySelectorAll('div');
+                rows.forEach(row => {
+                    const namaSpan = row.querySelector('span');
+                    const select = row.querySelector('select');
+                    if(namaSpan && select) {
+                        hadirData.push({ nama: namaSpan.innerText, status: select.value });
+                    }
+                });
+
+                UI.loader(true);
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'editJurnal', payload: { rowIndex: rowIndex, tanggal: tgl, materi: materi, hadir: hadirData } }) });
+                    if((await res.json()).status === 'success') {
+                        UI.toast('Jurnal berhasil diupdate');
+                        UI.closeModal('modalEditJurnal');
+                        this.loadHistory(); 
+                    }
+                } catch(e) { UI.toast('Gagal mengupdate', 'error'); }
+                finally { UI.loader(false); }
+            },
+
+            // 3. Fungsi Hapus
+            deleteEntry: async function(id) {
+                if(!confirm('Yakin ingin menghapus riwayat jurnal ini?')) return;
+                UI.loader(true);
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteJurnal', rowIndex: id }) });
+                    if((await res.json()).status === 'success') {
+                        UI.toast('Jurnal dihapus');
+                        this.allHistoryData = this.allHistoryData.filter(d => d.rowIndex != id);
+                        this.renderHistoryPage();
+                    }
+                } catch(e) { UI.toast('Terjadi kesalahan', 'error'); }
+                finally { UI.loader(false); }
+            },
+            // ------------------------------------------------
             loadHistory: async function() { UI.loader(true); this.currentPage = 1; const start = document.getElementById('histStart').value, end = document.getElementById('histEnd').value, kel = document.getElementById('histFilterKelompok').value, jenjang = document.getElementById('histFilterJenjang').value; const payload = { action: 'getJurnalHistory', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, startDate: start || '', endDate: end || '', filterKelompok: kel || '', jenjang: jenjang || '' }; const container = document.getElementById('jurnHistoryContainer'); container.innerHTML = '<div class="text-center p-4"><div class="spinner" style="margin:0 auto;"></div></div>'; document.getElementById('historyPagination').classList.add('hidden'); try { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); const json = await res.json(); this.allHistoryData = json.history || []; this.renderHistoryPage(); } catch(e) { UI.toast('Gagal muat riwayat', 'error'); } finally { UI.loader(false); } },
-            renderHistoryPage: function() { const container = document.getElementById('jurnHistoryContainer'); container.innerHTML = ''; if (this.allHistoryData.length === 0) { container.innerHTML = '<div class="text-center text-muted p-4 bg-white border rounded">Tidak ada data riwayat.</div>'; return; } const start = (this.currentPage - 1) * this.itemsPerPage; const end = start + this.itemsPerPage; const pageData = this.allHistoryData.slice(start, end); pageData.forEach(h => { let hCount=0, sCount=0, iCount=0, aCount=0; try { const list = JSON.parse(h.kehadiran); list.forEach(x => { if(x.status==='Hadir')hCount++; else if(x.status==='Sakit')sCount++; else if(x.status==='Izin')iCount++; else aCount++; }); }catch(e){} const div = document.createElement('div'); div.className = 'history-card'; div.innerHTML = `<div class="flex justify-between items-start mb-2"><div><div class="font-bold text-primary text-lg">${h.tanggal}</div><div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? ' - ' + h.kelompok : ''}</div></div><div class="flex gap-2 text-xs font-bold"><span class="badge-H status-badge">H:${hCount}</span><span class="badge-S status-badge">S:${sCount}</span><span class="badge-I status-badge">I:${iCount}</span><span class="badge-A status-badge">A:${aCount}</span></div></div><div class="text-sm text-muted italic mb-3 border-l-2 border-gray-200 pl-3">"${h.materi}"</div><div class="pt-2 border-t border-dashed border-gray-200"><button class="btn btn-sm btn-secondary" onclick="Jurnal.showDetails('${btoa(JSON.stringify(h))}')">Lihat Detail</button></div>`; container.appendChild(div); }); UI.renderPagination('historyPagination', this.allHistoryData.length, this.currentPage, this.itemsPerPage, 'Jurnal.changePage'); },
+                        renderHistoryPage: function() { 
+                const container = document.getElementById('jurnHistoryContainer'); 
+                container.innerHTML = ''; 
+                
+                if (this.allHistoryData.length === 0) { 
+                    container.innerHTML = '<div class="text-center text-muted p-4 bg-white border rounded">Tidak ada data riwayat.</div>'; 
+                    return; 
+                } 
+                
+                const start = (this.currentPage - 1) * this.itemsPerPage; 
+                const end = start + this.itemsPerPage; 
+                const pageData = this.allHistoryData.slice(start, end); 
+                
+                pageData.forEach(h => { 
+                    let hCount=0, sCount=0, iCount=0, aCount=0; 
+                    try { 
+                        const list = JSON.parse(h.kehadiran); 
+                        list.forEach(x => { 
+                            if(x.status==='Hadir')hCount++; 
+                            else if(x.status==='Sakit')sCount++; 
+                            else if(x.status==='Izin')iCount++; 
+                            else aCount++; 
+                        }); 
+                    } catch(e){} 
+                    
+                    const div = document.createElement('div'); 
+                    div.className = 'history-card'; 
+                    
+                    // --- LOGIKA TOMBOL EDIT & HAPUS ---
+                    const btnGroup = currentUser.role === 'kelompok' ? 
+                        `<div class="pt-2 border-t border-dashed border-gray-200 flex gap-2">
+                            <button class="btn btn-sm btn-secondary flex-1" onclick="Jurnal.prepareEdit(${h.rowIndex})"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="btn btn-sm btn-danger flex-1" onclick="Jurnal.deleteEntry(${h.rowIndex})"><i class="fas fa-trash"></i> Hapus</button>
+                        </div>` : '';
+                    // -------------------------------------
+
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-bold text-primary text-lg">${h.tanggal}</div>
+                                <div class="text-xs text-muted font-medium uppercase tracking-wide">${h.jenjang} ${h.kelompok ? ' - ' + h.kelompok : ''}</div>
+                            </div>
+                            <div class="flex gap-2 text-xs font-bold">
+                                <span class="badge-H status-badge">H:${hCount}</span>
+                                <span class="badge-S status-badge">S:${sCount}</span>
+                                <span class="badge-I status-badge">I:${iCount}</span>
+                                <span class="badge-A status-badge">A:${aCount}</span>
+                            </div>
+                        </div>
+                        <div class="text-sm text-muted italic mb-3 border-l-2 border-gray-200 pl-3">"${h.materi}"</div>
+                        ${btnGroup} <!-- Menampilkan tombol edit/hapus di sini -->
+                    `; 
+                    
+                    container.appendChild(div); 
+                }); 
+                
+                UI.renderPagination('historyPagination', this.allHistoryData.length, this.currentPage, this.itemsPerPage, 'Jurnal.changePage'); 
+            },
             changePage: function(page) { const totalPages = Math.ceil(this.allHistoryData.length / this.itemsPerPage); if (page >= 1 && page <= totalPages) { this.currentPage = page; this.renderHistoryPage(); } },
             showDetails: function(encodedData) { const h = JSON.parse(atob(encodedData)); const listDiv = document.getElementById('modalDetailList'); document.getElementById('modalDetailTitle').innerText = `Kehadiran ${h.tanggal} (${h.jenjang})`; document.getElementById('modalDetailMateri').innerText = `"${h.materi}"`; let html = '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">'; try { const list = JSON.parse(h.kehadiran); list.forEach(x => { let badgeClass = 'badge-A'; if(x.status === 'Hadir') badgeClass = 'badge-H'; else if(x.status === 'Sakit') badgeClass = 'badge-S'; else if(x.status === 'Izin') badgeClass = 'badge-I'; html += `<div style="display:flex; justify-content:space-between; padding:8px; background:#f8fafc; border-radius:6px; font-size:0.85rem;"><span>${x.nama}</span><span class="status-badge ${badgeClass}">${x.status}</span></div>`; }); } catch(e){ html = '<p class="text-danger">Gagal memuat data.</p>'; } html += '</div>'; listDiv.innerHTML = html; UI.openModal('modalDetail'); },
             loadStats: async function() { UI.loader(true); const jenjangFilter = document.getElementById('statsFilterJenjang').value; const kelompokFilter = document.getElementById('statsFilterKelompok').value; const startDate = document.getElementById('statsStart').value; const endDate = document.getElementById('statsEnd').value; let payload = { action: 'getJurnalStats', role: currentUser.role, lokasi: currentUser.lokasi, desa: currentUser.desa, jenjang: jenjangFilter, startDate: startDate || '', endDate: endDate || '' }; if (kelompokFilter) payload.filterKelompok = kelompokFilter; try { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }); const json = await res.json(); if(json.status === 'success') { this.statsData = json.history; this.renderChart(json.chartData); this.renderAnalysis(json.analysis); const chartData = json.chartData || []; if(chartData.length > 0) { const totalPct = chartData.reduce((sum, item) => sum + item.percentage, 0); const avg = Math.round(totalPct / chartData.length); document.getElementById('avgAttendanceValue').innerText = avg + "%"; } else { document.getElementById('avgAttendanceValue').innerText = "0%"; } } else { UI.toast(json.message, 'error'); } } catch(e) { UI.toast('Gagal muat statistik', 'error'); } finally { UI.loader(false); } },
