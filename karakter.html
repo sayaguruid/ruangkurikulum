@@ -76,7 +76,7 @@ body{background:var(--bg-body);color:var(--text-dark);min-height:100vh;overflow-
   -webkit-overflow-scrolling:touch;min-height:0
 }
 
-/* ---------- MATERI LIST (mobile: 1 kolom) ---------- */
+/* ---------- MATERI LIST ---------- */
 .materi-grid{display:grid;grid-template-columns:1fr;gap:12px}
 .materi-card-item{
   background:var(--white);border-radius:var(--radius-lg);padding:16px;
@@ -113,8 +113,22 @@ body{background:var(--bg-body);color:var(--text-dark);min-height:100vh;overflow-
 }
 .white-card h4{font-size:14px;margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .white-card p{font-size:13px;color:var(--text-gray);line-height:1.6;text-align:justify}
-.video-container{border-radius:12px;overflow:hidden;margin:10px 0;aspect-ratio:16/9;background:#000}
+
+/* ---------- VIDEO ---------- */
+.video-container{border-radius:12px;overflow:hidden;aspect-ratio:16/9;background:#000;position:relative}
 .video-container iframe{width:100%;height:100%;border:none;display:block}
+
+.video-grid{display:grid;grid-template-columns:1fr;gap:12px;margin:10px 0 4px}
+.video-item{position:relative}
+.video-item-label{
+  font-size:10px;font-weight:600;color:var(--primary);
+  background:var(--primary-light);display:inline-block;
+  padding:2px 10px;border-radius:999px;margin-bottom:6px
+}
+.video-count-badge{
+  font-size:10px;font-weight:500;color:var(--primary);
+  background:var(--primary-light);padding:2px 8px;border-radius:999px
+}
 
 /* ---------- TABEL PRAKTIK ---------- */
 .praktik-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;border-radius:12px;overflow:hidden;table-layout:fixed}
@@ -152,37 +166,21 @@ body{background:var(--bg-body);color:var(--text-dark);min-height:100vh;overflow-
 /* ---------- SELECT JENJANG (PREMIUM) ---------- */
 .select-wrap{position:relative;margin-bottom:14px}
 .select-wrap .select-icon{
-  position:absolute;
-  left:14px;top:50%;transform:translateY(-50%);
-  width:18px;height:18px;
-  color:var(--primary);
-  pointer-events:none;
-  z-index:1;
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  width:18px;height:18px;color:var(--primary);pointer-events:none;z-index:1
 }
 .select-wrap select{
-  width:100%;
-  padding:14px 44px 14px 44px;
-  border:1.5px solid #E0EDF7;
-  border-radius:14px;
-  font-size:13px;font-weight:500;
-  color:var(--text-dark);
-  background-color:#F5FAFF;
+  width:100%;padding:14px 44px 14px 44px;
+  border:1.5px solid #E0EDF7;border-radius:14px;
+  font-size:13px;font-weight:500;color:var(--text-dark);background-color:#F5FAFF;
   appearance:none;-webkit-appearance:none;-moz-appearance:none;
   cursor:pointer;transition:all .2s ease;
   background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300A8FF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
-  background-repeat:no-repeat;
-  background-position:right 16px center;
-  background-size:16px;
-  box-shadow:0 1px 3px rgba(0,168,255,.04);
-  outline:none;
+  background-repeat:no-repeat;background-position:right 16px center;background-size:16px;
+  box-shadow:0 1px 3px rgba(0,168,255,.04);outline:none
 }
 .select-wrap select:hover{border-color:#B8DDF7;background-color:#F0F8FF}
-.select-wrap select:focus{
-  border-color:var(--primary);background-color:#FFF;
-  box-shadow:0 0 0 4px rgba(0,168,255,.12);
-}
-.select-wrap select:invalid,
-.select-wrap select option[value=""]{color:var(--text-gray)}
+.select-wrap select:focus{border-color:var(--primary);background-color:#FFF;box-shadow:0 0 0 4px rgba(0,168,255,.12)}
 .select-wrap select option{padding:10px;color:var(--text-dark);background:#FFF}
 
 /* ---------- EVALUASI ---------- */
@@ -256,8 +254,48 @@ table.data-table th{background:#F8F9FA;font-weight:600}
 .dynamic-row textarea{resize:vertical}
 .dynamic-row{display:flex;gap:6px;margin-bottom:6px;align-items:flex-start}
 .dynamic-row > textarea{flex:1;margin-bottom:0}
+.dynamic-row > input{flex:1;margin-bottom:0}
 .dynamic-row .remove-btn{flex-shrink:0;width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center}
 .form-row-2{display:grid;grid-template-columns:1fr;gap:10px}
+
+/* ---------- MODAL KONFIRMASI ---------- */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(20,30,48,.55);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:10000;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .2s ease
+}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal-box{
+  background:#FFF;border-radius:20px;padding:28px 24px 20px;
+  max-width:380px;width:100%;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  transform:scale(.92) translateY(10px);
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  position:relative
+}
+.modal-overlay.show .modal-box{transform:scale(1) translateY(0)}
+.modal-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,#FFE8E8 0%,#FFD1D1 100%);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;color:var(--danger)
+}
+.modal-icon svg{width:30px;height:30px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.modal-title{font-size:18px;font-weight:700;color:var(--text-dark);margin-bottom:8px}
+.modal-message{font-size:13px;color:var(--text-gray);line-height:1.6;margin-bottom:22px}
+.modal-actions{display:flex;gap:10px}
+.modal-btn{
+  flex:1;padding:13px;border:none;border-radius:var(--radius-pill);
+  font-size:14px;font-weight:600;cursor:pointer;transition:.15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px
+}
+.modal-btn:active{transform:scale(.97)}
+.modal-btn-cancel{background:#F0F0F0;color:var(--text-dark)}
+.modal-btn-cancel:hover{background:#E5E5E5}
+.modal-btn-confirm{background:var(--danger);color:#FFF;box-shadow:0 6px 16px rgba(255,71,87,.3)}
+.modal-btn-confirm:hover{background:#E63946}
 
 /* ---------- RESPONSIVE: HP KECIL ---------- */
 @media (max-width:380px){
@@ -270,6 +308,9 @@ table.data-table th{background:#F8F9FA;font-weight:600}
   .dalil-card .dalil-arab{font-size:18px}
   #tabContent{padding:14px 14px calc(var(--nav-h) + 20px)}
   .header{padding:14px 16px 10px}
+  .modal-box{padding:24px 20px 18px}
+  .modal-icon{width:56px;height:56px}
+  .modal-title{font-size:17px}
 }
 
 /* ============================================================
@@ -289,6 +330,7 @@ table.data-table th{background:#F8F9FA;font-weight:600}
   .header-title{font-size:20px}
   .white-card{padding:22px}
   .bottom-nav{left:20px;right:20px;bottom:16px}
+  .video-grid{grid-template-columns:repeat(2,1fr);gap:12px}
 }
 
 /* ============================================================
@@ -314,7 +356,7 @@ table.data-table th{background:#F8F9FA;font-weight:600}
   #view-login p{font-size:14px;margin-bottom:32px}
   .login-form-wrap{width:55%;max-width:400px;order:1}
 
-  /* --- APP desktop: sidebar + main --- */
+  /* --- APP desktop --- */
   #view-app{
     display:flex;flex-direction:row;width:100%;height:100%;
     min-height:0;max-height:100%;overflow:hidden
@@ -412,6 +454,9 @@ table.data-table th{background:#F8F9FA;font-weight:600}
   .eval-item .name{font-size:14px}
   .btn-sm{padding:8px 16px;font-size:12px;min-height:34px}
 
+  /* Video grid 2 kolom desktop */
+  .video-grid{grid-template-columns:repeat(2,1fr);gap:14px}
+
   /* Hover effects desktop */
   .materi-card-item:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:0 8px 20px rgba(0,168,255,.15)}
   .btn-primary:hover{background:var(--primary-dark)}
@@ -506,6 +551,32 @@ table.data-table th{background:#F8F9FA;font-weight:600}
   </section>
 </div>
 
+<!-- ================= MODAL KONFIRMASI KELUAR ================= -->
+<div class="modal-overlay" id="logoutModal" onclick="if(event.target===this)closeLogoutModal()">
+  <div class="modal-box">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </div>
+    <div class="modal-title">Keluar dari Akun?</div>
+    <div class="modal-message">Anda yakin ingin keluar? Anda perlu login kembali untuk mengakses materi.</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeLogoutModal()">Batal</button>
+      <button class="modal-btn modal-btn-confirm" onclick="confirmLogout()">
+        <svg class="icon-sm" viewBox="0 0 24 24" style="stroke:#FFF">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Ya, Keluar
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // KONFIGURASI — GANTI URL DI BAWAH INI
@@ -556,8 +627,44 @@ function esc(s) {
 
 function toEmbed(url) {
   if (!url) return '';
-  const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
   return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+}
+
+// Parse video_url — bisa string tunggal, JSON array, atau dipisah newline/koma
+function parseVideoUrls(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.map(String).map(s => s.trim()).filter(Boolean);
+  const s = String(raw).trim();
+  if (s.startsWith('[')) {
+    try {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) return arr.map(String).map(x => x.trim()).filter(Boolean);
+    } catch (e) { /* fallback */ }
+  }
+  return s.split(/[\n,]+/).map(x => x.trim()).filter(Boolean);
+}
+
+// Render multiple videos
+function renderVideos(k) {
+  const urls = parseVideoUrls(k.video_url);
+  if (!urls.length) return '';
+  return `
+    <h4 style="margin-top:20px;">
+      <svg class="icon-sm" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Video Pembelajaran
+      ${urls.length > 1 ? `<span class="video-count-badge">${urls.length} video</span>` : ''}
+    </h4>
+    <div class="video-grid">
+      ${urls.map((u, i) => `
+        <div class="video-item">
+          ${urls.length > 1 ? `<div class="video-item-label">Video ${i+1}</div>` : ''}
+          <div class="video-container">
+            <iframe src="${esc(toEmbed(u))}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
 }
 
 // ============================================================
@@ -609,15 +716,47 @@ async function doLogin() {
 document.getElementById('loginPass').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('loginUser').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
 
+// ============================================================
+// MODAL KONFIRMASI KELUAR
+// ============================================================
 function logout() {
-  if (!confirm('Keluar dari akun?')) return;
-  state = { user:null, karakter:[], generus:[], evaluasi:[], rekap:null, activeMateri:null };
-  editingKarakter = null;
-  document.getElementById('view-login').classList.remove('hidden');
-  document.getElementById('view-app').classList.add('hidden');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+  const modal = document.getElementById('logoutModal');
+  if (modal) {
+    modal.classList.add('show');
+    setTimeout(() => {
+      const btn = modal.querySelector('.modal-btn-cancel');
+      if (btn) btn.focus();
+    }, 100);
+  }
 }
+
+function closeLogoutModal() {
+  const modal = document.getElementById('logoutModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function confirmLogout() {
+  closeLogoutModal();
+  setTimeout(() => {
+    state = { user:null, karakter:[], generus:[], evaluasi:[], rekap:null, activeMateri:null };
+    editingKarakter = null;
+    document.getElementById('view-login').classList.remove('hidden');
+    document.getElementById('view-app').classList.add('hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.querySelectorAll('.bottom-nav button, .sidebar-nav button')
+      .forEach(b => b.classList.remove('active'));
+    toast('Anda telah keluar');
+  }, 180);
+}
+
+// Tutup modal dengan Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const m = document.getElementById('logoutModal');
+    if (m && m.classList.contains('show')) closeLogoutModal();
+  }
+});
 
 // ============================================================
 // ⚡ PRELOAD — 1 round-trip
@@ -634,7 +773,6 @@ async function preloadAllData() {
     state.generus  = r.generus  || [];
     state.evaluasi = r.evaluasi || [];
   } else {
-    // fallback: fetch terpisah kalau getAllData belum ada di backend
     await Promise.all([loadKarakter(), loadGenerus()]);
   }
 }
@@ -672,7 +810,7 @@ async function loadRekap() {
 }
 
 // ============================================================
-// NAVIGATION (bottom-nav mobile + sidebar desktop)
+// NAVIGATION
 // ============================================================
 const ICONS = {
   materi: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
@@ -707,7 +845,6 @@ function buildNavigation() {
     ];
   }
 
-  // Bottom nav (mobile)
   const navDiv = document.getElementById('bottomNav');
   navDiv.innerHTML = '';
   items.forEach(item => {
@@ -718,7 +855,6 @@ function buildNavigation() {
     navDiv.appendChild(b);
   });
 
-  // Sidebar nav (desktop)
   const sideNav = document.getElementById('sidebarNav');
   sideNav.innerHTML = '';
   items.forEach(item => {
@@ -779,7 +915,7 @@ async function renderMateriPage() {
 }
 
 // ============================================================
-// DETAIL MATERI
+// DETAIL MATERI — Video di bawah Contoh Praktik
 // ============================================================
 async function openMateri(id) {
   state.activeMateri = state.karakter.find(k => String(k.id) === String(id));
@@ -790,7 +926,6 @@ async function openMateri(id) {
 
   if (state.user.role === 'kelompok' && !state.evaluasi.length) await loadEvaluasi();
 
-  // Konten utama (materi)
   const mainContent = `
     <div class="course-card">
       <div class="tag">Materi Pembelajaran</div>
@@ -799,10 +934,6 @@ async function openMateri(id) {
     <div class="white-card">
       <h4><svg class="icon-sm" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Pengertian</h4>
       <p>${esc(k.pengertian)}</p>
-
-      ${k.video_url ? `
-      <h4 style="margin-top:16px;"><svg class="icon-sm" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>Video Pembelajaran</h4>
-      <div class="video-container"><iframe src="${esc(toEmbed(k.video_url))}" allowfullscreen loading="lazy"></iframe></div>` : ''}
 
       <h4 style="margin-top:20px;justify-content:space-between">
         <span style="display:flex;align-items:center;gap:8px">
@@ -819,6 +950,8 @@ async function openMateri(id) {
       <h4 style="margin-top:20px;"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Contoh Praktik</h4>
       ${renderPraktikTable(k)}
 
+      ${renderVideos(k)}
+
       <h4 style="margin-top:20px;"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Refleksi & Afirmasi</h4>
       <div style="background:#F8F9FA;padding:12px;border-radius:8px;font-size:12px;margin-bottom:8px;white-space:pre-wrap">${esc(k.refleksi)}</div>
       <p style="font-weight:600;color:var(--primary);font-size:12px">"${esc(k.afirmasi)}" (dibaca 3x)</p>
@@ -827,7 +960,6 @@ async function openMateri(id) {
       ${renderKesimpulan()}
     </div>`;
 
-  // Side content (evaluasi) — desktop sidebar kanan, mobile di bawah
   const evalContent = state.user.role === 'kelompok' ? `
     <div class="white-card">
       <h4><svg class="icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Evaluasi Materi Ini</h4>
@@ -993,11 +1125,12 @@ function renderKarakterList() {
   container.innerHTML = `
     <div class="table-responsive">
       <table class="data-table">
-        <tr><th>#</th><th>Judul</th><th>Dalil</th><th>Contoh</th><th>Aksi</th></tr>
+        <tr><th>#</th><th>Judul</th><th>Video</th><th>Dalil</th><th>Contoh</th><th>Aksi</th></tr>
         ${state.karakter.map((k,i)=>`
           <tr>
             <td>${k.urutan||i+1}</td>
             <td><strong>${esc(k.judul)}</strong></td>
+            <td>${parseVideoUrls(k.video_url).length}</td>
             <td>${(k.dalil||[]).length}</td>
             <td>${(k.contoh_salah||[]).length}</td>
             <td style="white-space:nowrap">
@@ -1015,6 +1148,9 @@ function editKarakter(id) {
   showKarakterForm(editingKarakter);
 }
 
+// ============================================================
+// FORM ADMIN — urutan: Judul → Pengertian → Dalil → Contoh → Video → Refleksi
+// ============================================================
 function showKarakterForm(k = null) {
   editingKarakter = k;
   const isEdit = !!k;
@@ -1042,9 +1178,6 @@ function showKarakterForm(k = null) {
       <label style="font-size:11px;font-weight:600;margin-bottom:4px;display:block">Pengertian</label>
       <textarea id="f_pengertian" class="form-control" rows="3" placeholder="Pengertian materi...">${esc(data.pengertian)}</textarea>
 
-      <label style="font-size:11px;font-weight:600;margin-bottom:4px;display:block">Video URL (opsional)</label>
-      <input id="f_video" class="form-control" value="${esc(data.video_url)}" placeholder="https://youtu.be/...">
-
       <label style="font-size:11px;font-weight:600;margin-bottom:4px;display:block">Dalil-Dalil</label>
       <div id="dalilList" class="dynamic-list"></div>
       <button class="btn-sm btn-outline" style="margin-bottom:12px" onclick="addDalilRow()">+ Tambah Dalil</button>
@@ -1052,6 +1185,10 @@ function showKarakterForm(k = null) {
       <label style="font-size:11px;font-weight:600;margin-bottom:4px;display:block">Contoh Praktik (Salah ↔ Benar)</label>
       <div id="contohList" class="dynamic-list"></div>
       <button class="btn-sm btn-outline" style="margin-bottom:12px" onclick="addContohRow()">+ Tambah Baris Contoh</button>
+
+      <label style="font-size:11px;font-weight:600;margin-bottom:4px;display:block">Video Pembelajaran (opsional, bisa lebih dari 1)</label>
+      <div id="videoList" class="dynamic-list"></div>
+      <button class="btn-sm btn-outline" style="margin-bottom:12px" onclick="addVideoRow()">+ Tambah Video</button>
 
       <div class="form-row-2">
         <div>
@@ -1070,9 +1207,16 @@ function showKarakterForm(k = null) {
       </div>
     </div>`;
 
+  // Populate video rows
+  const videoUrls = parseVideoUrls(data.video_url);
+  if (videoUrls.length) videoUrls.forEach(u => addVideoRow(u));
+  else addVideoRow('');
+
+  // Populate dalil rows
   const dalilArr = data.dalil && data.dalil.length ? data.dalil : [''];
   dalilArr.forEach(d => addDalilRow(d));
 
+  // Populate contoh rows
   const salahArr = data.contoh_salah || [];
   const benarArr = data.contoh_benar || [];
   const rowCount = Math.max(salahArr.length, benarArr.length, 1);
@@ -1084,6 +1228,18 @@ function showKarakterForm(k = null) {
 function cancelKarakterForm() {
   document.getElementById('karakterFormContainer').innerHTML = '';
   editingKarakter = null;
+}
+
+function addVideoRow(value = '') {
+  const list = document.getElementById('videoList');
+  if (!list) return;
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.innerHTML = `
+    <input class="form-control video-input" style="margin-bottom:0" value="${esc(value)}" placeholder="Video ${idx+1} — https://youtu.be/...">
+    <button class="btn-sm btn-belum remove-btn" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(div);
 }
 
 function addDalilRow(value = '') {
@@ -1115,6 +1271,10 @@ async function saveKarakterSubmit(id) {
   const judul = document.getElementById('f_judul').value.trim();
   if (!judul) { toast('Judul wajib diisi', true); return; }
 
+  const videoUrls = Array.from(document.querySelectorAll('.video-input'))
+    .map(t => t.value.trim())
+    .filter(Boolean);
+
   const dalil = Array.from(document.querySelectorAll('.dalil-input')).map(t=>t.value.trim()).filter(v=>v);
   const contohSalah = Array.from(document.querySelectorAll('.contoh-salah')).map(t=>t.value.trim());
   const contohBenar = Array.from(document.querySelectorAll('.contoh-benar')).map(t=>t.value.trim());
@@ -1123,7 +1283,7 @@ async function saveKarakterSubmit(id) {
     id: id || undefined,
     judul,
     pengertian: document.getElementById('f_pengertian').value.trim(),
-    video_url: document.getElementById('f_video').value.trim(),
+    video_url: videoUrls.length ? JSON.stringify(videoUrls) : '',
     dalil, contoh_salah:contohSalah, contoh_benar:contohBenar,
     refleksi: document.getElementById('f_refleksi').value.trim(),
     afirmasi: document.getElementById('f_afirmasi').value.trim(),
