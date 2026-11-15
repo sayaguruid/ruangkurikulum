@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SkillSpark - E-Course Generus</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ================= RESET & VARIABLES ================= */
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #00A8FF;
+    --primary-light: #E6F6FF;
+    --primary-dark: #0084C7;
+    --text-dark: #1E1E1E;
+    --text-gray: #888888;
+    --bg-body: #F5F7FA;
+    --white: #FFFFFF;
+    --danger: #FF4757;
+    --success: #2ED573;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-pill: 50px;
+    --shadow: 0 8px 24px rgba(0, 168, 255, 0.15);
+  }
+
+  body {
+    background-color: var(--bg-body);
+    color: var(--text-dark);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 480px;
+    background: var(--white);
+    min-height: 100vh;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ================= ICONS ================= */
+  .icon { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-sm { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-lg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ================= LOGIN PAGE ================= */
+  #view-login { 
+    padding: 32px 24px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    min-height: 100vh; 
+    text-align: center; 
+  }
+  
+  .login-image-container {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .login-image-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  #view-login h1 { font-size: 24px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; color: var(--text-dark); }
+  #view-login p { font-size: 13px; color: var(--text-gray); margin-bottom: 28px; line-height: 1.6; }
+  
+  .input-group { text-align: left; margin-bottom: 16px; }
+  .input-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; margin-left: 4px; color: var(--text-dark); }
+  .input-group input {
+    width: 100%; padding: 16px 20px; border: 1.5px solid #EFEFEF; border-radius: var(--radius-md);
+    font-size: 14px; background: #F9F9F9; transition: all 0.3s;
+  }
+  .input-group input:focus { border-color: var(--primary); background: var(--white); outline: none; }
+  
+  .btn-primary {
+    width: 100%; padding: 16px; background: var(--primary); color: var(--white);
+    border: none; border-radius: var(--radius-pill); font-size: 15px; font-weight: 600;
+    cursor: pointer; box-shadow: var(--shadow); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-primary:active { transform: scale(0.98); }
+
+  /* ================= DASHBOARD ================= */
+  #view-app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  
+  .header { padding: 24px 24px 10px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .header-title { font-size: 22px; font-weight: 700; color: var(--text-dark); margin-top: 4px; }
+  .header-sub { font-size: 12px; color: var(--text-gray); }
+  .avatar-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; border: none; }
+
+  #tabContent { flex: 1; overflow-y: auto; padding: 16px 24px 100px 24px; }
+
+  /* ================= KARTU MATERI (DAFTAR) ================= */
+  .materi-grid { display: flex; flex-direction: column; gap: 16px; }
+  .materi-card-item {
+    background: var(--white); border-radius: var(--radius-lg); padding: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1.5px solid #F0F0F0;
+    display: flex; align-items: center; gap: 16px; cursor: pointer; transition: 0.2s;
+  }
+  .materi-card-item:active { transform: scale(0.98); border-color: var(--primary); }
+  
+  .materi-icon-box {
+    width: 48px; height: 48px; border-radius: 14px; background: var(--primary-light);
+    display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;
+  }
+  .materi-icon-box svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+  .materi-info { flex: 1; }
+  .materi-info h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text-dark); }
+  .materi-info p { font-size: 12px; color: var(--text-gray); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .arrow-icon { color: #CCC; width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+  /* ================= DETAIL MATERI ================= */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
+    color: var(--primary); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; padding: 4px 0;
+  }
+  .course-card {
+    background: linear-gradient(135deg, #00D2FF 0%, #00A8FF 100%);
+    border-radius: var(--radius-lg); padding: 24px; color: var(--white); margin-bottom: 16px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .course-card::after { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+  .course-card .tag { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: var(--radius-pill); font-size: 10px; display: inline-block; margin-bottom: 12px; }
+  .course-card h3 { font-size: 20px; margin-bottom: 8px; font-weight: 600; position: relative; z-index: 1; }
+
+  .white-card { background: var(--white); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1px solid #F0F0F0; }
+  .white-card h4 { font-size: 15px; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .white-card p { font-size: 13px; color: var(--text-gray); line-height: 1.6; text-align: justify; }
+  
+  .video-container { border-radius: 12px; overflow: hidden; margin: 12px 0; aspect-ratio: 16/9; background: #000; }
+  .video-container iframe { width: 100%; height: 100%; border: none; }
+
+  /* TABEL PRAKTIK */
+  .praktik-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; border-radius: 12px; overflow: hidden; }
+  .praktik-table th { background: #F8F9FA; padding: 10px; text-align: left; border-bottom: 1px solid #EEE; }
+  .praktik-table td { padding: 10px; border-bottom: 1px solid #EEE; vertical-align: top; }
+  .praktik-table td.salah { color: var(--danger); background: #FFF5F5; }
+  .praktik-table td.benar { color: var(--success); background: #F0FFF4; }
+
+  /* TABEL DALIL & FONT CONTROL */
+  .dalil-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; border-radius: 12px; overflow: hidden; border: 1px solid #EEE; }
+  .dalil-table th { background: #F8F9FA; padding: 10px; text-align: left; border-bottom: 1px solid #EEE; font-size: 12px; }
+  .dalil-table td { padding: 12px; border-bottom: 1px solid #EEE; vertical-align: top; }
+  .dalil-table td.arab { text-align: right; direction: rtl; font-size: 18px; line-height: 1.8; font-family: 'Traditional Arabic', 'Amiri', serif; width: 50%; }
+  .dalil-table td.arti { font-size: 12px; color: var(--text-gray); font-style: italic; line-height: 1.6; width: 50%; }
+  
+  .font-control { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; justify-content: flex-end; }
+  .font-control span { font-size: 10px; color: var(--text-gray); }
+
+  /* Evaluasi Section */
+  .eval-section { margin-top: 16px; padding-top: 16px; border-top: 1.5px dashed #EEE; }
+  .eval-section select { width: 100%; padding: 12px 16px; border: 1.5px solid #EFEFEF; border-radius: 12px; font-size: 13px; background: #F9F9F9; margin-bottom: 12px; appearance: none; }
+  
+  .eval-list { display: flex; flex-direction: column; gap: 8px; }
+  .eval-item { display: flex; justify-content: space-between; align-items: center; background: #F8F9FA; padding: 10px 14px; border-radius: 12px; }
+  .eval-item .name { font-size: 13px; font-weight: 500; }
+  .eval-item .actions { display: flex; gap: 6px; }
+  
+  .btn-sm { padding: 6px 12px; border: none; border-radius: var(--radius-pill); font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .btn-sudah { background: var(--success); color: var(--white); }
+  .btn-belum { background: #FFEAA7; color: #D63031; }
+  .btn-outline { background: transparent; border: 1px solid #DDD; color: var(--text-gray); }
+
+  /* Rekap */
+  .progress-bar { background: #EEE; border-radius: 10px; height: 8px; margin-top: 8px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--primary); border-radius: 10px; transition: width 0.5s ease; }
+
+  /* ================= BOTTOM NAVIGATION ================= */
+  .bottom-nav {
+    position: absolute; bottom: 20px; left: 20px; right: 20px;
+    background: var(--white); border-radius: var(--radius-pill);
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 12px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #F0F0F0;
+  }
+  .bottom-nav button { background: none; border: none; color: var(--text-gray); cursor: pointer; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.3s; position: relative; }
+  .bottom-nav button span { font-size: 10px; font-weight: 500; }
+  .bottom-nav button.active { color: var(--primary); }
+  .bottom-nav button.active::after { content: ''; position: absolute; bottom: 6px; width: 4px; height: 4px; background: var(--primary); border-radius: 50%; }
+
+  /* ================= TOAST & UTILS ================= */
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--text-dark); color: var(--white); padding: 12px 24px; border-radius: var(--radius-pill); font-size: 13px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: fadeInDown 0.3s ease; }
+  .toast.error { background: var(--danger); }
+  @keyframes fadeInDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+  .hidden { display: none !important; }
+  .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  .form-control { width: 100%; padding: 12px 16px; border: 1.5px solid #E0E0E0; border-radius: 12px; font-size: 13px; margin-bottom: 12px; background: #FAFAFA; }
+  .form-control:focus { border-color: var(--primary); outline: none; background: #FFF; }
+  .table-responsive { overflow-x: auto; width: 100%; margin-top: 10px; }
+  table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+  table.data-table th, table.data-table td { padding: 10px; border-bottom: 1px solid #EEE; text-align: left; }
+  table.data-table th { background: #F8F9FA; font-weight: 600; color: var(--text-dark); }
+
+  /* Dynamic Form Styles */
+  .dynamic-list { margin-bottom: 8px; }
+  .dynamic-row textarea { resize: vertical; }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- ================= VIEW: LOGIN ================= -->
+  <section id="view-login">
+    <div class="login-image-container">
+      <img src="https://i.imgur.com/9DoQmC7.png" alt="Ilustrasi Belajar">
+    </div>
+
+    <h1>Pendidikan<br>29 Karakter Luhur</h1>
+    <p>Platform  eksklusif untuk membentuk generus yang memiliki 29 karakter luhur.</p>
+
+    <div class="input-group">
+      <label>Username</label>
+      <input id="loginUser" placeholder="Masukkan username">
+    </div>
+    <div class="input-group">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Masukkan password">
+    </div>
+
+    <button class="btn-primary" id="btnLogin" onclick="doLogin()">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      Masuk
+    </button>
+  </section>
+
+  <!-- ================= VIEW: APP DASHBOARD ================= -->
+  <section id="view-app" class="hidden">
+    
+    <div class="header">
+      <div>
+        <div class="header-sub" id="headerSub">Selamat Datang</div>
+        <div class="header-title" id="userInfo">Memuat...</div>
+      </div>
+      <button class="avatar-btn" onclick="logout()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+    </div>
+
+    <div id="tabContent">
+      <div style="text-align:center; padding:40px 0;">
+        <div class="spinner"></div>
+        <p style="font-size:12px; color:var(--text-gray)">Memuat data...</p>
+      </div>
+    </div>
+
+    <div class="bottom-nav" id="bottomNav"></div>
+
+  </section>
+</div>
+
+<script>
+// ============================================================
+// KONFIGURASI — GANTI URL DI BAWAH INI
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbxkb8y8why7CV8G66HlPtiFSTXLq6_3CNH1F6QqFYeNr3Iq2y_qpH2IOhOEQ6rYV3AViw/exec';
+
+// ============================================================
+// STATE
+// ============================================================
+let state = { user: null, karakter: [], generus: [], evaluasi: [], rekap: null, activeMateri: null };
+let editingKarakter = null;
+
+// ============================================================
+// API HELPER
+// ============================================================
+async function api(action, payload = {}) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (err) {
+    toast('Koneksi gagal: ' + err.message, true);
+    return { success: false, message: err.message };
+  }
+}
+
+function toast(msg, isError = false) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function toEmbed(url) {
+  if (!url) return '';
+  const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+
+  if (!username || !password) { toast('Username & Password wajib diisi', true); return; }
+  
+  const btn = document.getElementById('btnLogin');
+  btn.innerHTML = 'Memuat...'; btn.disabled = true;
+
+  const r = await api('login', { username, password }); 
+
+  btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Get Started';
+  btn.disabled = false;
+
+  if (r.success) {
+    state.user = r.user;
+    
+    document.getElementById('userInfo').textContent = r.user.nama || r.user.username;
+    
+    let subText = 'Admin Pusat';
+    if (r.user.role === 'kelompok' && r.user.kelompok) subText = r.user.kelompok;
+    if (r.user.role === 'desa' && r.user.desa) subText = r.user.desa;
+    if (r.user.role === 'daerah' && r.user.daerah) subText = r.user.daerah;
+    document.getElementById('headerSub').textContent = subText;
+    
+    document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('view-app').classList.remove('hidden');
+    
+    buildNavigation();
+    await loadKarakter();
+    await loadGenerus();
+    switchTab('materi');
+  } else {
+    toast(r.message || 'Login gagal', true);
+  }
+}
+
+document.getElementById('loginPass').addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+
+function logout() {
+  if (!confirm('Keluar dari akun?')) return;
+  state = { user: null, karakter: [], generus: [], evaluasi: [], rekap: null, activeMateri: null };
+  editingKarakter = null;
+  document.getElementById('view-login').classList.remove('hidden');
+  document.getElementById('view-app').classList.add('hidden');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ============================================================
+// LOAD DATA
+// ============================================================
+async function loadKarakter() {
+  const r = await api('getKarakter');
+  if (r.success) state.karakter = r.data || [];
+}
+async function loadGenerus() {
+  if (!state.user) return;
+  const p = {};
+  if (state.user.role === 'kelompok') p.kelompok = state.user.kelompok;
+  if (state.user.role === 'desa') p.desa = state.user.desa;
+  if (state.user.role === 'daerah') p.daerah = state.user.daerah;
+  const r = await api('getGenerus', p);
+  if (r.success) state.generus = r.data || [];
+}
+async function loadEvaluasi() {
+  if (!state.user) return;
+  const p = {};
+  if (state.user.role === 'kelompok') p.kelompok = state.user.kelompok;
+  if (state.user.role === 'desa') p.desa = state.user.desa;
+  if (state.user.role === 'daerah') p.daerah = state.user.daerah;
+  const r = await api('getEvaluasi', p);
+  if (r.success) state.evaluasi = r.data || [];
+}
+async function loadRekap() {
+  if (!state.user) return;
+  const p = {};
+  if (state.user.role === 'desa') p.desa = state.user.desa;
+  if (state.user.role === 'daerah') p.daerah = state.user.daerah;
+  if (state.user.role === 'kelompok') p.kelompok = state.user.kelompok;
+  const r = await api('getRekap', p);
+  if (r.success) state.rekap = r;
+}
+
+// ============================================================
+// NAVIGATION (BOTTOM NAV)
+// ============================================================
+const ICONS = {
+  materi: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  user: '<svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  import: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  rekap: '<svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+  logout: '<svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  arrowRight: '<svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
+  arrowLeft: '<svg class="icon-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>'
+};
+
+function buildNavigation() {
+  const navDiv = document.getElementById('bottomNav');
+  navDiv.innerHTML = '';
+  const role = state.user.role;
+  let items = [];
+
+  if (role === 'admin') {
+    items = [
+      { id: 'materi', label: 'Materi', icon: ICONS.materi },
+      { id: 'karakter', label: 'Kelola', icon: ICONS.materi },
+      { id: 'user', label: 'User', icon: ICONS.user },
+      { id: 'import', label: 'Import', icon: ICONS.import },
+      { id: 'logout', label: 'Keluar', icon: ICONS.logout }
+    ];
+  } else if (role === 'kelompok') {
+    items = [
+      { id: 'materi', label: 'Materi', icon: ICONS.materi },
+      { id: 'rekap', label: 'Rekap', icon: ICONS.rekap },
+      { id: 'logout', label: 'Keluar', icon: ICONS.logout }
+    ];
+  } else if (role === 'desa' || role === 'daerah') {
+    items = [
+      { id: 'rekap', label: 'Rekap', icon: ICONS.rekap },
+      { id: 'materi', label: 'Materi', icon: ICONS.materi },
+      { id: 'logout', label: 'Keluar', icon: ICONS.logout }
+    ];
+  }
+
+  items.forEach(item => {
+    const b = document.createElement('button');
+    b.innerHTML = `${item.icon}<span>${item.label}</span>`;
+    b.dataset.tab = item.id;
+    b.onclick = () => switchTab(item.id);
+    navDiv.appendChild(b);
+  });
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  
+  const el = document.getElementById('tabContent');
+  el.innerHTML = '<div style="text-align:center; padding:40px 0;"><div class="spinner"></div></div>';
+  state.activeMateri = null;
+
+  if (id === 'logout') { logout(); return; }
+
+  const map = {
+    'materi': renderMateriPage,
+    'karakter': renderAdminKarakter,
+    'user': renderAdminUser,
+    'import': renderAdminImport,
+    'rekap': renderRekapPage,
+  };
+  const fn = map[id];
+  if (fn) fn();
+}
+
+// ============================================================
+// HALAMAN DAFTAR MATERI
+// ============================================================
+async function renderMateriPage() {
+  const el = document.getElementById('tabContent');
+  if (!state.karakter.length) {
+    el.innerHTML = '<div class="white-card"><p>Belum ada materi.</p></div>';
+    return;
+  }
+  
+  let html = `<div class="materi-grid">`;
+  state.karakter.forEach((k) => {
+    const iconBook = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+    
+    html += `
+      <div class="materi-card-item" onclick="openMateri('${k.id}')">
+        <div class="materi-icon-box">
+          ${iconBook}
+        </div>
+        <div class="materi-info">
+          <h4>${esc(k.judul)}</h4>
+          <p>${esc(k.pengertian)}</p>
+        </div>
+        ${ICONS.arrowRight}
+      </div>
+    `;
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+// ============================================================
+// HALAMAN DETAIL MATERI (PENGERTIAN, DALIL, CONTOH, REFLEKSI, KOMITMEN)
+// ============================================================
+async function openMateri(id) {
+  state.activeMateri = state.karakter.find(k => String(k.id) === String(id));
+  if (!state.activeMateri) return;
+
+  const el = document.getElementById('tabContent');
+  const k = state.activeMateri;
+
+  if (state.user.role === 'kelompok') await loadEvaluasi();
+  el.scrollTop = 0;
+
+  let html = `
+    <button class="back-btn" onclick="renderMateriPage()">
+      ${ICONS.arrowLeft} Kembali ke Daftar Materi
+    </button>
+
+    <div class="course-card">
+      <div class="tag">Materi Pembelajaran</div>
+      <h3>${esc(k.judul)}</h3>
+    </div>
+
+    <div class="white-card">
+      <!-- 1. PENGERTIAN -->
+      <h4>
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Pengertian
+      </h4>
+      <p>${esc(k.pengertian)}</p>
+
+      ${k.video_url ? `
+      <h4 style="margin-top:16px;">
+        <svg class="icon-sm" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        Video Pembelajaran
+      </h4>
+      <div class="video-container">
+        <iframe src="${esc(toEmbed(k.video_url))}" allowfullscreen></iframe>
+      </div>` : ''}
+
+      <!-- 2. DALIL-DALIL & ARTI -->
+      <h4 style="margin-top:20px; justify-content:space-between;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <svg class="icon-sm" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Dalil-Dalil & Artinya
+        </span>
+        <div class="font-control">
+          <span>A-</span>
+          <button class="btn-sm btn-outline" style="padding:2px 8px;" onclick="changeFontSize(-2)">A-</button>
+          <button class="btn-sm btn-outline" style="padding:2px 8px;" onclick="changeFontSize(2)">A+</button>
+        </div>
+      </h4>
+      ${renderDalilTable(k)}
+
+      <!-- 3. CONTOH PRAKTIK -->
+      <h4 style="margin-top:20px;">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Contoh Praktik
+      </h4>
+      ${renderPraktikTable(k)}
+
+      <!-- 4. REFLEKSI & AFIRMASI -->
+      <h4 style="margin-top:20px;">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Refleksi & Afirmasi
+      </h4>
+      <div style="background:#F8F9FA; padding:12px; border-radius:8px; font-size:12px; margin-bottom:8px; white-space:pre-wrap;">${esc(k.refleksi)}</div>
+      <p style="font-weight:600; color:var(--primary); font-size:12px;">"${esc(k.afirmasi)}" (dibaca 3x)</p>
+
+      <!-- 5. KESIMPULAN & KOMITMEN -->
+      <h4 style="margin-top:20px;">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Menyimpulkan & Komitmen
+      </h4>
+      ${renderKesimpulan()}
+    </div>
+  `;
+
+  // Render Evaluasi jika role kelompok
+  if (state.user.role === 'kelompok') {
+    html += `
+      <div class="white-card">
+        <div class="eval-section" style="border-top:none; margin-top:0; padding-top:0;">
+          <h4>
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Evaluasi Materi Ini
+          </h4>
+          <select id="jenjang_${k.id}" onchange="renderEvalList('${k.id}')">
+            <option value="">-- Pilih Jenjang --</option>
+            <option value="Caberawit">Caberawit</option>
+            <option value="Pra Remaja">Pra Remaja</option>
+            <option value="Remaja">Remaja</option>
+            <option value="Pra Nikah">Pra Nikah</option>
+          </select>
+          <div id="eval_list_${k.id}" class="eval-list">
+            <p style="font-size:12px; color:var(--text-gray); text-align:center; padding:10px 0;">Pilih jenjang untuk melihat daftar nama.</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  el.innerHTML = html;
+}
+
+// Fungsi memisahkan Arab & Arti
+function parseDalil(d) {
+  if (!d) return { arab: '', arti: '' };
+  const parts = d.split('\n\n');
+  if (parts.length > 1) {
+    return { arab: parts[0], arti: parts[1].replace(/^"|"$/g, '') };
+  }
+  const isArabic = /[\u0600-\u06FF]/.test(d);
+  return isArabic ? { arab: d, arti: '' } : { arab: '', arti: d };
+}
+
+// Render Tabel Dalil
+function renderDalilTable(k) {
+  const dalilArr = Array.isArray(k.dalil) ? k.dalil : (k.dalil ? [k.dalil] : []);
+  
+  if (!dalilArr.length) {
+    return `<p style="font-size:12px; color:var(--text-gray);">Belum ada dalil.</p>`;
+  }
+
+  return `
+    <table class="dalil-table" id="dalilTable">
+      <tr><th>Dalil (Arab)</th><th>Terjemahan</th></tr>
+      ${dalilArr.map(d => {
+        const { arab, arti } = parseDalil(d);
+        return `
+          <tr>
+            <td class="arab">${esc(arab)}</td>
+            <td class="arti">${esc(arti)}</td>
+          </tr>
+        `;
+      }).join('')}
+    </table>
+  `;
+}
+
+// Fungsi perbesar/perkecil font arab
+function changeFontSize(delta) {
+  const table = document.getElementById('dalilTable');
+  if (!table) return;
+  const cells = table.querySelectorAll('td.arab');
+  cells.forEach(cell => {
+    const currentSize = parseFloat(window.getComputedStyle(cell).fontSize);
+    const newSize = Math.max(12, Math.min(36, currentSize + delta)); 
+    cell.style.fontSize = newSize + 'px';
+  });
+}
+
+// Render Tabel Contoh Praktik
+function renderPraktikTable(k) {
+  const salahArr = k.contoh_salah || [];
+  const benarArr = k.contoh_benar || [];
+  const rowCount = Math.max(salahArr.length, benarArr.length);
+
+  if (rowCount === 0) {
+    return `<table class="praktik-table">
+      <tr><th>❌ Salah</th><th>✅ Benar</th></tr>
+      <tr><td colspan="2" style="text-align:center; color:var(--text-gray);">Belum ada contoh</td></tr>
+    </table>`;
+  }
+
+  return `<table class="praktik-table">
+    <tr><th>❌ Salah</th><th>✅ Benar</th></tr>
+    ${Array.from({length: rowCount}).map((_, i) => `
+      <tr>
+        <td class="salah">${esc(salahArr[i] || '')}</td>
+        <td class="benar">${esc(benarArr[i] || '')}</td>
+      </tr>
+    `).join('')}
+  </table>`;
+}
+
+// Render Bagian Kesimpulan & Komitmen
+function renderKesimpulan() {
+  return `
+    <div style="font-size:12px; color:var(--text-dark); line-height:1.6;">
+      <p style="margin-bottom:8px;">Generus melakukan penilaian diri dengan menuliskan hal-hal yang perlu diperbaiki dalam dirinya mengenai materi ini dan menuliskan langkah-langkah yang akan dilakukan sebagai komitmen untuk mengamalkannya.</p>
+      <p>Generus menuliskan praktik baik yang sudah dilakukan dan berkomitmen untuk mempertahankannya.</p>
+      <textarea class="form-control" style="margin-top:12px; background:#FFF; border-color:#DDD; font-size:12px;" rows="4" placeholder="Tuliskan komitmen & penilaian dirimu di sini..."></textarea>
+      <button class="btn-primary" style="padding:10px; font-size:12px;" onclick="toast('Komitmen berhasil disimpan!')">Simpan Komitmen</button>
+    </div>
+  `;
+}
+
+// Render Eval List
+function renderEvalList(karakterId) {
+  const jenjang = document.getElementById(`jenjang_${karakterId}`).value;
+  const container = document.getElementById(`eval_list_${karakterId}`);
+  
+  if (!jenjang) {
+    container.innerHTML = '<p style="font-size:12px; color:var(--text-gray); text-align:center; padding:10px 0;">Pilih jenjang untuk melihat daftar nama.</p>';
+    return;
+  }
+
+  const list = state.generus.filter(g => g.jenjang === jenjang);
+  if (!list.length) {
+    container.innerHTML = '<p style="font-size:12px; color:var(--danger); text-align:center; padding:10px 0;">Tidak ada generus di jenjang ini.</p>';
+    return;
+  }
+
+  let html = '';
+  list.forEach(g => {
+    const ev = state.evaluasi.find(e => String(e.karakter_id) === String(karakterId) && String(e.generus_nama) === String(g.nama));
+    const status = ev ? ev.status : 'Belum';
+    
+    const encodedNama = encodeURIComponent(g.nama);
+    html += `
+      <div class="eval-item">
+        <span class="name">${esc(g.nama)}</span>
+        <div class="actions">
+          <button class="btn-sm ${status==='Sudah'?'btn-sudah':'btn-outline'}" onclick="setStatus('${karakterId}', decodeURIComponent('${encodedNama}'), 'Sudah')">
+            ${status==='Sudah' ? '✓ Sudah' : 'Sudah'}
+          </button>
+          <button class="btn-sm ${status==='Belum'?'btn-belum':'btn-outline'}" onclick="setStatus('${karakterId}', decodeURIComponent('${encodedNama}'), 'Belum')">
+            ${status==='Belum' ? '✗ Belum' : 'Belum'}
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+async function setStatus(karakter_id, nama, status) {
+  const g = state.generus.find(x => x.nama === nama);
+  if (!g) return;
+  const payload = {
+    karakter_id, generus_nama: nama, jenjang: g.jenjang, kelompok: g.kelompok,
+    desa: g.desa, daerah: g.daerah, status, catatan: '', oleh: state.user.username
+  };
+  const r = await api('saveEvaluasi', payload);
+  if (r.success) { 
+    toast(`${nama}: ${status}`); 
+    await loadEvaluasi(); 
+    const selectEl = document.getElementById(`jenjang_${karakter_id}`);
+    if (selectEl) renderEvalList(karakter_id);
+  }
+  else toast(r.message, true);
+}
+
+// ============================================================
+// ADMIN — KELOLA KARAKTER
+// ============================================================
+function renderAdminKarakter() {
+  const el = document.getElementById('tabContent');
+  editingKarakter = null;
+
+  el.innerHTML = `
+    <div class="white-card">
+      <h4 style="justify-content:space-between;">
+        <span>Kelola Materi Karakter</span>
+        <button class="btn-sm btn-sudah" onclick="showKarakterForm()">+ Tambah</button>
+      </h4>
+      <button class="btn-primary" style="background:var(--white); color:var(--primary); border:1.5px solid var(--primary); box-shadow:none; margin-bottom:12px;" onclick="showPDFUpload()">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Upload PDF → Ekstrak Otomatis
+      </button>
+      <div id="karakterListContainer"></div>
+    </div>
+    <div id="karakterFormContainer"></div>
+  `;
+
+  renderKarakterList();
+}
+
+function renderKarakterList() {
+  const container = document.getElementById('karakterListContainer');
+  if (!container) return;
+  
+  if (!state.karakter.length) {
+    container.innerHTML = '<p style="font-size:12px; color:var(--text-gray); text-align:center; padding:20px 0;">Belum ada materi. Klik "+ Tambah" atau upload PDF.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="table-responsive">
+      <table class="data-table">
+        <tr><th>#</th><th>Judul</th><th>Dalil</th><th>Contoh</th><th>Aksi</th></tr>
+        ${state.karakter.map((k, i) => `
+          <tr>
+            <td>${k.urutan || i+1}</td>
+            <td><strong>${esc(k.judul)}</strong></td>
+            <td>${(k.dalil || []).length}</td>
+            <td>${(k.contoh_salah || []).length}</td>
+            <td style="white-space:nowrap;">
+              <button class="btn-sm btn-sudah" onclick="editKarakter('${k.id}')">Edit</button>
+              <button class="btn-sm btn-belum" onclick="hapusKarakter('${k.id}')">Hapus</button>
+            </td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+  `;
+}
+
+function editKarakter(id) {
+  editingKarakter = state.karakter.find(k => String(k.id) === String(id));
+  if (!editingKarakter) return;
+  showKarakterForm(editingKarakter);
+}
+
+function showKarakterForm(k = null) {
+  editingKarakter = k;
+  const isEdit = !!k;
+  const data = k || {
+    judul: '', pengertian: '', dalil: [], video_url: '',
+    contoh_salah: [], contoh_benar: [], refleksi: '', afirmasi: '', urutan: state.karakter.length + 1
+  };
+
+  const container = document.getElementById('karakterFormContainer');
+  container.innerHTML = `
+    <div class="white-card" style="border:2px solid var(--primary);">
+      <h4>${isEdit ? '✏️ Edit Karakter' : '➕ Tambah Karakter Baru'}</h4>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Judul</label>
+      <input id="f_judul" class="form-control" value="${esc(data.judul)}" placeholder="cth: Akhlakul Karimah">
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Pengertian</label>
+      <textarea id="f_pengertian" class="form-control" rows="3" placeholder="Pengertian materi...">${esc(data.pengertian)}</textarea>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Video URL (opsional)</label>
+      <input id="f_video" class="form-control" value="${esc(data.video_url)}" placeholder="https://youtu.be/...">
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Dalil-Dalil (bisa lebih dari 1)</label>
+      <div id="dalilList" class="dynamic-list"></div>
+      <button class="btn-sm btn-outline" style="margin-bottom:12px;" onclick="addDalilRow()">+ Tambah Dalil</button>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Contoh Praktik (pasangan Salah ↔ Benar)</label>
+      <div id="contohList" class="dynamic-list"></div>
+      <button class="btn-sm btn-outline" style="margin-bottom:12px;" onclick="addContohRow()">+ Tambah Baris Contoh</button>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Refleksi</label>
+      <textarea id="f_refleksi" class="form-control" rows="3" placeholder="Pertanyaan refleksi...">${esc(data.refleksi)}</textarea>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Afirmasi</label>
+      <input id="f_afirmasi" class="form-control" value="${esc(data.afirmasi)}" placeholder="Insya Alloh saya mampu...">
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Urutan</label>
+      <input id="f_urutan" type="number" class="form-control" value="${data.urutan || 1}">
+
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn-primary" style="flex:1;" onclick="saveKarakterSubmit(${isEdit ? `'${k.id}'` : 'null'})">
+          ${isEdit ? '💾 Simpan Perubahan' : '💾 Simpan'}
+        </button>
+        <button class="btn-primary" style="flex:0 0 auto; background:#EEE; color:var(--text-dark); box-shadow:none;" onclick="cancelKarakterForm()">Batal</button>
+      </div>
+    </div>
+  `;
+
+  const dalilArr = data.dalil && data.dalil.length ? data.dalil : [''];
+  dalilArr.forEach(d => addDalilRow(d));
+
+  const salahArr = data.contoh_salah || [];
+  const benarArr = data.contoh_benar || [];
+  const rowCount = Math.max(salahArr.length, benarArr.length, 1);
+  for (let i = 0; i < rowCount; i++) {
+    addContohRow(salahArr[i] || '', benarArr[i] || '');
+  }
+  
+  container.scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelKarakterForm() {
+  document.getElementById('karakterFormContainer').innerHTML = '';
+  editingKarakter = null;
+}
+
+function addDalilRow(value = '') {
+  const list = document.getElementById('dalilList');
+  if (!list) return;
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.style.cssText = 'display:flex; gap:6px; margin-bottom:6px;';
+  div.innerHTML = `
+    <textarea class="form-control dalil-input" rows="4" style="flex:1; margin-bottom:0;" placeholder="Dalil ${idx + 1}. Tulis Teks Arab, tekan ENTER 2x, lalu tulis artinya.">${esc(value)}</textarea>
+    <button class="btn-sm btn-belum" style="padding:6px 10px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function addContohRow(salah = '', benar = '') {
+  const list = document.getElementById('contohList');
+  if (!list) return;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:6px; margin-bottom:6px;';
+  div.innerHTML = `
+    <textarea class="form-control contoh-salah" rows="2" style="margin-bottom:0; font-size:12px;" placeholder="❌ Salah...">${esc(salah)}</textarea>
+    <textarea class="form-control contoh-benar" rows="2" style="margin-bottom:0; font-size:12px;" placeholder="✅ Benar...">${esc(benar)}</textarea>
+    <button class="btn-sm btn-belum" style="padding:6px 10px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+async function saveKarakterSubmit(id) {
+  const judul = document.getElementById('f_judul').value.trim();
+  if (!judul) { toast('Judul wajib diisi', true); return; }
+
+  const dalil = Array.from(document.querySelectorAll('.dalil-input'))
+    .map(t => t.value.trim()).filter(v => v);
+
+  const contohSalah = Array.from(document.querySelectorAll('.contoh-salah'))
+    .map(t => t.value.trim());
+  const contohBenar = Array.from(document.querySelectorAll('.contoh-benar'))
+    .map(t => t.value.trim());
+
+  const payload = {
+    id: id || undefined,
+    judul,
+    pengertian: document.getElementById('f_pengertian').value.trim(),
+    video_url: document.getElementById('f_video').value.trim(),
+    dalil,
+    contoh_salah: contohSalah,
+    contoh_benar: contohBenar,
+    refleksi: document.getElementById('f_refleksi').value.trim(),
+    afirmasi: document.getElementById('f_afirmasi').value.trim(),
+    urutan: Number(document.getElementById('f_urutan').value) || 1
+  };
+
+  const r = await api('saveKarakterForm', payload);
+  if (r.success) {
+    toast(r.message);
+    await loadKarakter();
+    document.getElementById('karakterFormContainer').innerHTML = '';
+    renderKarakterList();
+  } else {
+    toast(r.message, true);
+  }
+}
+
+async function hapusKarakter(id) {
+  if (!confirm('Hapus materi ini?')) return;
+  const r = await api('deleteKarakter', { id });
+  if (r.success) {
+    toast(r.message);
+    await loadKarakter();
+    renderKarakterList();
+  } else toast(r.message, true);
+}
+
+// ============================================================
+// UPLOAD PDF → PARSE OTOMATIS
+// ============================================================
+function showPDFUpload() {
+  const el = document.getElementById('tabContent');
+  el.innerHTML = `
+    <button class="back-btn" onclick="renderAdminKarakter()">← Kembali</button>
+    <div class="white-card">
+      <h4>Upload PDF Materi</h4>
+      <p style="font-size:12px; color:var(--text-gray); margin-bottom:12px;">
+        PDF akan diekstrak otomatis (OCR). Pastikan PDF berisi teks (bukan scan gambar blur).
+      </p>
+      <input id="pdf_file" type="file" accept=".pdf" class="form-control" style="padding:10px;">
+      <button class="btn-primary" onclick="uploadAndParsePDF()">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ekstrak PDF
+      </button>
+    </div>
+    <div id="pdfPreviewContainer"></div>
+  `;
+}
+
+async function uploadAndParsePDF() {
+  const file = document.getElementById('pdf_file').files[0];
+  if (!file) { toast('Pilih file PDF dulu', true); return; }
+
+  toast('Memproses PDF... (bisa 10-30 detik)');
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const r = await api('parsePDF', { fileName: file.name, fileBase64: base64 });
+
+    if (!r.success) { toast(r.message || 'Gagal parse', true); return; }
+
+    renderPDFPreview(r.data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPDFPreview(materiList) {
+  const container = document.getElementById('pdfPreviewContainer');
+  if (!materiList.length) {
+    container.innerHTML = '<div class="white-card"><p>Tidak ada materi terdeteksi. Cek format PDF atau isi manual.</p></div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="white-card">
+      <h4>✅ ${materiList.length} Materi Terdeteksi</h4>
+      <p style="font-size:12px; color:var(--text-gray); margin-bottom:12px;">
+        Review dulu, lalu klik <strong>Simpan Semua</strong>. Materi yang judulnya sudah ada akan dilewati.
+      </p>
+      ${materiList.map((m, i) => `
+        <div style="background:#F8F9FA; padding:12px; border-radius:12px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="font-size:13px;">${esc(m.judul)}</strong>
+            <input type="checkbox" class="pdf-materi-check" data-idx="${i}" checked style="width:18px; height:18px;">
+          </div>
+          <div style="font-size:11px; color:var(--text-gray);">
+            📖 ${(m.dalil || []).length} dalil &nbsp;|&nbsp; 
+            ❌ ${(m.contoh_salah || []).length} contoh salah &nbsp;|&nbsp; 
+            ✅ ${(m.contoh_benar || []).length} contoh benar
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn-primary" style="margin-top:12px;" onclick="simpanPDFMateri()">
+        💾 Simpan Semua yang Dicentang
+      </button>
+    </div>
+  `;
+  window.__parsedMateri = materiList;
+}
+
+async function simpanPDFMateri() {
+  const checked = Array.from(document.querySelectorAll('.pdf-materi-check:checked'))
+    .map(cb => window.__parsedMateri[Number(cb.dataset.idx)]);
+
+  if (!checked.length) { toast('Tidak ada materi dicentang', true); return; }
+
+  let added = 0, skipped = 0;
+  for (const m of checked) {
+    const r = await api('saveKarakterForm', m);
+    if (r.success) added++; else skipped++;
+  }
+
+  toast(`${added} materi tersimpan, ${skipped} gagal/dilewati`);
+  await loadKarakter();
+  renderAdminKarakter();
+}
+
+// ============================================================
+// ADMIN — USER & IMPORT
+// ============================================================
+async function renderAdminUser() {
+  const el = document.getElementById('tabContent');
+  const r = await api('getUser');
+  const users = r.success ? r.data : [];
+  
+  el.innerHTML = `
+    <div class="white-card">
+      <h4>Tambah / Edit User</h4>
+      <input id="u_username" class="form-control" placeholder="Username">
+      <input id="u_password" class="form-control" placeholder="Password">
+      <select id="u_role" class="form-control">
+        <option value="admin">Admin</option>
+        <option value="kelompok">Kelompok</option>
+        <option value="desa">Desa</option>
+        <option value="daerah">Daerah</option>
+        <option value="generus">Generus</option>
+      </select>
+      <input id="u_nama" class="form-control" placeholder="Nama Lengkap">
+      <select id="u_jenjang" class="form-control">
+        <option value="">- Pilih Jenjang (Jika Generus) -</option>
+        <option>Caberawit</option><option>Pra Remaja</option><option>Remaja</option><option>Pra Nikah</option>
+      </select>
+      <input id="u_kelompok" class="form-control" placeholder="Kelompok">
+      <input id="u_desa" class="form-control" placeholder="Desa">
+      <input id="u_daerah" class="form-control" placeholder="Daerah">
+      <button class="btn-primary" onclick="saveUser()" style="margin-top:8px">Simpan User</button>
+    </div>
+
+    <div class="white-card">
+      <h4>Daftar User (${users.length})</h4>
+      <div class="table-responsive">
+        <table class="data-table">
+          <tr><th>Username</th><th>Nama</th><th>Role</th><th>Aksi</th></tr>
+          ${users.map(u => `
+            <tr>
+              <td>${esc(u.username)}</td>
+              <td>${esc(u.nama)}</td>
+              <td><span style="font-size:10px; font-weight:600; color:var(--primary);">${esc(u.role)}</span></td>
+              <td>
+                <button class="btn-sm btn-sudah" onclick='editUser(${JSON.stringify(u).replace(/'/g, "\\'")})'>Edit</button>
+                <button class="btn-sm btn-belum" onclick="hapusUser('${esc(u.username)}')">Hapus</button>
+              </td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function editUser(u) {
+  document.getElementById('u_username').value = u.username || '';
+  document.getElementById('u_password').value = '';
+  document.getElementById('u_role').value = u.role || 'kelompok';
+  document.getElementById('u_nama').value = u.nama || '';
+  document.getElementById('u_jenjang').value = u.jenjang || '';
+  document.getElementById('u_kelompok').value = u.kelompok || '';
+  document.getElementById('u_desa').value = u.desa || '';
+  document.getElementById('u_daerah').value = u.daerah || '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+async function saveUser() {
+  const payload = {
+    username: document.getElementById('u_username').value.trim(),
+    password: document.getElementById('u_password').value,
+    role: document.getElementById('u_role').value,
+    nama: document.getElementById('u_nama').value,
+    jenjang: document.getElementById('u_jenjang').value,
+    kelompok: document.getElementById('u_kelompok').value,
+    desa: document.getElementById('u_desa').value,
+    daerah: document.getElementById('u_daerah').value,
+  };
+  if (!payload.username || !payload.nama) { toast('Username & Nama wajib', true); return; }
+  const r = await api('saveUser', payload);
+  if (r.success) { toast(r.message); await loadGenerus(); renderAdminUser(); }
+  else toast(r.message, true);
+}
+async function hapusUser(username) {
+  if (!confirm('Hapus user ' + username + '?')) return;
+  const r = await api('deleteUser', { username });
+  if (r.success) { toast(r.message); await loadGenerus(); renderAdminUser(); }
+  else toast(r.message, true);
+}
+
+function renderAdminImport() {
+  const el = document.getElementById('tabContent');
+  el.innerHTML = `
+    <div class="white-card">
+      <h4>Import Data (CSV)</h4>
+      <p style="font-size:12px; color:var(--text-gray); margin-bottom:12px;">Download template, isi, lalu upload.</p>
+      <select id="imp_tipe" class="form-control">
+        <option value="karakter">Template Karakter</option>
+        <option value="user">Template User</option>
+        <option value="generus">Template Generus</option>
+      </select>
+      <button class="btn-primary" style="background:var(--white); color:var(--primary); border:1.5px solid var(--primary); box-shadow:none; margin-bottom:12px;" onclick="downloadTemplate()">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Template
+      </button>
+      <input id="imp_file" type="file" accept=".csv" class="form-control" style="padding:10px;">
+      <button class="btn-primary" onclick="importCSV()">Upload & Import</button>
+    </div>
+  `;
+}
+
+const TEMPLATE_HEADERS = {
+  karakter: ['judul','pengertian','dalil','video_url','contoh_salah','contoh_benar','refleksi','afirmasi','urutan'],
+  user: ['username','password','role','nama','jenjang','kelompok','desa','daerah'],
+  generus: ['nama','jenjang','kelompok','desa','daerah'],
+};
+const TEMPLATE_CONTOH = {
+  karakter: [['Akhlakul Karimah','Akhlak yang terpuji...','لَقَدْ كَانَ...','https://www.youtube.com/embed/VIDEO1','Generus berpura-pura...','Generus bersikap sopan...','Apa yang sudah...','Insya Alloh...','1']],
+  user: [['admin','admin123','admin','Admin Pusat','','','','']],
+  generus: [['Ahmad','Caberawit','Kelompok 1','Desa A','Daerah X']],
+};
+
+function csvEscape(v) {
+  const s = String(v == null ? '' : v);
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function downloadTemplate() {
+  const tipe = document.getElementById('imp_tipe').value;
+  const headers = TEMPLATE_HEADERS[tipe];
+  const contoh = TEMPLATE_CONTOH[tipe] || [];
+  let csv = headers.map(csvEscape).join(',') + '\n';
+  contoh.forEach(row => { csv += row.map(csvEscape).join(',') + '\n'; });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `template_${tipe}.csv`;
+  a.click();
+  toast('Template diunduh');
+}
+function parseCSV(text) {
+  const rows = []; let cur = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') { if (text[i+1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { cur.push(field); field = ''; }
+      else if (c === '\n') { cur.push(field); rows.push(cur); cur = []; field = ''; }
+      else if (c !== '\r') field += c;
+    }
+  }
+  if (field !== '' || cur.length) { cur.push(field); rows.push(cur); }
+  return rows.filter(r => r.some(x => x.trim() !== ''));
+}
+async function importCSV() {
+  const file = document.getElementById('imp_file').files[0];
+  const tipe = document.getElementById('imp_tipe').value;
+  if (!file) { toast('Pilih file CSV', true); return; }
+  const text = await file.text();
+  const rows = parseCSV(text);
+  if (rows.length < 2) { toast('File tidak valid', true); return; }
+  const headers = rows[0].map(h => h.trim());
+  const data = [];
+  for (let i = 1; i < rows.length; i++) {
+    const o = {}; headers.forEach((h, idx) => o[h] = (rows[i][idx] || '').trim());
+    if (tipe === 'generus') o.role = 'generus';
+    data.push(o);
+  }
+  const r = await api('importTemplate', { tipe, data });
+  if (r.success) { toast(r.message); await loadGenerus(); await loadKarakter(); }
+  else toast(r.message, true);
+}
+
+// ============================================================
+// REKAP PAGE
+// ============================================================
+async function renderRekapPage() {
+  await loadRekap();
+  const el = document.getElementById('tabContent');
+  if (!state.rekap) { el.innerHTML = '<div class="white-card"><p>Gagal memuat rekap.</p></div>'; return; }
+  
+  const r = state.rekap.rekap || {};
+  const scope = state.user.role === 'desa' ? 'Desa' : (state.user.role === 'daerah' ? 'Daerah' : 'Kelompok');
+  const userScope = state.user[scope.toLowerCase()] || state.user.nama;
+
+  el.innerHTML = `
+    <div class="course-card" style="background:linear-gradient(135deg, #00D2FF 0%, #0084C7 100%);">
+      <div class="tag">${scope}</div>
+      <h3>${esc(userScope)}</h3>
+      <div class="meta" style="margin-top:12px; gap:24px; display:flex;">
+        <div>
+          <div style="font-size:24px; font-weight:700;">${state.rekap.totalGenerus}</div>
+          <div style="font-size:10px; opacity:0.8;">Total Generus</div>
+        </div>
+        <div>
+          <div style="font-size:24px; font-weight:700;">${state.rekap.totalEvaluasi || 0}</div>
+          <div style="font-size:10px; opacity:0.8;">Evaluasi Masuk</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="white-card">
+      <h4>Pencapaian Karakter</h4>
+      ${Object.entries(r).map(([id, k]) => `
+        <div style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:4px;">
+            <span>${esc(k.judul)}</span>
+            <span style="color:var(--primary);">${k.persen}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${k.persen}%"></div></div>
+          <div style="font-size:10px; color:var(--text-gray); margin-top:4px;">${k.sudah} dari ${k.total} anak sudah</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="white-card">
+      <h4>Sebaran Jenjang</h4>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+        ${Object.entries(state.rekap.perJenjang || {}).map(([j, v]) => `
+          <div style="background:#F8F9FA; padding:12px; border-radius:12px; text-align:center;">
+            <div style="font-size:18px; font-weight:700; color:var(--primary);">${v.total}</div>
+            <div style="font-size:11px; color:var(--text-gray);">${esc(j)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  if (API_URL.includes('PASTE_URL_ANDA')) {
+    toast('⚠️ Ganti API_URL dengan URL Web App Anda!', true);
+  }
+});
+</script>
+
+</body>
+</html>
