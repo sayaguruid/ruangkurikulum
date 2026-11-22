@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Prota PPG 2026 — Dashboard & Laporan</title>
+<style>
+  :root{
+    --bg-body:#f4f6f9;--bg-card:#fff;--text-main:#1e293b;--text-muted:#64748b;
+    --primary:#3b82f6;--primary-light:#eff6ff;--green:#10b981;--green-light:#ecfdf5;
+    --purple:#8b5cf6;--orange:#f59e0b;--orange-light:#fffbeb;--danger:#ef4444;
+    --border:#e2e8f0;--radius-lg:20px;--radius-md:12px;--radius-sm:8px;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.05);--shadow-md:0 4px 6px -1px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-body);color:var(--text-main);font-size:14px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+  .app-container{display:flex;min-height:100vh}
+
+  /* ================= SIDEBAR (DESKTOP + MOBILE DRAWER) ================= */
+  .sidebar{width:260px;background:#fff;border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:60;transition:transform .3s ease}
+  .brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700;margin-bottom:24px;padding-left:8px}
+  .brand-icon{width:32px;height:32px;background:var(--primary);color:#fff;border-radius:8px;display:grid;place-items:center}
+  .nav-menu{list-style:none;display:flex;flex-direction:column;gap:4px;margin-bottom:24px}
+  .nav-menu li{padding:10px 12px;border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;gap:10px;font-weight:500;color:var(--text-muted);transition:.2s}
+  .nav-menu li:hover{background:var(--bg-body);color:var(--text-main)}
+  .nav-menu li.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+  .nav-menu li svg{width:18px;height:18px;flex-shrink:0}
+  .nav-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);font-weight:600;margin-bottom:12px;padding-left:8px}
+  .bidang-list{list-style:none;display:flex;flex-direction:column;gap:2px}
+  .bidang-list li{padding:8px 12px;border-radius:var(--radius-md);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;color:var(--text-muted);font-size:13px;transition:.2s}
+  .bidang-list li:hover{background:var(--bg-body);color:var(--text-main)}
+  .bidang-list li.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+  .bidang-list li .badge{font-size:11px;background:var(--border);color:var(--text-muted);padding:2px 8px;border-radius:12px}
+  .bidang-list li.active .badge{background:var(--primary);color:#fff}
+
+  /* Overlay untuk drawer mobile */
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:55;opacity:0;transition:opacity .25s ease}
+  .sidebar-overlay.show{display:block;opacity:1}
+
+  /* ================= MOBILE TOPBAR ================= */
+  .mobile-topbar{display:none;position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .mobile-topbar .hamburger{background:none;border:none;padding:6px;border-radius:8px;cursor:pointer;color:var(--text-main);display:grid;place-items:center}
+  .mobile-topbar .hamburger:hover{background:var(--bg-body)}
+  .mobile-topbar .m-brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
+  .mobile-topbar .m-brand .brand-icon{width:28px;height:28px}
+
+  /* ================= MAIN ================= */
+  .main-content{flex:1;margin-left:260px;padding:24px 32px;max-width:1400px}
+  .page-section{display:none}
+  .page-section.active{display:block;animation:fadeIn .3s ease}
+  .page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:16px}
+  .page-header h1{font-size:24px;font-weight:700;letter-spacing:-.5px}
+  .page-header p{color:var(--text-muted);font-size:13px;margin-top:4px}
+  .header-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .btn{padding:10px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:600;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+  .btn-primary:hover{background:#2563eb}
+  .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text-main)}
+  .btn-outline:hover{background:var(--bg-body)}
+  .sync-status{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--border)}
+  .sync-status.ok{color:var(--green);border-color:#6ee7b7;background:var(--green-light)}
+  .sync-status.err{color:var(--danger);border-color:#fca5a5;background:#fee2e2}
+
+  /* ================= SUMMARY CARDS ================= */
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+  .summary-card{border-radius:var(--radius-lg);padding:20px;color:#fff;box-shadow:var(--shadow-md)}
+  .summary-card h3{font-size:14px;font-weight:500;opacity:.9;margin-bottom:8px}
+  .summary-card .amount{font-size:22px;font-weight:700;margin-bottom:4px}
+  .summary-card .meta{font-size:11px;opacity:.8}
+  .card-blue{background:linear-gradient(135deg,#60a5fa,#3b82f6)}
+  .card-green{background:linear-gradient(135deg,#34d399,#10b981)}
+  .card-purple{background:linear-gradient(135deg,#a78bfa,#8b5cf6)}
+
+  /* ================= BIDANG GRID ================= */
+  .bidang-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px}
+  .bidang-card{background:#fff;border-radius:var(--radius-lg);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:12px}
+  .bidang-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--primary-light)}
+  .bidang-card-header{display:flex;align-items:center;gap:12px}
+  .bidang-icon{width:40px;height:40px;border-radius:10px;background:var(--primary-light);color:var(--primary);display:grid;place-items:center;flex-shrink:0}
+  .bidang-icon svg{width:20px;height:20px}
+  .bidang-card h4{font-size:15px;font-weight:600;margin:0;line-height:1.2}
+  .bidang-card .total-amount{font-size:18px;font-weight:700;color:var(--text-main)}
+  .bidang-card .stats-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:12px;margin-top:auto;flex-wrap:wrap;gap:4px}
+  .bidang-card .stats-row b{color:var(--text-main)}
+
+  /* ================= TABLE ================= */
+  .table-card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border);overflow:hidden;margin-bottom:24px}
+  .table-header{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+  .table-header h2{font-size:16px;font-weight:600}
+  .table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;min-width:800px}
+  th,td{padding:14px 20px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
+  th{background:#f8fafc;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  tr:last-child td{border-bottom:none}
+  .text-right{text-align:right}
+  .text-center{text-align:center}
+  .fw-bold{font-weight:600;color:var(--text-main)}
+  .sub-desc{font-size:12px;color:var(--text-muted);margin-top:4px}
+  .badge-fund{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;text-transform:uppercase}
+  .badge-natura{background:var(--orange-light);color:var(--orange);border:1px solid #fcd34d}
+  .badge-ppg{background:var(--green-light);color:var(--green);border:1px solid #6ee7b7}
+  .status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .status-pending{background:#f1f5f9;color:var(--text-muted)}
+  .status-selesai{background:var(--green-light);color:var(--green)}
+  .status-batal{background:#fee2e2;color:var(--danger)}
+
+  /* ================= KALENDER ================= */
+  .kalender-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px}
+  .kalender-tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+  .kalender-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .kalender-list{display:flex;flex-direction:column;gap:12px}
+  .kalender-item{background:#fff;border-radius:var(--radius-md);padding:16px;border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:12px}
+  @media(min-width:768px){.kalender-item{flex-direction:row;justify-content:space-between;align-items:center}}
+  .kalender-info h4{font-size:15px;margin-bottom:4px}
+  .kalender-info .meta{font-size:12px;color:var(--text-muted);display:flex;gap:12px;flex-wrap:wrap}
+  .kalender-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+  /* ================= MODAL ================= */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;justify-content:center;z-index:100}
+  .modal-overlay.open{display:flex}
+  .modal-overlay.center{align-items:center;padding:16px}
+  .modal-content{background:#fff;width:100%;max-width:700px;border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:24px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 15px -3px rgba(0,0,0,.05);animation:slideUp .3s ease}
+  .modal-overlay.center .modal-content{border-radius:var(--radius-lg);max-width:640px;animation:fadeIn .25s ease}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .modal-header h2{font-size:18px}
+  .close-btn{background:var(--bg-body);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;color:var(--text-muted);display:grid;place-items:center}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+  .form-control{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit}
+  .form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+  .bulan-picker{display:flex;flex-wrap:wrap;gap:6px}
+  .bulan-picker label{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500}
+  .bulan-picker input{display:none}
+  .bulan-picker input:checked + span{color:#fff}
+  .bulan-picker label:has(input:checked){background:var(--primary);border-color:var(--primary)}
+  .rab-section{background:#f8fafc;border-radius:var(--radius-md);padding:16px;margin-bottom:20px;border:1px solid var(--border)}
+  .rab-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;position:relative}
+  .rab-item-header{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .rab-item-header select{width:120px;font-weight:600}
+  .rab-fields{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:center}
+  .btn-add-rab{background:none;border:1px dashed var(--primary);color:var(--primary);padding:10px;border-radius:var(--radius-sm);width:100%;cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .btn-add-rab:hover{background:var(--primary-light)}
+  .grand-total-box{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#fff;border-radius:var(--radius-md);border:1px solid var(--border);font-weight:600;margin-top:12px}
+  .grand-total-box span{font-size:14px;color:var(--text-muted)}
+  .grand-total-box strong{font-size:18px;color:var(--primary)}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+
+  /* Tabel contoh di modal */
+  .contoh-table{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
+  .contoh-table th{background:#f8fafc;padding:10px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)}
+  .contoh-table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+  .contoh-table tr:last-child td{border-bottom:none}
+
+  /* ================= MOBILE ================= */
+  @media(max-width:900px){
+    .app-container{flex-direction:column}
+    .mobile-topbar{display:flex}
+    .sidebar{transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.08)}
+    .sidebar.open{transform:translateX(0)}
+    .main-content{margin-left:0;padding:16px}
+    .page-header{flex-direction:column;align-items:flex-start}
+    .header-actions{width:100%}
+    .header-actions .btn{flex:1;justify-content:center}
+    .rab-fields{grid-template-columns:1fr 1fr;gap:6px}
+    .rab-fields > div:nth-child(1){grid-column:span 2}
+    .rab-fields > div:nth-child(4){grid-column:span 2;display:flex;justify-content:flex-end}
+    .info-grid{grid-template-columns:1fr}
+    .modal-overlay.center{padding:12px}
+  }
+
+  @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ================= PRINT ================= */
+  @media print{
+    body{background:#fff;font-size:12px}
+    .sidebar,.mobile-topbar,.header-actions,.nav-menu,.modal-overlay,.kalender-tabs,.btn,.no-print,.sidebar-overlay{display:none!important}
+    .main-content{margin:0;padding:0;max-width:100%}
+    .page-section{display:none!important}
+    #section-bidang.active{display:block!important}
+    .summary-card{color:#000!important;background:#fff!important;border:1px solid #ccc;box-shadow:none}
+    .table-card{box-shadow:none;border:1px solid #ccc}
+    table{min-width:100%}
+    th,td{padding:8px;font-size:11px}
+    .badge-fund{border:1px solid #ccc;color:#000!important;background:#fff!important}
+    .status-badge{border:1px solid #ccc;color:#000!important;background:#fff!important}
+    .bidang-card:hover{transform:none}
+    .print-title{display:block!important;font-size:16px;font-weight:700;margin-bottom:12px;text-align:center}
+  }
+  .print-title{display:none}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY DRAWER -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- MOBILE TOPBAR -->
+<div class="mobile-topbar">
+  <button class="hamburger" onclick="openSidebar()" aria-label="Buka menu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="m-brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V10a7 7 0 0 1 14 0v11"/><path d="M12 3v2"/><path d="M9 21v-4a3 3 0 0 1 6 0v4"/><path d="M9 12h6"/></svg>
+    </div>
+    <span>Prota PPG</span>
+  </div>
+  <div id="syncStatusMobile" class="sync-status" style="font-size:10px;padding:4px 8px">● Memuat…</div>
+</div>
+
+<div class="app-container">
+  <!-- SIDEBAR (shared desktop & mobile drawer) -->
+  <aside class="sidebar" id="appSidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V10a7 7 0 0 1 14 0v11"/><path d="M12 3v2"/><path d="M9 21v-4a3 3 0 0 1 6 0v4"/><path d="M9 12h6"/></svg>
+      </div>
+      <span>Prota PPG</span>
+    </div>
+    <ul class="nav-menu" id="mainNav">
+      <li data-target="dashboard" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </li>
+      <li data-target="kalender">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Kalender & Evaluasi
+      </li>
+    </ul>
+    <div class="nav-label">Bidang / Divisi</div>
+    <ul class="bidang-list" id="bidangList"></ul>
+  </aside>
+
+  <main class="main-content">
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="page-section active">
+      <header class="page-header">
+        <div>
+          <h1>Ringkasan Anggaran</h1>
+          <p>Total keseluruhan anggaran program kerja PPG 2026</p>
+        </div>
+        <div class="header-actions">
+          <div id="syncStatusDesktop" class="sync-status">● Memuat…</div>
+        </div>
+      </header>
+      <div class="summary-grid">
+        <div class="summary-card card-blue"><h3>Total Dana PPG</h3><div class="amount" id="grandSumPPG">Rp 0</div><div class="meta">Kas PPG</div></div>
+        <div class="summary-card card-green"><h3>Total Dana Natura</h3><div class="amount" id="grandSumNatura">Rp 0</div><div class="meta">Bantuan Donatur / Wali</div></div>
+        <div class="summary-card card-purple"><h3>Total Dana Keseluruhan</h3><div class="amount" id="grandSumTotal">Rp 0</div><div class="meta">PPG + Natura</div></div>
+      </div>
+      <div class="table-header no-print" style="padding-left:0;border:none;margin-top:16px">
+        <h2>Rincian Anggaran per Bidang</h2>
+      </div>
+      <div class="bidang-summary-grid" id="dashboardBidangGrid"></div>
+    </section>
+
+    <!-- DETAIL BIDANG -->
+    <section id="section-bidang" class="page-section">
+      <div class="print-title" id="printTitle">Laporan Program Kerja PPG 2026</div>
+      <header class="page-header no-print">
+        <div>
+          <h1 id="pageTitle">Pilih Bidang</h1>
+          <p id="pageSubtitle">Program Kerja & Rencana Anggaran Biaya</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-outline" id="btnContoh">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Lihat Contoh
+          </button>
+          <button class="btn btn-outline" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Cetak PDF
+          </button>
+          <button class="btn btn-primary" id="btnTambah">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Program
+          </button>
+        </div>
+      </header>
+      <div class="summary-grid">
+        <div class="summary-card card-blue"><h3>Total PPG Bidang</h3><div class="amount" id="sumPPG">Rp 0</div></div>
+        <div class="summary-card card-green"><h3>Total Natura Bidang</h3><div class="amount" id="sumNatura">Rp 0</div></div>
+        <div class="summary-card card-purple"><h3>Total Dana Keseluruhan</h3><div class="amount" id="sumTotal">Rp 0</div></div>
+      </div>
+      <div class="info-grid">
+        <div style="background:#fff;padding:20px;border-radius:20px;border:1px solid var(--border)">
+          <h4 style="color:var(--primary);margin-bottom:12px;display:flex;gap:8px;align-items:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Pengurus Bidang
+          </h4>
+          <ul id="infoPengurus" style="list-style:none;padding:0"></ul>
+        </div>
+        <div style="background:#fff;padding:20px;border-radius:20px;border:1px solid var(--border)">
+          <h4 style="color:var(--primary);margin-bottom:12px;display:flex;gap:8px;align-items:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            Tupoksi
+          </h4>
+          <p id="infoTupoksi" style="font-size:13px;line-height:1.6"></p>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Rencana Program & Anggaran</h2>
+          <span class="badge-fund badge-ppg" id="countProgram">0 Program</span>
+        </div>
+        <div class="table-responsive" id="tableWrap"></div>
+      </div>
+    </section>
+
+    <!-- KALENDER -->
+    <section id="section-kalender" class="page-section">
+      <header class="page-header">
+        <div><h1>Kalender & Evaluasi</h1><p>Pantau kegiatan bulanan, realisasi dana, dan status</p></div>
+      </header>
+      <div class="kalender-tabs" id="kalenderTabs"></div>
+      <div class="kalender-list" id="kalenderList" style="margin-top:16px"></div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL FORM TAMBAH -->
+<div class="modal-overlay" id="modalForm">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Tambah Program Kerja</h2>
+      <button class="close-btn" id="closeForm">✕</button>
+    </div>
+    <div class="form-group"><label>Nama Kegiatan</label><input type="text" class="form-control" id="inNama" placeholder="cth: Musyawarah Rutin PPG"></div>
+    <div class="form-group"><label>Bulan Pelaksanaan</label><div class="bulan-picker" id="bulanPicker"></div></div>
+    <div class="rab-section">
+      <h3>Rincian Anggaran (RAB)</h3>
+      <div id="rabContainer"></div>
+      <button class="btn-add-rab" id="btnAddRab">+ Tambah Baris Rincian</button>
+      <div class="grand-total-box"><span>Total RAB Kegiatan</span><strong id="modalTotal">Rp 0</strong></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <button class="btn btn-outline" id="btnBatal">Batal</button>
+      <button class="btn btn-primary" id="btnSimpan">Simpan Program</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EVALUASI -->
+<div class="modal-overlay" id="modalEvaluasi">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Evaluasi Kegiatan</h2>
+      <button class="close-btn" onclick="document.getElementById('modalEvaluasi').classList.remove('open')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Status Pelaksanaan</label>
+      <select class="form-control" id="evalStatus">
+        <option value="pending">Belum Berjalan</option>
+        <option value="selesai">Selesai</option>
+        <option value="batal">Tidak Berjalan</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Dana Realisasi (Rp)</label><input type="number" class="form-control" id="evalDana" placeholder="0" min="0"></div>
+    <div class="form-group"><label>Catatan Evaluasi</label><textarea class="form-control" id="evalCatatan" rows="3"></textarea></div>
+    <div style="display:flex;gap:12px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="document.getElementById('modalEvaluasi').classList.remove('open')">Batal</button>
+      <button class="btn btn-primary" id="btnSimpanEval">Simpan Evaluasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTOH (CENTER POP-UP) -->
+<div class="modal-overlay center" id="modalContoh">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalContohTitle">Contoh Program</h2>
+      <button class="close-btn" onclick="document.getElementById('modalContoh').classList.remove('open')">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">📌 Referensi dari Prota PPG 2026 (bukan data RAB Anda).</p>
+    <div style="overflow-x:auto">
+      <table class="contoh-table" id="contohTableBody"></table>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   KONFIGURASI APPS SCRIPT
+   ============================================================ */
+const APPS_SCRIPT_URL = "hhttps://script.google.com/macros/s/AKfycbwFfAl8gpgnCS6I4JZchQRiy0tZF6y9_WpdAOnSkVKpxDA5uQM9Vgi8F-E6DyN8hzxo-A/exec";
+
+/* ============================================================
+   DATA BIDANG + CONTOH (unik per bidang, PJP KBM dihapus)
+   ============================================================ */
+let BIDANG = [
+  {id:"sekretariat",nama:"Kesekretariatan",icon:"file",pengurus:["Bp. Alam Lubis*","Bp. Andika Faza GUPB"],tupoksi:"Mengelola administrasi, surat-menyurat, notulen, database generus, dan kesekretariatan PPG.",
+   contoh:[
+    {nama:"Musyawarah Rutin PPG",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:0,ppg:4125000},
+    {nama:"Musyawarah Pembuatan Program Kerja 2027",bulan:[11],natura:0,ppg:10000000},
+    {nama:"Penerobosan PPG di Pengajian Sarimbit",bulan:[3,6,9],natura:0,ppg:465000},
+    {nama:"Tali Asih Pernikahan Putra-Putri Guru Pengurus",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:20000000},
+    {nama:"Survey Tempat Kegiatan",bulan:[2,8],natura:0,ppg:2500000},
+    {nama:"Sarasehan Sarimbit Guru Pengurus",bulan:[6],natura:2730000,ppg:0}
+   ]},
+  {id:"kurikulum",nama:"Kurikulum",icon:"book",pengurus:["Bp. H. Bambang Edi*","Bp. M. Irsyaduddin","Bp. Falih Ahmad GUPB"],tupoksi:"Menyusun kurikulum KBM, mengoordinasikan PJ KBM, ujian (tilawaty, semester, hafalan), serta evaluasi pembelajaran.",
+   contoh:[
+    {nama:"Musyawarah Bidang Kurikulum & PJ KBM",bulan:[2,5,8,11],natura:1260000,ppg:0},
+    {nama:"Musyawarah Pembina TPQ",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:11760000,ppg:0},
+    {nama:"PSM Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:14850000,ppg:0},
+    {nama:"Musyawarah Tim Tilawati Pembina Caberawit",bulan:[3,6,9,12],natura:392000,ppg:0},
+    {nama:"Pra Ujian Tilawaty",bulan:[5,11],natura:0,ppg:27000},
+    {nama:"Ujian Tilawaty & Al Quran",bulan:[6,12],natura:0,ppg:1839000},
+    {nama:"Ujian Semester",bulan:[6,12],natura:0,ppg:2721600},
+    {nama:"Pertemuan Wali Murid Luar Pondok",bulan:[3,9],natura:0,ppg:1870000},
+    {nama:"Penyerahan Raport",bulan:[6,12],natura:0,ppg:3590000},
+    {nama:"Pengajian Akhir Tahun",bulan:[12],natura:0,ppg:3375000},
+    {nama:"Refreshing Caberawit Kelas VI",bulan:[6],natura:0,ppg:3300000},
+    {nama:"SAKA (Simulasi Akhlakul Karimah)",bulan:[8],natura:0,ppg:24700000},
+    {nama:"Musyawarah Rutin Pembina Remaja",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:3872000},
+    {nama:"PSM Remaja",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:0,ppg:5000000},
+    {nama:"Pengajian PEMUDA WALI BANGSA",bulan:[4,8],natura:0,ppg:2200000},
+    {nama:"Evaluasi Caberawit & Remaja 2026",bulan:[12],natura:0,ppg:285000}
+   ]},
+  {id:"tenagapendidik",nama:"Tenaga Pendidik",icon:"users",pengurus:["Bp. H. Fahala Jaya*","Bp. Sunan Al Rosyid"],tupoksi:"Mengelola data guru/tenaga pendidik, perekrutan, peningkatan SDM (tilawaty, BCM, makhroj, kaifiyah solat), dan kesejahteraan guru.",
+   contoh:[
+    {nama:"Up date Data Base Guru/Tenaga Pendidik",bulan:[1,7],natura:0,ppg:0},
+    {nama:"Perekrutan Guru dari MT & Remaja MT",bulan:[2,8],natura:0,ppg:0},
+    {nama:"Peningkatan SDM: Penderesan Tilawaty & BCM",bulan:[3,9],natura:0,ppg:0},
+    {nama:"Pengajian Keilmuan MT",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Peningkatan SDM: Teknik Pembelajaran",bulan:[3,7],natura:0,ppg:2500000},
+    {nama:"Penderesan Makhroj & Tajwid Guru Generus",bulan:[4,10],natura:0,ppg:0},
+    {nama:"Penderesan Kaifiyah Solat Guru Generus",bulan:[5,11],natura:0,ppg:0},
+    {nama:"Peningkatan Khod untuk Guru Generus",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Rekreasi Guru Generus (PPWB, Alaska & Bangsal)",bulan:[7],natura:0,ppg:0}
+   ]},
+  {id:"sarana",nama:"Sarana & Prasarana",icon:"home",pengurus:["Bp. M. Syaifuri*","Bp. Aldo Abusamah"],tupoksi:"Inventarisasi, standarisasi, perawatan sarana-prasarana KBM, serta pengadaan materi/banner kegiatan.",
+   contoh:[
+    {nama:"Inventarisasi & Standarisasi Sarana KBM",bulan:[1,7],natura:0,ppg:0},
+    {nama:"Perawatan Sarana Prasarana",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Pengadaan Materi Kelas 4 (Al Qur'an Juz 29-30)",bulan:[7],natura:0,ppg:0},
+    {nama:"Banner Kegiatan Keputrian (1x4 m)",bulan:[2],natura:0,ppg:100000}
+   ]},
+  {id:"seniora",nama:"Seni & Olahraga",icon:"activity",pengurus:["Bp. Ersandi Akhyar*","Bp. M. Dian Firdaus GUPB"],tupoksi:"Mengoordinasikan SSB, ASAD (adzan), pasanggiri, FAS/KAS, lomba agustusan, dan pengembangan seni generus.",
+   contoh:[
+    {nama:"Musyawarah SSB",bulan:[2],natura:500000,ppg:0},
+    {nama:"Latihan Rutin SSB Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Latih Tanding SSB (U10, U12) & Remaja",bulan:[5,10],natura:0,ppg:850000},
+    {nama:"Jersey Inventaris SSB Usia 13",bulan:[4],natura:0,ppg:3000000},
+    {nama:"Minisoccer Caberawit",bulan:[8],natura:0,ppg:2700000},
+    {nama:"Musyawarah Tim ASAD Caberawit & Remaja",bulan:[2],natura:935000,ppg:0},
+    {nama:"Pasanggiri Putra Caberawit & Remaja",bulan:[6],natura:0,ppg:1200000},
+    {nama:"FAS (Festival Anak Sholeh)",bulan:[6],natura:1365000,ppg:4715000},
+    {nama:"KAS (Kreasi Anak Sholeh)",bulan:[9],natura:1415000,ppg:4950000},
+    {nama:"Lomba Agustusan Caberawit",bulan:[8],natura:0,ppg:0},
+    {nama:"Latihan Adzan Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0}
+   ]},
+  {id:"kemandirian",nama:"Kemandirian",icon:"tool",pengurus:["Bp. Thobroni GUPB*","Bp. Mushonif GUPB"],tupoksi:"Memberikan bekal keterampilan & kemandirian (tata boga, perawatan diri, teknologi, barbershop) bagi caberawit kelas VI dan remaja.",
+   contoh:[
+    {nama:"Tata Boga: Membuat Nasi Goreng (CBR VI)",bulan:[3],natura:0,ppg:500000},
+    {nama:"Perawatan Diri: Menjaga Kebersihan Badan",bulan:[4],natura:0,ppg:0},
+    {nama:"Perawatan Diri: Thoharoh Pra Baligh",bulan:[5],natura:0,ppg:0},
+    {nama:"Keterampilan: Melipat & Menyetrika Pakaian",bulan:[6],natura:0,ppg:50000},
+    {nama:"Keterampilan: Memasang Kancing Baju",bulan:[7],natura:0,ppg:50000},
+    {nama:"Remaja — Design Grafis (Canva & AI)",bulan:[8],natura:0,ppg:0},
+    {nama:"Remaja — Minuman Kekinian + Pemasarannya",bulan:[9],natura:0,ppg:0},
+    {nama:"Remaja — Pelatihan Photo Produk",bulan:[10],natura:0,ppg:0},
+    {nama:"Remaja — Pengenalan Greenhouse",bulan:[11],natura:0,ppg:0},
+    {nama:"Remaja — Projek IOT",bulan:[11],natura:0,ppg:0},
+    {nama:"Remaja — Pelatihan Barbershop",bulan:[12],natura:0,ppg:0}
+   ]},
+  {id:"keputrian",nama:"Keputrian",icon:"heart",pengurus:["Ny. Hj. Putri Kediri*","Ny. Sani Daud","Ny. Berlian Abu Hasan"],tupoksi:"Pembinaan putri generus: keterampilan, tata boga, perawatan diri, thoharoh, dan pengembangan diri.",
+   contoh:[
+    {nama:"Keterampilan: Membuat Tempat Pensil",bulan:[4],natura:0,ppg:111000},
+    {nama:"Tata Boga: Pengenalan Bumbu Masak",bulan:[5],natura:0,ppg:0},
+    {nama:"Perawatan Diri: Basic Skincare",bulan:[5],natura:0,ppg:175000},
+    {nama:"Perawatan Diri: Thoharoh",bulan:[6],natura:0,ppg:0},
+    {nama:"Keterampilan: Mengenal Manajemen Waktu",bulan:[7],natura:0,ppg:0},
+    {nama:"Tata Boga: Puding Susu Caramel",bulan:[7],natura:0,ppg:316000},
+    {nama:"Perawatan Diri: Berpakaian Syar'i",bulan:[8],natura:0,ppg:0},
+    {nama:"Remaja — Musyawarah Rutin",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:700000,ppg:0},
+    {nama:"Remaja — Tata Boga: Brownis",bulan:[6],natura:480000,ppg:0},
+    {nama:"Remaja — Tata Boga: Manggo Milky Cheese",bulan:[8],natura:300000,ppg:0},
+    {nama:"Remaja — Desain Pamflet (Canva)",bulan:[9],natura:20000,ppg:0},
+    {nama:"Remaja — Bag Charms (Aksesoris Tas)",bulan:[10],natura:400000,ppg:0}
+   ]},
+  {id:"kmm",nama:"KMM (Kegiatan Muda-Mudi)",icon:"zap",pengurus:["Bp. M. Rozan GUPB*","Bp. Jordan Perwira GB"],tupoksi:"Mengoordinasikan kegiatan muda-mudi pengurus: musyawarah KMM, keakraban (Akamsi), bazzar, tasyakuran qurban, pengajian akhir tahun.",
+   contoh:[
+    {nama:"Musyawarah Kepengurusan Muda-Mudi",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:3080000,ppg:0},
+    {nama:"Keakraban Putra-Putri Guru Pengurus (Akamsi)",bulan:[6],natura:7940000,ppg:0},
+    {nama:"Stand Bazzar KAS & FAS Caberawit",bulan:[6,9],natura:0,ppg:1800000},
+    {nama:"Tasyakuran Qurban",bulan:[6],natura:0,ppg:1000000},
+    {nama:"Bazzar Se-Kediri Raya",bulan:[8],natura:0,ppg:7000000},
+    {nama:"Pengajian Akhir Tahun",bulan:[12],natura:4140000,ppg:4640000},
+    {nama:"Musyawarah Evaluasi KMM & Prota 2027",bulan:[12],natura:525000,ppg:0}
+   ]},
+  {id:"bk",nama:"Bimbingan & Konseling",icon:"message-circle",pengurus:["Bp. Jabin GUPB*","Ny. Hj. Naning","Bu. Wicaz Aziziah GP"],tupoksi:"Layanan konseling & motivasi generus, tenaga pendidik, orang tua; pembekalan parenting skill; menghadirkan konselor luar pondok.",
+   contoh:[
+    {nama:"Musyawarah Bidang BK",bulan:[1,7],natura:0,ppg:0},
+    {nama:"Layanan Konseling & Motivasi Generus",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"BK PSM Caberawit & Remaja",bulan:[3,9],natura:0,ppg:200000},
+    {nama:"Pembekalan Parenting Skill (Pengajian Ibu-ibu)",bulan:[5],natura:0,ppg:0},
+    {nama:"Pembekalan BK Kepada Tenaga Pendidik",bulan:[6],natura:0,ppg:0},
+    {nama:"Mengundang Konselor dari Luar Pondok",bulan:[8],natura:0,ppg:0}
+   ]},
+  {id:"tahfidz",nama:"Tahfidzul Quran",icon:"award",pengurus:["Bp. H. Galang Krisna*","Bp. Ardianto","Bp. Miftah GUPB"],tupoksi:"Mengoordinasikan hafalan harian, ujian hafalan (PPWB, Bangsal, Alaska, Remaja), pembekalan guru tahfidz, dan motivasi peserta tahfidz.",
+   contoh:[
+    {nama:"Musyawarah Pleno & Pembina Tahfidz",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:2002000,ppg:0},
+    {nama:"Kegiatan Hafalan Harian",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Ujian Hafalan Caberawit Tahfidz PPWB",bulan:[6,12],natura:2220000,ppg:0},
+    {nama:"Ujian Hafalan Caberawit Tahfidz Bangsal",bulan:[6,12],natura:1650000,ppg:0},
+    {nama:"Ujian Hafalan Generus Tahfidz ALASKA",bulan:[6,12],natura:816000,ppg:0},
+    {nama:"Pembekalan Guru Tahfidz",bulan:[2,8],natura:1100000,ppg:0},
+    {nama:"Evaluasi Prota & Prota 2027",bulan:[12],natura:1000000,ppg:0},
+    {nama:"Seleksi Peserta Tahfidz Semua Devisi",bulan:[3],natura:0,ppg:0},
+    {nama:"Penampilan Peserta Tahfidz di Pengajian Sarimbit",bulan:[6],natura:0,ppg:0},
+    {nama:"Motivasi Peserta Tahfidz (Gabungan)",bulan:[10],natura:0,ppg:650000}
+   ]},
+  {id:"danus",nama:"Penggalang Dana",icon:"dollar-sign",pengurus:["Bp. Putra Albarru GB"],tupoksi:"Mengelola laporan bulanan, shodaqoh kesanggupan wali generus (dalam & luar pondok), infaq PSM, bantuan sabilillah, donatur/sponsor, dan penerobosan muda-mudi.",
+   contoh:[
+    {nama:"Laporan Bulanan",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Shodaqoh Kesanggupan Wali Generus (Dalam)",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Shodaqoh Kesanggupan Wali Generus (Luar)",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Shodaqoh Peserta Musyawarah PPG",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Shodaqoh Pengajian Sarimbit Guru Pengurus",bulan:[6],natura:0,ppg:0},
+    {nama:"Infaq PSM (CBR & Remaja)",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Bantuan Sabilillah",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Donatur/Sponsor",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
+    {nama:"Penerobosan Muda-Mudi",bulan:[3,6,9,12],natura:0,ppg:0},
+    {nama:"Mandiri",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0}
+   ]}
+];
+
+const ICONS = {
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
+  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  tool:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  heart:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  'message-circle':'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  award:'<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+  'dollar-sign':'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const STORAGE_KEY = "prota_ppg_2026_v9";
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+if(!data){ data={}; BIDANG.forEach(b=>data[b.id]=[]); }
+let activeBidang = BIDANG[0].id;
+let activePage = "dashboard";
+let activeBulanKalender = 1;
+let evalTarget = {bidangId:null,programId:null};
+let syncTimer = null;
+
+function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function fmt(n){ return "Rp " + (Number(n)||0).toLocaleString("id-ID"); }
+
+/* ============================================================
+   SIDEBAR DRAWER (MOBILE)
+   ============================================================ */
+window.openSidebar = ()=>{
+  document.getElementById("appSidebar").classList.add("open");
+  document.getElementById("sidebarOverlay").classList.add("show");
+  document.body.style.overflow = "hidden";
+};
+window.closeSidebar = ()=>{
+  document.getElementById("appSidebar").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+  document.body.style.overflow = "";
+};
+
+/* ============================================================
+   AUTO-SYNC KE SHEET
+   ============================================================ */
+function setSyncStatus(state, msg){
+  const cls = state === "ok" ? "sync-status ok" : state === "err" ? "sync-status err" : "sync-status";
+  const text = msg || (state === "ok" ? "✓ Tersimpan" : state === "err" ? "✗ Gagal sync" : "● Menyimpan…");
+  ["syncStatusDesktop","syncStatusMobile"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.className = cls; el.textContent = text; if(id==="syncStatusMobile") el.style.cssText = "font-size:10px;padding:4px 8px"; }
+  });
+}
+
+function autoSync(){
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async ()=>{
+    setSyncStatus("pending");
+    try{
+      const payload = { action:"save", data:data, bidang:BIDANG };
+      const res = await fetch(APPS_SCRIPT_URL, {method:"POST", body:JSON.stringify(payload), headers:{"Content-Type":"text/plain"}});
+      const json = await res.json();
+      if(json.status === "success") setSyncStatus("ok", "✓ Tersimpan " + new Date().toLocaleTimeString("id-ID"));
+      else setSyncStatus("err", "✗ " + json.message);
+    } catch(err){
+      setSyncStatus("err", "✗ Offline (lokal)");
+    }
+  }, 800);
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+document.querySelectorAll("#mainNav li").forEach(li=>{
+  li.onclick = ()=>{ activePage = li.dataset.target; switchPage(activePage); closeSidebar(); };
+});
+
+function switchPage(target){
+  activePage = target;
+  document.querySelectorAll("#mainNav li").forEach(l=>l.classList.remove("active"));
+  document.querySelectorAll(".page-section").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".bidang-list li").forEach(l=>l.classList.remove("active"));
+  if(target==="dashboard"){
+    document.querySelector('[data-target="dashboard"]').classList.add("active");
+    document.getElementById("section-dashboard").classList.add("active");
+    renderDashboard();
+  } else if(target==="kalender"){
+    document.querySelector('[data-target="kalender"]').classList.add("active");
+    document.getElementById("section-kalender").classList.add("active");
+    renderKalenderTabs(); renderKalenderList();
+  } else {
+    document.getElementById("section-bidang").classList.add("active");
+    renderHeader(); renderSummary(); renderTable();
+    const listItem = document.querySelector(`.bidang-list li[data-id="${target}"]`);
+    if(listItem) listItem.classList.add("active");
+    document.getElementById("printTitle").textContent = "Laporan Program Kerja " + (BIDANG.find(b=>b.id===target)?.nama || "");
+  }
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.getElementById("bidangList").addEventListener("click", (e)=>{
+  const li = e.target.closest("li");
+  if(li){ activeBidang = li.dataset.id; switchPage(activeBidang); closeSidebar(); }
+});
+
+/* ============================================================
+   RENDER SIDEBAR
+   ============================================================ */
+function renderSidebar(){
+  const ul = document.getElementById("bidangList");
+  ul.innerHTML = BIDANG.map(b=>{
+    const count = (data[b.id]||[]).length;
+    const isActive = b.id === activeBidang && activePage !== "dashboard" && activePage !== "kalender";
+    return `<li data-id="${b.id}" class="${isActive?'active':''}">
+      <span>${b.nama}</span><span class="badge">${count}</span>
+    </li>`;
+  }).join("");
+}
+
+/* ============================================================
+   RENDER DASHBOARD
+   ============================================================ */
+function calcBidangTotals(bidangId){
+  let ppg=0, natura=0;
+  (data[bidangId]||[]).forEach(row=>{ (row.rab||[]).forEach(item=>{
+    const total = (item.qty||0) * (item.price||0);
+    if(item.fund==='ppg') ppg += total; else natura += total;
+  }); });
+  return {ppg, natura, total: ppg+natura};
+}
+
+function renderDashboard(){
+  let grandPPG=0, grandNatura=0;
+  BIDANG.forEach(b=>{ const t = calcBidangTotals(b.id); grandPPG += t.ppg; grandNatura += t.natura; });
+  document.getElementById("grandSumPPG").textContent = fmt(grandPPG);
+  document.getElementById("grandSumNatura").textContent = fmt(grandNatura);
+  document.getElementById("grandSumTotal").textContent = fmt(grandPPG+grandNatura);
+
+  const grid = document.getElementById("dashboardBidangGrid");
+  grid.innerHTML = BIDANG.map(b=>{
+    const t = calcBidangTotals(b.id);
+    const count = (data[b.id]||[]).length;
+    const iconSvg = ICONS[b.icon] || ICONS.file;
+    return `<div class="bidang-card" onclick="document.querySelector('.bidang-list li[data-id=\\'${b.id}\\']').click()">
+      <div class="bidang-card-header">
+        <div class="bidang-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${iconSvg}</svg></div>
+        <h4>${b.nama}</h4>
+      </div>
+      <div class="total-amount">${fmt(t.total)}</div>
+      <div class="stats-row">
+        <span>📋 <b>${count}</b> Program</span>
+        <span>💰 PPG: <b>${fmt(t.ppg)}</b></span>
+        <span>🤝 Natura: <b>${fmt(t.natura)}</b></span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================
+   RENDER DETAIL BIDANG
+   ============================================================ */
+function renderHeader(){
+  const b = BIDANG.find(x=>x.id===activeBidang);
+  document.getElementById("pageTitle").textContent = b.nama;
+  document.getElementById("infoPengurus").innerHTML = b.pengurus.map(p=>`<li style="font-size:13px;padding:4px 0;display:flex;gap:8px"><span style="color:var(--primary)">•</span> ${p}</li>`).join("");
+  document.getElementById("infoTupoksi").textContent = b.tupoksi;
+}
+
+function renderSummary(){
+  const t = calcBidangTotals(activeBidang);
+  document.getElementById("sumPPG").textContent = fmt(t.ppg);
+  document.getElementById("sumNatura").textContent = fmt(t.natura);
+  document.getElementById("sumTotal").textContent = fmt(t.total);
+}
+
+function renderTable(){
+  const rows = data[activeBidang] || [];
+  const wrap = document.getElementById("tableWrap");
+  document.getElementById("countProgram").textContent = `${rows.length} Program`;
+  if(rows.length===0){
+    wrap.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-muted)">Belum ada program. Klik <b>+ Tambah Program</b>.</div>`;
+    return;
+  }
+  let html = `<table><thead><tr>
+    <th style="width:40px">No</th><th>Kegiatan & Rincian</th><th style="width:180px">Bulan</th>
+    <th class="text-right">Natura</th><th class="text-right">PPG</th><th class="text-right">Total RAB</th>
+    <th class="text-center" style="width:80px">Status</th></tr></thead><tbody>`;
+  rows.forEach((r,idx)=>{
+    let bulanHtml = "";
+    for(let i=1;i<=12;i++) bulanHtml += `<span style="display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:4px;font-size:10px;background:${r.bulan.includes(i)?'var(--primary)':'#f1f5f9'};color:${r.bulan.includes(i)?'#fff':'var(--text-muted)'};margin-right:2px">${i}</span>`;
+    let rabHtml = "", totNatura=0, totPPG=0;
+    if(r.rab && r.rab.length>0){
+      rabHtml = `<div class="sub-desc" style="margin-top:8px;background:#f8fafc;padding:8px;border-radius:6px">${r.rab.map(item=>{
+        const sub = (item.qty||0)*(item.price||0);
+        if(item.fund==='ppg') totPPG += sub; else totNatura += sub;
+        return `<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>• <b>${item.fund==='ppg'?'PPG':'Natura'}</b> - ${item.name||''} <b>${item.qty}x</b></span><span>${fmt(sub)}</span></div>`;
+      }).join('')}</div>`;
+    }
+    const totalRow = totNatura+totPPG;
+    const evalStatus = r.evaluasi?.status || 'pending';
+    let statusBadge = '';
+    if(evalStatus==='selesai') statusBadge = `<span class="status-badge status-selesai">Selesai</span>`;
+    else if(evalStatus==='batal') statusBadge = `<span class="status-badge status-batal">Batal</span>`;
+    else statusBadge = `<span class="status-badge status-pending">Pending</span>`;
+    html += `<tr>
+      <td class="text-center fw-bold">${idx+1}</td>
+      <td><div class="fw-bold">${r.nama}</div>${rabHtml}</td>
+      <td>${bulanHtml}</td>
+      <td class="text-right">${totNatura>0?`<span class="badge-fund badge-natura">${fmt(totNatura)}</span>`:'-'}</td>
+      <td class="text-right">${totPPG>0?`<span class="badge-fund badge-ppg">${fmt(totPPG)}</span>`:'-'}</td>
+      <td class="text-right fw-bold">${fmt(totalRow)}</td>
+      <td class="text-center"><div style="display:flex;gap:4px;justify-content:center">${statusBadge}<button class="btn btn-outline no-print" style="padding:4px 6px;font-size:10px" data-del="${r.id}">✕</button></div></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+  wrap.querySelectorAll("[data-del]").forEach(btn=>{
+    btn.onclick = ()=>{
+      if(confirm("Hapus program ini?")){
+        data[activeBidang] = data[activeBidang].filter(x=>x.id!==btn.dataset.del);
+        saveLocal(); renderAll(); autoSync();
+      }
+    };
+  });
+}
+
+/* ============================================================
+   KALENDER
+   ============================================================ */
+function renderKalenderTabs(){
+  const tabs = document.getElementById("kalenderTabs");
+  const bulanNames = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"];
+  tabs.innerHTML = bulanNames.map((name,i)=>`<button class="kalender-tab ${activeBulanKalender===i+1?'active':''}" onclick="changeKalenderBulan(${i+1})">${name}</button>`).join("");
+}
+window.changeKalenderBulan = (bulan)=>{ activeBulanKalender=bulan; renderKalenderTabs(); renderKalenderList(); };
+
+function renderKalenderList(){
+  const list = document.getElementById("kalenderList");
+  const allPrograms = [];
+  BIDANG.forEach(b=>{ (data[b.id]||[]).forEach(p=>{ if(p.bulan.includes(activeBulanKalender)) allPrograms.push({...p,bidangId:b.id,bidangNama:b.nama}); }); });
+  if(allPrograms.length===0){
+    list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">Tidak ada kegiatan di bulan ini.</div>`;
+    return;
+  }
+  list.innerHTML = allPrograms.map(p=>{
+    let ppg=0,natura=0;
+    (p.rab||[]).forEach(item=>{ const total=(item.qty||0)*(item.price||0); if(item.fund==='ppg') ppg+=total; else natura+=total; });
+    const total = ppg+natura;
+    const evalStatus = p.evaluasi?.status || 'pending';
+    const evalDana = p.evaluasi?.dana || 0;
+    let statusBadge = '';
+    if(evalStatus==='selesai') statusBadge = `<span class="status-badge status-selesai">✓ Selesai (Realisasi: ${fmt(evalDana)})</span>`;
+    else if(evalStatus==='batal') statusBadge = `<span class="status-badge status-batal">✕ Tidak Berjalan</span>`;
+    else statusBadge = `<span class="status-badge status-pending">Belum Berjalan</span>`;
+    return `<div class="kalender-item">
+      <div class="kalender-info">
+        <h4>${p.nama}</h4>
+        <div class="meta"><span style="color:var(--primary);font-weight:600">${p.bidangNama}</span><span>RAB: <b>${fmt(total)}</b></span></div>
+        ${p.evaluasi && p.evaluasi.catatan ? `<div style="font-size:12px;margin-top:8px;color:var(--text-muted);background:#f8fafc;padding:8px;border-radius:6px">Catatan: ${p.evaluasi.catatan}</div>` : ''}
+      </div>
+      <div class="kalender-actions">${statusBadge}<button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="openEvalModal('${p.bidangId}','${p.id}')">Evaluasi</button></div>
+    </div>`;
+  }).join("");
+}
+
+window.openEvalModal = (bidangId,programId)=>{
+  evalTarget = {bidangId,programId};
+  const prog = data[bidangId].find(p=>p.id===programId);
+  document.getElementById("evalStatus").value = prog.evaluasi?.status || 'pending';
+  document.getElementById("evalDana").value = prog.evaluasi?.dana || '';
+  document.getElementById("evalCatatan").value = prog.evaluasi?.catatan || '';
+  document.getElementById("modalEvaluasi").classList.add("open");
+};
+
+document.getElementById("btnSimpanEval").onclick = ()=>{
+  const prog = data[evalTarget.bidangId].find(p=>p.id===evalTarget.programId);
+  if(prog){
+    prog.evaluasi = {
+      status: document.getElementById("evalStatus").value,
+      dana: +document.getElementById("evalDana").value || 0,
+      catatan: document.getElementById("evalCatatan").value.trim()
+    };
+    saveLocal();
+    document.getElementById("modalEvaluasi").classList.remove("open");
+    renderKalenderList();
+    if(activePage === evalTarget.bidangId) renderTable();
+    autoSync();
+  }
+};
+
+/* ============================================================
+   FORM TAMBAH
+   ============================================================ */
+function initBulanPicker(){
+  const wrap = document.getElementById("bulanPicker");
+  let html = "";
+  for(let i=1;i<=12;i++) html += `<label><input type="checkbox" value="${i}"><span>${i}</span></label>`;
+  wrap.innerHTML = html;
+}
+
+let rabCounter = 0;
+function createRabRow(){
+  rabCounter++;
+  return `<div class="rab-item" id="rab-row-${rabCounter}">
+    <div class="rab-item-header">
+      <select class="form-control rab-fund" onchange="toggleRabFields(${rabCounter},this.value)">
+        <option value="natura">Natura</option><option value="ppg">PPG</option>
+      </select>
+      <button class="btn btn-outline" style="margin-left:auto;padding:6px 10px;color:var(--danger);border-color:transparent" onclick="removeRabRow(${rabCounter})">✕</button>
+    </div>
+    <div class="rab-fields" id="rab-fields-${rabCounter}">
+      <div class="natura-fields"><select class="form-control rab-natura-type"><option value="Snack">Snack</option><option value="Makan">Makan</option></select></div>
+      <div class="ppg-fields" style="display:none"><input type="text" class="form-control rab-ppg-name" placeholder="Kebutuhan (cth: ATK)"></div>
+      <div><input type="number" class="form-control rab-qty" placeholder="Qty (x)" value="1" min="1"></div>
+      <div><input type="number" class="form-control rab-price" placeholder="Harga Satuan" value="0" min="0"></div>
+      <div class="subtotal" style="text-align:right;font-weight:600;font-size:13px">Rp 0</div>
+    </div>
+  </div>`;
+}
+
+window.toggleRabFields = (id,fund)=>{
+  const fields = document.getElementById(`rab-fields-${id}`);
+  fields.querySelector('.natura-fields').style.display = fund==='natura'?'block':'none';
+  fields.querySelector('.ppg-fields').style.display = fund==='ppg'?'block':'none';
+};
+window.removeRabRow = (id)=>{ const row=document.getElementById(`rab-row-${id}`); if(row) row.remove(); calcModalTotal(); };
+function calcModalTotal(){
+  let total = 0;
+  document.querySelectorAll(".rab-item").forEach(item=>{
+    const qty = +item.querySelector(".rab-qty").value || 0;
+    const price = +item.querySelector(".rab-price").value || 0;
+    const subtotal = qty*price;
+    item.querySelector(".subtotal").textContent = fmt(subtotal);
+    total += subtotal;
+  });
+  document.getElementById("modalTotal").textContent = fmt(total);
+}
+document.getElementById("rabContainer").addEventListener("input", (e)=>{
+  if(e.target.classList.contains("rab-qty") || e.target.classList.contains("rab-price")) calcModalTotal();
+});
+function resetForm(){
+  document.getElementById("inNama").value = "";
+  document.querySelectorAll("#bulanPicker input").forEach(c=>c.checked=false);
+  document.getElementById("rabContainer").innerHTML = "";
+  addDefaultRabRow(); calcModalTotal();
+  document.getElementById("modalForm").classList.remove("open");
+}
+function addDefaultRabRow(){ document.getElementById("rabContainer").insertAdjacentHTML("beforeend", createRabRow()); }
+document.getElementById("btnAddRab").onclick = ()=> addDefaultRabRow();
+document.getElementById("btnTambah").onclick = ()=>{ resetForm(); document.getElementById("modalForm").classList.add("open"); };
+document.getElementById("closeForm").onclick = ()=> document.getElementById("modalForm").classList.remove("open");
+document.getElementById("btnBatal").onclick = ()=> document.getElementById("modalForm").classList.remove("open");
+
+document.getElementById("btnSimpan").onclick = ()=>{
+  const nama = document.getElementById("inNama").value.trim();
+  if(!nama) return alert("Nama kegiatan wajib diisi.");
+  const bulan = [...document.querySelectorAll("#bulanPicker input:checked")].map(c=>+c.value);
+  if(bulan.length===0) return alert("Pilih minimal satu bulan pelaksanaan.");
+  const rabItems = [];
+  document.querySelectorAll(".rab-item").forEach(item=>{
+    const fund = item.querySelector(".rab-fund").value;
+    const naturaType = item.querySelector(".rab-natura-type")?.value || '';
+    const ppgName = item.querySelector(".rab-ppg-name")?.value.trim() || '';
+    const qty = +item.querySelector(".rab-qty").value || 0;
+    const price = +item.querySelector(".rab-price").value || 0;
+    if(qty>0 && price>0) rabItems.push({fund,name:fund==='natura'?naturaType:ppgName,qty,price});
+  });
+  if(rabItems.length===0) return alert("Isi minimal 1 rincian RAB dengan nominal > 0.");
+  data[activeBidang].push({id:"u"+Date.now(),nama,bulan,rab:rabItems,evaluasi:null});
+  saveLocal();
+  resetForm();
+  activePage = activeBidang;
+  renderAll();
+  switchPage(activeBidang);
+  autoSync();
+};
+
+/* ============================================================
+   MODAL CONTOH — DATA UNIK PER BIDANG
+   ============================================================ */
+document.getElementById("btnContoh").onclick = ()=>{
+  const b = BIDANG.find(x=>x.id===activeBidang);
+  document.getElementById("modalContohTitle").textContent = "Contoh: " + b.nama;
+  let html = `<thead><tr><th>Kegiatan</th><th>Bulan</th><th class="text-right">Natura</th><th class="text-right">PPG</th></tr></thead><tbody>`;
+  if(!b.contoh || b.contoh.length === 0){
+    html += `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Belum ada contoh untuk bidang ini.</td></tr>`;
+  } else {
+    b.contoh.forEach(r=>{
+      html += `<tr><td>${r.nama}</td><td>${r.bulan.join(", ")}</td><td class="text-right">${r.natura>0?fmt(r.natura):'-'}</td><td class="text-right">${r.ppg>0?fmt(r.ppg):'-'}</td></tr>`;
+    });
+  }
+  html += `</tbody>`;
+  document.getElementById("contohTableBody").innerHTML = html;
+  document.getElementById("modalContoh").classList.add("open");
+};
+
+/* ============================================================
+   LOAD AWAL DARI SHEET
+   ============================================================ */
+async function loadFromSheet(){
+  setSyncStatus("pending", "● Memuat data…");
+  try{
+    const res = await fetch(APPS_SCRIPT_URL + "?action=load");
+    const json = await res.json();
+    if(json.status === "success" && json.data){
+      const hasData = Object.values(json.data).some(arr => arr.length > 0);
+      if(hasData){
+        data = json.data;
+        if(json.bidang && json.bidang.length){
+          BIDANG = json.bidang.map((b,i)=>({
+            ...BIDANG.find(x=>x.id===b.id) || BIDANG[i],
+            ...b
+          }));
+        }
+        saveLocal();
+      }
+      setSyncStatus("ok", "✓ Tersinkron");
+    } else setSyncStatus("ok", "✓ Siap (kosong)");
+  } catch(err){
+    setSyncStatus("err", "✗ Offline (lokal)");
+  }
+  renderAll();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function renderAll(){
+  renderSidebar();
+  if(activePage==="dashboard") renderDashboard();
+  else if(activePage==="kalender") renderKalenderList();
+  else { renderHeader(); renderSummary(); renderTable(); }
+}
+initBulanPicker(); addDefaultRabRow(); renderSidebar(); switchPage("dashboard");
+loadFromSheet();
+</script>
+</body>
+</html>
