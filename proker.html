@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>Prota PPG 2026 — Dashboard & Laporan</title>
+<!-- SheetJS untuk export Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --bg-body:#f4f6f9;--bg-card:#fff;--text-main:#1e293b;--text-muted:#64748b;
@@ -16,7 +18,7 @@
   body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-body);color:var(--text-main);font-size:14px;line-height:1.5;-webkit-tap-highlight-color:transparent}
   .app-container{display:flex;min-height:100vh}
 
-  /* ============ SIDEBAR (DESKTOP + MOBILE DRAWER) ============ */
+  /* ============ SIDEBAR ============ */
   .sidebar{width:260px;background:#fff;border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:60;transition:transform .3s ease}
   .brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700;margin-bottom:24px;padding-left:8px}
   .brand-icon{width:32px;height:32px;background:var(--primary);color:#fff;border-radius:8px;display:grid;place-items:center}
@@ -56,6 +58,8 @@
   .btn-primary:hover{background:#2563eb}
   .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text-main)}
   .btn-outline:hover{background:var(--bg-body)}
+  .btn-green{background:var(--green);color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.3)}
+  .btn-green:hover{background:#059669}
   .sync-status{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--border);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sync-status.ok{color:var(--green);border-color:#6ee7b7;background:var(--green-light)}
   .sync-status.err{color:var(--danger);border-color:#fca5a5;background:#fee2e2}
@@ -102,6 +106,12 @@
   .status-pending{background:#f1f5f9;color:var(--text-muted)}
   .status-selesai{background:var(--green-light);color:var(--green)}
   .status-batal{background:#fee2e2;color:var(--danger)}
+
+  /* ============ TUPOKSI ============ */
+  .tupoksi-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+  .tupoksi-list li{display:flex;gap:10px;font-size:13px;line-height:1.5;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid var(--primary)}
+  .tupoksi-list li .tupoksi-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+  .tupoksi-empty{font-size:13px;color:var(--text-muted);font-style:italic}
 
   /* ============ KALENDER ============ */
   .kalender-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px}
@@ -169,23 +179,23 @@
   @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
   @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ============ PRINT ============ */
+  /* ============ PRINT (HANYA DASHBOARD) ============ */
   @media print{
-    body{background:#fff;font-size:12px}
-    .sidebar,.mobile-topbar,.header-actions,.nav-menu,.modal-overlay,.kalender-tabs,.btn,.no-print,.sidebar-overlay{display:none!important}
+    body{background:#fff;font-size:11px}
+    .sidebar,.mobile-topbar,.header-actions,.nav-menu,.modal-overlay,.kalender-tabs,.btn,.no-print,.sidebar-overlay,.sync-status{display:none!important}
     .main-content{margin:0;padding:0;max-width:100%}
     .page-section{display:none!important}
-    #section-bidang.active{display:block!important}
+    #section-dashboard.active{display:block!important}
     .summary-card{color:#000!important;background:#fff!important;border:1px solid #ccc;box-shadow:none}
     .table-card{box-shadow:none;border:1px solid #ccc}
-    table{min-width:100%}
-    th,td{padding:8px;font-size:11px}
-    .badge-fund{border:1px solid #ccc;color:#000!important;background:#fff!important}
-    .status-badge{border:1px solid #ccc;color:#000!important;background:#fff!important}
-    .bidang-card:hover{transform:none}
-    .print-title{display:block!important;font-size:16px;font-weight:700;margin-bottom:12px;text-align:center}
+    th,td{padding:6px 8px;font-size:10px}
+    .print-title{display:block!important;font-size:16px;font-weight:700;margin-bottom:4px;text-align:center}
+    .print-subtitle{display:block!important;font-size:11px;color:#555;margin-bottom:16px;text-align:center}
+    .print-date{display:block!important;font-size:10px;color:#777;text-align:right;margin-bottom:12px}
+    .bidang-card{transform:none!important;box-shadow:none!important;page-break-inside:avoid;border:1px solid #ccc!important}
+    .bidang-summary-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}
   }
-  .print-title{display:none}
+  .print-title,.print-subtitle,.print-date{display:none}
 </style>
 </head>
 <body>
@@ -232,13 +242,21 @@
   <main class="main-content">
     <!-- DASHBOARD -->
     <section id="section-dashboard" class="page-section active">
-      <header class="page-header">
+      <div class="print-title">Laporan Program Kerja PPG 2026</div>
+      <div class="print-subtitle">Ringkasan Anggaran & Program per Bidang</div>
+      <div class="print-date" id="printDate"></div>
+
+      <header class="page-header no-print">
         <div>
           <h1>Ringkasan Anggaran</h1>
           <p>Total keseluruhan anggaran program kerja PPG 2026</p>
         </div>
         <div class="header-actions">
           <div id="syncStatusDesktop" class="sync-status">● Memuat…</div>
+          <button class="btn btn-outline" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Cetak PDF
+          </button>
         </div>
       </header>
       <div class="summary-grid">
@@ -254,7 +272,6 @@
 
     <!-- DETAIL BIDANG -->
     <section id="section-bidang" class="page-section">
-      <div class="print-title" id="printTitle">Laporan Program Kerja PPG 2026</div>
       <header class="page-header no-print">
         <div>
           <h1 id="pageTitle">Pilih Bidang</h1>
@@ -265,9 +282,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             Lihat Contoh
           </button>
-          <button class="btn btn-outline" onclick="window.print()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Cetak PDF
+          <button class="btn btn-green" id="btnExcel">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Excel
           </button>
           <button class="btn btn-primary" id="btnTambah">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -293,7 +310,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
             Tupoksi
           </h4>
-          <p id="infoTupoksi" style="font-size:13px;line-height:1.6"></p>
+          <div id="infoTupoksi"></div>
         </div>
       </div>
       <div class="table-card">
@@ -378,14 +395,12 @@
 
 <script>
 /* ============================================================
-   KONFIGURASI — GANTI DENGAN URL WEB APP ANDA (berakhiran /exec)
+   KONFIGURASI
    ============================================================ */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFfAl8gpgnCS6I4JZchQRiy0tZF6y9_WpdAOnSkVKpxDA5uQM9Vgi8F-E6DyN8hzxo-A/exec";
 
 /* ============================================================
-   DATA BIDANG DEFAULT (FALLBACK)
-   Dipakai HANYA jika sheet belum terisi / gagal load.
-   Pengurus & tupoksi otomatis ditimpa oleh data dari Sheet.
+   FALLBACK BIDANG
    ============================================================ */
 const DEFAULT_BIDANG = [
   {id:"sekretariat",nama:"Kesekretariatan",icon:"file",pengurus:[],tupoksi:"",contoh:[]},
@@ -401,7 +416,6 @@ const DEFAULT_BIDANG = [
   {id:"danus",nama:"Penggalang Dana",icon:"dollar-sign",pengurus:[],tupoksi:"",contoh:[]}
 ];
 
-/* Contoh program (referensi saja, tidak disimpan ke sheet) */
 const CONTOH_PROGRAM = {
   sekretariat:[
     {nama:"Musyawarah Rutin PPG",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:0,ppg:4125000},
@@ -546,8 +560,8 @@ const ICONS = {
 /* ============================================================
    STATE
    ============================================================ */
-const STORAGE_KEY = "prota_ppg_2026_v11";
-let BIDANG = JSON.parse(JSON.stringify(DEFAULT_BIDANG)); // init dari fallback
+const STORAGE_KEY = "prota_ppg_2026_v12";
+let BIDANG = JSON.parse(JSON.stringify(DEFAULT_BIDANG));
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY + "_data") || "null");
 if(!data){ data={}; BIDANG.forEach(b=>data[b.id]=[]); }
 let activeBidang = BIDANG[0].id;
@@ -559,11 +573,43 @@ let isSyncing = false;
 
 function saveLocal(){
   localStorage.setItem(STORAGE_KEY + "_data", JSON.stringify(data));
-  // Simpan hanya id+nama+icon+contoh (pengurus & tupoksi selalu dari sheet)
   const bidangCache = BIDANG.map(b => ({ id:b.id, nama:b.nama, icon:b.icon }));
   localStorage.setItem(STORAGE_KEY + "_bidang", JSON.stringify(bidangCache));
 }
 function fmt(n){ return "Rp " + (Number(n)||0).toLocaleString("id-ID"); }
+
+/* ============================================================
+   PARSE TUPOKSI MULTI-POIN
+   Mendukung pemisah: newline, "•", "-", ";" , "1." "2." dll.
+   ============================================================ */
+function parseTupoksi(str){
+  if(!str) return [];
+  // Normalisasi: pecah berdasarkan newline, bullet, atau numbering
+  let s = String(str).replace(/\r\n/g,"\n");
+  // Pecah berdasarkan newline dulu
+  let parts = s.split(/\n+/);
+  // Jika hanya 1 baris, coba pecah berdasarkan bullet/numbering
+  if(parts.length === 1){
+    // Pisah berdasarkan "•" atau "- " atau "1. " "2. " dst.
+    const raw = parts[0];
+    // Deteksi numbering "1." "2." dst
+    if(/\d+\.\s/.test(raw)){
+      parts = raw.split(/(?=\d+\.\s)/);
+    } else if(/[•·]/.test(raw)){
+      parts = raw.split(/[•·]/);
+    } else if(/;\s/.test(raw)){
+      parts = raw.split(/;\s*/);
+    } else if(/\s-\s/.test(raw)){
+      parts = raw.split(/\s-\s/);
+    } else {
+      parts = [raw];
+    }
+  }
+  // Bersihkan tiap poin: buang bullet/numbering di awal
+  return parts
+    .map(p => p.replace(/^[\s•·\-–—]+/,"").replace(/^\d+\.\s*/,"").trim())
+    .filter(p => p.length > 0);
+}
 
 /* ============================================================
    SIDEBAR DRAWER
@@ -592,7 +638,7 @@ function setSyncStatus(state, msg){
 }
 
 /* ============================================================
-   FETCH DENGAN TIMEOUT & DETEKSI ERROR
+   FETCH
    ============================================================ */
 async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   const controller = new AbortController();
@@ -616,7 +662,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
 }
 
 /* ============================================================
-   AUTO-SYNC — hanya kirim DATA PROGRAM, bukan BIDANG
+   AUTO-SYNC
    ============================================================ */
 function autoSync() {
   if (isSyncing) return;
@@ -625,7 +671,7 @@ function autoSync() {
     isSyncing = true;
     setSyncStatus("pending");
     try {
-      const payload = { action: "save", data: data };  // ← TANPA bidang
+      const payload = { action: "save", data: data };
       const { json } = await fetchWithTimeout(APPS_SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify(payload),
@@ -647,7 +693,7 @@ function autoSync() {
 }
 
 /* ============================================================
-   LOAD DARI SHEET — SELALU update BIDANG (pengurus & tupoksi)
+   LOAD DARI SHEET
    ============================================================ */
 async function loadFromSheet() {
   setSyncStatus("pending", "● Memuat data…");
@@ -656,13 +702,9 @@ async function loadFromSheet() {
     if (json.status !== "success") {
       throw new Error(json.message || "Format respons tidak dikenal");
     }
-
-    // 1. Update DATA program (selalu, meski kosong)
     if (json.data && typeof json.data === "object") {
       data = json.data;
     }
-
-    // 2. Update BIDANG dari sheet (SELALU, tidak tergantung ada/tidaknya program)
     if (json.bidang && Array.isArray(json.bidang) && json.bidang.length > 0) {
       BIDANG = json.bidang.map((b, i) => {
         const fallback = DEFAULT_BIDANG.find(x => x.id === b.id) || DEFAULT_BIDANG[i] || {};
@@ -670,30 +712,23 @@ async function loadFromSheet() {
           id: b.id,
           nama: b.nama || fallback.nama || b.id,
           icon: b.icon || fallback.icon || "file",
-          tupoksi: b.tupoksi || "",                          // ← dari sheet
-          pengurus: Array.isArray(b.pengurus) ? b.pengurus : [], // ← dari sheet
-          contoh: CONTOH_PROGRAM[b.id] || []                   // ← contoh referensi lokal
+          tupoksi: b.tupoksi || "",
+          pengurus: Array.isArray(b.pengurus) ? b.pengurus : [],
+          contoh: CONTOH_PROGRAM[b.id] || []
         };
       });
     } else {
-      // Sheet Bidang kosong — pakai fallback tapi isi contoh
       BIDANG = DEFAULT_BIDANG.map(b => ({ ...b, contoh: CONTOH_PROGRAM[b.id] || [] }));
     }
-
-    // 3. Pastikan setiap bidang punya array data
     BIDANG.forEach(b => { if (!Array.isArray(data[b.id])) data[b.id] = []; });
-
-    // 4. Reset activeBidang jika tidak ada di BIDANG
     if (!BIDANG.find(b => b.id === activeBidang)) {
       activeBidang = BIDANG[0] ? BIDANG[0].id : null;
     }
-
     saveLocal();
     setSyncStatus("ok", "✓ Tersinkron");
   } catch (err) {
     console.error("[loadFromSheet] Gagal:", err);
     setSyncStatus("err", "✗ " + err.message);
-    // Fallback: isi contoh dari lokal
     BIDANG = DEFAULT_BIDANG.map(b => ({ ...b, contoh: CONTOH_PROGRAM[b.id] || [] }));
   }
   renderAll();
@@ -724,8 +759,6 @@ function switchPage(target){
     renderHeader(); renderSummary(); renderTable();
     const listItem = document.querySelector(`.bidang-list li[data-id="${target}"]`);
     if(listItem) listItem.classList.add("active");
-    const b = BIDANG.find(x=>x.id===target);
-    document.getElementById("printTitle").textContent = "Laporan Program Kerja " + (b?.nama || "");
   }
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -750,7 +783,7 @@ function renderSidebar(){
 }
 
 /* ============================================================
-   HITUNG TOTAL PER BIDANG
+   HITUNG TOTAL
    ============================================================ */
 function calcBidangTotals(bidangId){
   let ppg=0, natura=0;
@@ -762,7 +795,7 @@ function calcBidangTotals(bidangId){
 }
 
 /* ============================================================
-   RENDER DASHBOARD
+   RENDER DASHBOARD + PRINT DATE
    ============================================================ */
 function renderDashboard(){
   let grandPPG=0, grandNatura=0;
@@ -789,6 +822,13 @@ function renderDashboard(){
       </div>
     </div>`;
   }).join("");
+
+  // Tanggal cetak
+  const pd = document.getElementById("printDate");
+  if(pd){
+    const now = new Date();
+    pd.textContent = "Dicetak: " + now.toLocaleDateString("id-ID", {day:"2-digit",month:"long",year:"numeric"}) + " " + now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+  }
 }
 
 /* ============================================================
@@ -799,7 +839,7 @@ function renderHeader(){
   if(!b) return;
   document.getElementById("pageTitle").textContent = b.nama;
 
-  // Pengurus — dari sheet
+  // Pengurus
   const ul = document.getElementById("infoPengurus");
   if(!b.pengurus || b.pengurus.length === 0){
     ul.innerHTML = `<li style="font-size:13px;color:var(--text-muted);font-style:italic">Belum ada data pengurus (isi di Sheet "Pengurus").</li>`;
@@ -807,12 +847,15 @@ function renderHeader(){
     ul.innerHTML = b.pengurus.map(p=>`<li style="font-size:13px;padding:4px 0;display:flex;gap:8px"><span style="color:var(--primary)">•</span> ${p}</li>`).join("");
   }
 
-  // Tupoksi — dari sheet
+  // Tupoksi — render sebagai daftar poin bernomor
   const tup = document.getElementById("infoTupoksi");
-  if(!b.tupoksi){
-    tup.innerHTML = `<span style="color:var(--text-muted);font-style:italic">Belum ada tupoksi (isi di Sheet "Bidang").</span>`;
+  const points = parseTupoksi(b.tupoksi);
+  if(points.length === 0){
+    tup.innerHTML = `<div class="tupoksi-empty">Belum ada tupoksi (isi di Sheet "Bidang" kolom Tupoksi).</div>`;
   } else {
-    tup.textContent = b.tupoksi;
+    tup.innerHTML = `<ol class="tupoksi-list">${points.map((p,i)=>`
+      <li><span class="tupoksi-num">${i+1}</span><span>${p}</span></li>
+    `).join("")}</ol>`;
   }
 }
 
@@ -873,6 +916,75 @@ function renderTable(){
     };
   });
 }
+
+/* ============================================================
+   DOWNLOAD EXCEL — per bidang
+   ============================================================ */
+document.getElementById("btnExcel").onclick = ()=>{
+  const b = BIDANG.find(x=>x.id===activeBidang);
+  const rows = data[activeBidang] || [];
+  if(rows.length === 0){
+    alert("Belum ada program untuk diekspor.");
+    return;
+  }
+
+  // Sheet 1: Info Bidang
+  const infoData = [
+    ["LAPORAN PROGRAM KERJA PPG 2026"],
+    ["Bidang", b.nama],
+    ["Pengurus", (b.pengurus || []).join("; ") || "-"],
+    ["Tupoksi", parseTupoksi(b.tupoksi).join(" | ") || "-"],
+    [],
+    ["Total PPG", "Total Natura", "Total Keseluruhan"],
+    [calcBidangTotals(activeBidang).ppg, calcBidangTotals(activeBidang).natura, calcBidangTotals(activeBidang).total]
+  ];
+
+  // Sheet 2: Rincian Program per baris RAB
+  const detailData = [[
+    "No","Nama Kegiatan","Bulan Pelaksanaan","Sumber Dana","Rincian","Qty","Harga Satuan","Subtotal"
+  ]];
+  let no = 0;
+  rows.forEach(r=>{
+    const namaBulan = r.bulan.sort((a,b)=>a-b).join(", ");
+    if(r.rab && r.rab.length>0){
+      r.rab.forEach(item=>{
+        no++;
+        const sub = (Number(item.qty)||0)*(Number(item.price)||0);
+        detailData.push([
+          no, r.nama, namaBulan,
+          item.fund === 'ppg' ? 'PPG' : 'Natura',
+          item.name || '',
+          Number(item.qty)||0,
+          Number(item.price)||0,
+          sub
+        ]);
+      });
+    } else {
+      no++;
+      detailData.push([no, r.nama, namaBulan, "-", "-", 0, 0, 0]);
+    }
+  });
+  // Baris total
+  const t = calcBidangTotals(activeBidang);
+  detailData.push([]);
+  detailData.push(["","","","","","","TOTAL PPG", t.ppg]);
+  detailData.push(["","","","","","","TOTAL NATURA", t.natura]);
+  detailData.push(["","","","","","","TOTAL KESELURUHAN", t.total]);
+
+  const wb = XLSX.utils.book_new();
+  const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+  wsInfo["!cols"] = [{wch:18},{wch:40},{wch:18},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, wsInfo, "Info Bidang");
+
+  const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
+  wsDetail["!cols"] = [
+    {wch:5},{wch:35},{wch:20},{wch:12},{wch:25},{wch:8},{wch:14},{wch:16}
+  ];
+  XLSX.utils.book_append_sheet(wb, wsDetail, "Rincian Program");
+
+  const filename = `Prota_PPG_2026_${b.nama.replace(/[^a-zA-Z0-9]/g,"_")}.xlsx`;
+  XLSX.writeFile(wb, filename);
+};
 
 /* ============================================================
    KALENDER
