@@ -16,7 +16,7 @@
   body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-body);color:var(--text-main);font-size:14px;line-height:1.5;-webkit-tap-highlight-color:transparent}
   .app-container{display:flex;min-height:100vh}
 
-  /* ================= SIDEBAR (DESKTOP + MOBILE DRAWER) ================= */
+  /* ============ SIDEBAR (DESKTOP + MOBILE DRAWER) ============ */
   .sidebar{width:260px;background:#fff;border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:60;transition:transform .3s ease}
   .brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700;margin-bottom:24px;padding-left:8px}
   .brand-icon{width:32px;height:32px;background:var(--primary);color:#fff;border-radius:8px;display:grid;place-items:center}
@@ -32,19 +32,17 @@
   .bidang-list li.active{background:var(--primary-light);color:var(--primary);font-weight:600}
   .bidang-list li .badge{font-size:11px;background:var(--border);color:var(--text-muted);padding:2px 8px;border-radius:12px}
   .bidang-list li.active .badge{background:var(--primary);color:#fff}
-
-  /* Overlay untuk drawer mobile */
   .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:55;opacity:0;transition:opacity .25s ease}
   .sidebar-overlay.show{display:block;opacity:1}
 
-  /* ================= MOBILE TOPBAR ================= */
+  /* ============ MOBILE TOPBAR ============ */
   .mobile-topbar{display:none;position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
   .mobile-topbar .hamburger{background:none;border:none;padding:6px;border-radius:8px;cursor:pointer;color:var(--text-main);display:grid;place-items:center}
   .mobile-topbar .hamburger:hover{background:var(--bg-body)}
   .mobile-topbar .m-brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700}
   .mobile-topbar .m-brand .brand-icon{width:28px;height:28px}
 
-  /* ================= MAIN ================= */
+  /* ============ MAIN ============ */
   .main-content{flex:1;margin-left:260px;padding:24px 32px;max-width:1400px}
   .page-section{display:none}
   .page-section.active{display:block;animation:fadeIn .3s ease}
@@ -58,11 +56,11 @@
   .btn-primary:hover{background:#2563eb}
   .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text-main)}
   .btn-outline:hover{background:var(--bg-body)}
-  .sync-status{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--border)}
+  .sync-status{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--border);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sync-status.ok{color:var(--green);border-color:#6ee7b7;background:var(--green-light)}
   .sync-status.err{color:var(--danger);border-color:#fca5a5;background:#fee2e2}
 
-  /* ================= SUMMARY CARDS ================= */
+  /* ============ SUMMARY ============ */
   .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
   .summary-card{border-radius:var(--radius-lg);padding:20px;color:#fff;box-shadow:var(--shadow-md)}
   .summary-card h3{font-size:14px;font-weight:500;opacity:.9;margin-bottom:8px}
@@ -72,7 +70,7 @@
   .card-green{background:linear-gradient(135deg,#34d399,#10b981)}
   .card-purple{background:linear-gradient(135deg,#a78bfa,#8b5cf6)}
 
-  /* ================= BIDANG GRID ================= */
+  /* ============ BIDANG GRID ============ */
   .bidang-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px}
   .bidang-card{background:#fff;border-radius:var(--radius-lg);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:12px}
   .bidang-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--primary-light)}
@@ -84,7 +82,7 @@
   .bidang-card .stats-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:12px;margin-top:auto;flex-wrap:wrap;gap:4px}
   .bidang-card .stats-row b{color:var(--text-main)}
 
-  /* ================= TABLE ================= */
+  /* ============ TABLE ============ */
   .table-card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--border);overflow:hidden;margin-bottom:24px}
   .table-header{padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
   .table-header h2{font-size:16px;font-weight:600}
@@ -105,7 +103,7 @@
   .status-selesai{background:var(--green-light);color:var(--green)}
   .status-batal{background:#fee2e2;color:var(--danger)}
 
-  /* ================= KALENDER ================= */
+  /* ============ KALENDER ============ */
   .kalender-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px}
   .kalender-tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
   .kalender-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -116,7 +114,7 @@
   .kalender-info .meta{font-size:12px;color:var(--text-muted);display:flex;gap:12px;flex-wrap:wrap}
   .kalender-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
-  /* ================= MODAL ================= */
+  /* ============ MODAL ============ */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;justify-content:center;z-index:100}
   .modal-overlay.open{display:flex}
   .modal-overlay.center{align-items:center;padding:16px}
@@ -146,13 +144,12 @@
   .grand-total-box strong{font-size:18px;color:var(--primary)}
   .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
 
-  /* Tabel contoh di modal */
   .contoh-table{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
   .contoh-table th{background:#f8fafc;padding:10px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)}
   .contoh-table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
   .contoh-table tr:last-child td{border-bottom:none}
 
-  /* ================= MOBILE ================= */
+  /* ============ MOBILE ============ */
   @media(max-width:900px){
     .app-container{flex-direction:column}
     .mobile-topbar{display:flex}
@@ -172,7 +169,7 @@
   @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
   @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ================= PRINT ================= */
+  /* ============ PRINT ============ */
   @media print{
     body{background:#fff;font-size:12px}
     .sidebar,.mobile-topbar,.header-actions,.nav-menu,.modal-overlay,.kalender-tabs,.btn,.no-print,.sidebar-overlay{display:none!important}
@@ -193,7 +190,7 @@
 </head>
 <body>
 
-<!-- OVERLAY DRAWER -->
+<!-- OVERLAY -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <!-- MOBILE TOPBAR -->
@@ -211,7 +208,6 @@
 </div>
 
 <div class="app-container">
-  <!-- SIDEBAR (shared desktop & mobile drawer) -->
   <aside class="sidebar" id="appSidebar">
     <div class="brand">
       <div class="brand-icon">
@@ -320,7 +316,7 @@
   </main>
 </div>
 
-<!-- MODAL FORM TAMBAH -->
+<!-- MODAL FORM -->
 <div class="modal-overlay" id="modalForm">
   <div class="modal-content">
     <div class="modal-header">
@@ -366,7 +362,7 @@
   </div>
 </div>
 
-<!-- MODAL CONTOH (CENTER POP-UP) -->
+<!-- MODAL CONTOH -->
 <div class="modal-overlay center" id="modalContoh">
   <div class="modal-content">
     <div class="modal-header">
@@ -382,9 +378,9 @@
 
 <script>
 /* ============================================================
-   KONFIGURASI APPS SCRIPT
+   KONFIGURASI — GANTI DENGAN URL WEB APP ANDA (berakhiran /exec)
    ============================================================ */
-const APPS_SCRIPT_URL = "hhttps://script.google.com/macros/s/AKfycbwFfAl8gpgnCS6I4JZchQRiy0tZF6y9_WpdAOnSkVKpxDA5uQM9Vgi8F-E6DyN8hzxo-A/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFfAl8gpgnCS6I4JZchQRiy0tZF6y9_WpdAOnSkVKpxDA5uQM9Vgi8F-E6DyN8hzxo-A/exec";
 
 /* ============================================================
    DATA BIDANG + CONTOH (unik per bidang, PJP KBM dihapus)
@@ -544,7 +540,7 @@ const ICONS = {
 /* ============================================================
    STATE
    ============================================================ */
-const STORAGE_KEY = "prota_ppg_2026_v9";
+const STORAGE_KEY = "prota_ppg_2026_v10";
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
 if(!data){ data={}; BIDANG.forEach(b=>data[b.id]=[]); }
 let activeBidang = BIDANG[0].id;
@@ -557,7 +553,7 @@ function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 function fmt(n){ return "Rp " + (Number(n)||0).toLocaleString("id-ID"); }
 
 /* ============================================================
-   SIDEBAR DRAWER (MOBILE)
+   SIDEBAR DRAWER
    ============================================================ */
 window.openSidebar = ()=>{
   document.getElementById("appSidebar").classList.add("open");
@@ -571,7 +567,7 @@ window.closeSidebar = ()=>{
 };
 
 /* ============================================================
-   AUTO-SYNC KE SHEET
+   SYNC STATUS
    ============================================================ */
 function setSyncStatus(state, msg){
   const cls = state === "ok" ? "sync-status ok" : state === "err" ? "sync-status err" : "sync-status";
@@ -582,20 +578,89 @@ function setSyncStatus(state, msg){
   });
 }
 
-function autoSync(){
+/* ============================================================
+   FETCH DENGAN TIMEOUT & DETEKSI ERROR
+   ============================================================ */
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal, redirect: "follow" });
+    clearTimeout(timer);
+    const text = await res.text();
+    if (text.trim().startsWith("<")) {
+      throw new Error("Respons HTML (bukan JSON). Cek deployment Apps Script = 'Anyone'.");
+    }
+    let json;
+    try { json = JSON.parse(text); }
+    catch { throw new Error("Bukan JSON valid: " + text.slice(0, 100)); }
+    return { ok: res.ok, status: res.status, json };
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === "AbortError") throw new Error("Timeout koneksi ke Apps Script");
+    throw err;
+  }
+}
+
+/* ============================================================
+   AUTO-SYNC
+   ============================================================ */
+function autoSync() {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(async ()=>{
+  syncTimer = setTimeout(async () => {
     setSyncStatus("pending");
-    try{
-      const payload = { action:"save", data:data, bidang:BIDANG };
-      const res = await fetch(APPS_SCRIPT_URL, {method:"POST", body:JSON.stringify(payload), headers:{"Content-Type":"text/plain"}});
-      const json = await res.json();
-      if(json.status === "success") setSyncStatus("ok", "✓ Tersimpan " + new Date().toLocaleTimeString("id-ID"));
-      else setSyncStatus("err", "✗ " + json.message);
-    } catch(err){
-      setSyncStatus("err", "✗ Offline (lokal)");
+    try {
+      const payload = { action: "save", data: data, bidang: BIDANG };
+      const { json } = await fetchWithTimeout(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: { "Content-Type": "text/plain;charset=utf-8" }
+      });
+      if (json.status === "success") {
+        setSyncStatus("ok", "✓ Tersimpan " + new Date().toLocaleTimeString("id-ID"));
+      } else {
+        setSyncStatus("err", "✗ " + (json.message || "Gagal simpan"));
+        console.error("[autoSync] Server:", json);
+      }
+    } catch (err) {
+      console.error("[autoSync] Gagal:", err);
+      setSyncStatus("err", "✗ " + err.message);
     }
   }, 800);
+}
+
+/* ============================================================
+   LOAD DARI SHEET
+   ============================================================ */
+async function loadFromSheet() {
+  setSyncStatus("pending", "● Memuat data…");
+  try {
+    const { json } = await fetchWithTimeout(APPS_SCRIPT_URL + "?action=load", { method: "GET" });
+    if (json.status === "success" && json.data) {
+      const hasData = Object.values(json.data).some(arr => Array.isArray(arr) && arr.length > 0);
+      if (hasData) {
+        data = json.data;
+        if (json.bidang && json.bidang.length) {
+          BIDANG = json.bidang.map((b, i) => {
+            const local = BIDANG.find(x => x.id === b.id);
+            return {
+              ...(local || BIDANG[i] || {}),
+              ...b,
+              contoh: (local && local.contoh) || []
+            };
+          });
+        }
+        saveLocal();
+      }
+      setSyncStatus("ok", "✓ Tersinkron");
+    } else {
+      setSyncStatus("err", "✗ " + (json.message || "Format respons tidak dikenal"));
+    }
+  } catch (err) {
+    console.error("[loadFromSheet] Gagal:", err);
+    setSyncStatus("err", "✗ " + err.message);
+  }
+  renderAll();
 }
 
 /* ============================================================
@@ -648,17 +713,20 @@ function renderSidebar(){
 }
 
 /* ============================================================
-   RENDER DASHBOARD
+   HITUNG TOTAL PER BIDANG
    ============================================================ */
 function calcBidangTotals(bidangId){
   let ppg=0, natura=0;
   (data[bidangId]||[]).forEach(row=>{ (row.rab||[]).forEach(item=>{
-    const total = (item.qty||0) * (item.price||0);
+    const total = (Number(item.qty)||0) * (Number(item.price)||0);
     if(item.fund==='ppg') ppg += total; else natura += total;
   }); });
   return {ppg, natura, total: ppg+natura};
 }
 
+/* ============================================================
+   RENDER DASHBOARD
+   ============================================================ */
 function renderDashboard(){
   let grandPPG=0, grandNatura=0;
   BIDANG.forEach(b=>{ const t = calcBidangTotals(b.id); grandPPG += t.ppg; grandNatura += t.natura; });
@@ -721,7 +789,7 @@ function renderTable(){
     let rabHtml = "", totNatura=0, totPPG=0;
     if(r.rab && r.rab.length>0){
       rabHtml = `<div class="sub-desc" style="margin-top:8px;background:#f8fafc;padding:8px;border-radius:6px">${r.rab.map(item=>{
-        const sub = (item.qty||0)*(item.price||0);
+        const sub = (Number(item.qty)||0)*(Number(item.price)||0);
         if(item.fund==='ppg') totPPG += sub; else totNatura += sub;
         return `<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>• <b>${item.fund==='ppg'?'PPG':'Natura'}</b> - ${item.name||''} <b>${item.qty}x</b></span><span>${fmt(sub)}</span></div>`;
       }).join('')}</div>`;
@@ -774,7 +842,7 @@ function renderKalenderList(){
   }
   list.innerHTML = allPrograms.map(p=>{
     let ppg=0,natura=0;
-    (p.rab||[]).forEach(item=>{ const total=(item.qty||0)*(item.price||0); if(item.fund==='ppg') ppg+=total; else natura+=total; });
+    (p.rab||[]).forEach(item=>{ const total=(Number(item.qty)||0)*(Number(item.price)||0); if(item.fund==='ppg') ppg+=total; else natura+=total; });
     const total = ppg+natura;
     const evalStatus = p.evaluasi?.status || 'pending';
     const evalDana = p.evaluasi?.dana || 0;
@@ -906,7 +974,7 @@ document.getElementById("btnSimpan").onclick = ()=>{
 };
 
 /* ============================================================
-   MODAL CONTOH — DATA UNIK PER BIDANG
+   MODAL CONTOH
    ============================================================ */
 document.getElementById("btnContoh").onclick = ()=>{
   const b = BIDANG.find(x=>x.id===activeBidang);
@@ -923,34 +991,6 @@ document.getElementById("btnContoh").onclick = ()=>{
   document.getElementById("contohTableBody").innerHTML = html;
   document.getElementById("modalContoh").classList.add("open");
 };
-
-/* ============================================================
-   LOAD AWAL DARI SHEET
-   ============================================================ */
-async function loadFromSheet(){
-  setSyncStatus("pending", "● Memuat data…");
-  try{
-    const res = await fetch(APPS_SCRIPT_URL + "?action=load");
-    const json = await res.json();
-    if(json.status === "success" && json.data){
-      const hasData = Object.values(json.data).some(arr => arr.length > 0);
-      if(hasData){
-        data = json.data;
-        if(json.bidang && json.bidang.length){
-          BIDANG = json.bidang.map((b,i)=>({
-            ...BIDANG.find(x=>x.id===b.id) || BIDANG[i],
-            ...b
-          }));
-        }
-        saveLocal();
-      }
-      setSyncStatus("ok", "✓ Tersinkron");
-    } else setSyncStatus("ok", "✓ Siap (kosong)");
-  } catch(err){
-    setSyncStatus("err", "✗ Offline (lokal)");
-  }
-  renderAll();
-}
 
 /* ============================================================
    INIT
