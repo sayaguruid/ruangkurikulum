@@ -383,20 +383,35 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFfAl8gpgnCS6I4JZchQRiy0tZF6y9_WpdAOnSkVKpxDA5uQM9Vgi8F-E6DyN8hzxo-A/exec";
 
 /* ============================================================
-   DATA BIDANG + CONTOH (unik per bidang, PJP KBM dihapus)
+   DATA BIDANG DEFAULT (FALLBACK)
+   Dipakai HANYA jika sheet belum terisi / gagal load.
+   Pengurus & tupoksi otomatis ditimpa oleh data dari Sheet.
    ============================================================ */
-let BIDANG = [
-  {id:"sekretariat",nama:"Kesekretariatan",icon:"file",pengurus:["Bp. Alam Lubis*","Bp. Andika Faza GUPB"],tupoksi:"Mengelola administrasi, surat-menyurat, notulen, database generus, dan kesekretariatan PPG.",
-   contoh:[
+const DEFAULT_BIDANG = [
+  {id:"sekretariat",nama:"Kesekretariatan",icon:"file",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"kurikulum",nama:"Kurikulum",icon:"book",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"tenagapendidik",nama:"Tenaga Pendidik",icon:"users",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"sarana",nama:"Sarana & Prasarana",icon:"home",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"seniora",nama:"Seni & Olahraga",icon:"activity",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"kemandirian",nama:"Kemandirian",icon:"tool",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"keputrian",nama:"Keputrian",icon:"heart",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"kmm",nama:"KMM (Kegiatan Muda-Mudi)",icon:"zap",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"bk",nama:"Bimbingan & Konseling",icon:"message-circle",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"tahfidz",nama:"Tahfidzul Quran",icon:"award",pengurus:[],tupoksi:"",contoh:[]},
+  {id:"danus",nama:"Penggalang Dana",icon:"dollar-sign",pengurus:[],tupoksi:"",contoh:[]}
+];
+
+/* Contoh program (referensi saja, tidak disimpan ke sheet) */
+const CONTOH_PROGRAM = {
+  sekretariat:[
     {nama:"Musyawarah Rutin PPG",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:0,ppg:4125000},
     {nama:"Musyawarah Pembuatan Program Kerja 2027",bulan:[11],natura:0,ppg:10000000},
     {nama:"Penerobosan PPG di Pengajian Sarimbit",bulan:[3,6,9],natura:0,ppg:465000},
     {nama:"Tali Asih Pernikahan Putra-Putri Guru Pengurus",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:20000000},
     {nama:"Survey Tempat Kegiatan",bulan:[2,8],natura:0,ppg:2500000},
     {nama:"Sarasehan Sarimbit Guru Pengurus",bulan:[6],natura:2730000,ppg:0}
-   ]},
-  {id:"kurikulum",nama:"Kurikulum",icon:"book",pengurus:["Bp. H. Bambang Edi*","Bp. M. Irsyaduddin","Bp. Falih Ahmad GUPB"],tupoksi:"Menyusun kurikulum KBM, mengoordinasikan PJ KBM, ujian (tilawaty, semester, hafalan), serta evaluasi pembelajaran.",
-   contoh:[
+  ],
+  kurikulum:[
     {nama:"Musyawarah Bidang Kurikulum & PJ KBM",bulan:[2,5,8,11],natura:1260000,ppg:0},
     {nama:"Musyawarah Pembina TPQ",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:11760000,ppg:0},
     {nama:"PSM Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:14850000,ppg:0},
@@ -413,9 +428,8 @@ let BIDANG = [
     {nama:"PSM Remaja",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:0,ppg:5000000},
     {nama:"Pengajian PEMUDA WALI BANGSA",bulan:[4,8],natura:0,ppg:2200000},
     {nama:"Evaluasi Caberawit & Remaja 2026",bulan:[12],natura:0,ppg:285000}
-   ]},
-  {id:"tenagapendidik",nama:"Tenaga Pendidik",icon:"users",pengurus:["Bp. H. Fahala Jaya*","Bp. Sunan Al Rosyid"],tupoksi:"Mengelola data guru/tenaga pendidik, perekrutan, peningkatan SDM (tilawaty, BCM, makhroj, kaifiyah solat), dan kesejahteraan guru.",
-   contoh:[
+  ],
+  tenagapendidik:[
     {nama:"Up date Data Base Guru/Tenaga Pendidik",bulan:[1,7],natura:0,ppg:0},
     {nama:"Perekrutan Guru dari MT & Remaja MT",bulan:[2,8],natura:0,ppg:0},
     {nama:"Peningkatan SDM: Penderesan Tilawaty & BCM",bulan:[3,9],natura:0,ppg:0},
@@ -425,16 +439,14 @@ let BIDANG = [
     {nama:"Penderesan Kaifiyah Solat Guru Generus",bulan:[5,11],natura:0,ppg:0},
     {nama:"Peningkatan Khod untuk Guru Generus",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Rekreasi Guru Generus (PPWB, Alaska & Bangsal)",bulan:[7],natura:0,ppg:0}
-   ]},
-  {id:"sarana",nama:"Sarana & Prasarana",icon:"home",pengurus:["Bp. M. Syaifuri*","Bp. Aldo Abusamah"],tupoksi:"Inventarisasi, standarisasi, perawatan sarana-prasarana KBM, serta pengadaan materi/banner kegiatan.",
-   contoh:[
+  ],
+  sarana:[
     {nama:"Inventarisasi & Standarisasi Sarana KBM",bulan:[1,7],natura:0,ppg:0},
     {nama:"Perawatan Sarana Prasarana",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Pengadaan Materi Kelas 4 (Al Qur'an Juz 29-30)",bulan:[7],natura:0,ppg:0},
     {nama:"Banner Kegiatan Keputrian (1x4 m)",bulan:[2],natura:0,ppg:100000}
-   ]},
-  {id:"seniora",nama:"Seni & Olahraga",icon:"activity",pengurus:["Bp. Ersandi Akhyar*","Bp. M. Dian Firdaus GUPB"],tupoksi:"Mengoordinasikan SSB, ASAD (adzan), pasanggiri, FAS/KAS, lomba agustusan, dan pengembangan seni generus.",
-   contoh:[
+  ],
+  seniora:[
     {nama:"Musyawarah SSB",bulan:[2],natura:500000,ppg:0},
     {nama:"Latihan Rutin SSB Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Latih Tanding SSB (U10, U12) & Remaja",bulan:[5,10],natura:0,ppg:850000},
@@ -446,9 +458,8 @@ let BIDANG = [
     {nama:"KAS (Kreasi Anak Sholeh)",bulan:[9],natura:1415000,ppg:4950000},
     {nama:"Lomba Agustusan Caberawit",bulan:[8],natura:0,ppg:0},
     {nama:"Latihan Adzan Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0}
-   ]},
-  {id:"kemandirian",nama:"Kemandirian",icon:"tool",pengurus:["Bp. Thobroni GUPB*","Bp. Mushonif GUPB"],tupoksi:"Memberikan bekal keterampilan & kemandirian (tata boga, perawatan diri, teknologi, barbershop) bagi caberawit kelas VI dan remaja.",
-   contoh:[
+  ],
+  kemandirian:[
     {nama:"Tata Boga: Membuat Nasi Goreng (CBR VI)",bulan:[3],natura:0,ppg:500000},
     {nama:"Perawatan Diri: Menjaga Kebersihan Badan",bulan:[4],natura:0,ppg:0},
     {nama:"Perawatan Diri: Thoharoh Pra Baligh",bulan:[5],natura:0,ppg:0},
@@ -460,9 +471,8 @@ let BIDANG = [
     {nama:"Remaja — Pengenalan Greenhouse",bulan:[11],natura:0,ppg:0},
     {nama:"Remaja — Projek IOT",bulan:[11],natura:0,ppg:0},
     {nama:"Remaja — Pelatihan Barbershop",bulan:[12],natura:0,ppg:0}
-   ]},
-  {id:"keputrian",nama:"Keputrian",icon:"heart",pengurus:["Ny. Hj. Putri Kediri*","Ny. Sani Daud","Ny. Berlian Abu Hasan"],tupoksi:"Pembinaan putri generus: keterampilan, tata boga, perawatan diri, thoharoh, dan pengembangan diri.",
-   contoh:[
+  ],
+  keputrian:[
     {nama:"Keterampilan: Membuat Tempat Pensil",bulan:[4],natura:0,ppg:111000},
     {nama:"Tata Boga: Pengenalan Bumbu Masak",bulan:[5],natura:0,ppg:0},
     {nama:"Perawatan Diri: Basic Skincare",bulan:[5],natura:0,ppg:175000},
@@ -475,9 +485,8 @@ let BIDANG = [
     {nama:"Remaja — Tata Boga: Manggo Milky Cheese",bulan:[8],natura:300000,ppg:0},
     {nama:"Remaja — Desain Pamflet (Canva)",bulan:[9],natura:20000,ppg:0},
     {nama:"Remaja — Bag Charms (Aksesoris Tas)",bulan:[10],natura:400000,ppg:0}
-   ]},
-  {id:"kmm",nama:"KMM (Kegiatan Muda-Mudi)",icon:"zap",pengurus:["Bp. M. Rozan GUPB*","Bp. Jordan Perwira GB"],tupoksi:"Mengoordinasikan kegiatan muda-mudi pengurus: musyawarah KMM, keakraban (Akamsi), bazzar, tasyakuran qurban, pengajian akhir tahun.",
-   contoh:[
+  ],
+  kmm:[
     {nama:"Musyawarah Kepengurusan Muda-Mudi",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:3080000,ppg:0},
     {nama:"Keakraban Putra-Putri Guru Pengurus (Akamsi)",bulan:[6],natura:7940000,ppg:0},
     {nama:"Stand Bazzar KAS & FAS Caberawit",bulan:[6,9],natura:0,ppg:1800000},
@@ -485,18 +494,16 @@ let BIDANG = [
     {nama:"Bazzar Se-Kediri Raya",bulan:[8],natura:0,ppg:7000000},
     {nama:"Pengajian Akhir Tahun",bulan:[12],natura:4140000,ppg:4640000},
     {nama:"Musyawarah Evaluasi KMM & Prota 2027",bulan:[12],natura:525000,ppg:0}
-   ]},
-  {id:"bk",nama:"Bimbingan & Konseling",icon:"message-circle",pengurus:["Bp. Jabin GUPB*","Ny. Hj. Naning","Bu. Wicaz Aziziah GP"],tupoksi:"Layanan konseling & motivasi generus, tenaga pendidik, orang tua; pembekalan parenting skill; menghadirkan konselor luar pondok.",
-   contoh:[
+  ],
+  bk:[
     {nama:"Musyawarah Bidang BK",bulan:[1,7],natura:0,ppg:0},
     {nama:"Layanan Konseling & Motivasi Generus",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"BK PSM Caberawit & Remaja",bulan:[3,9],natura:0,ppg:200000},
     {nama:"Pembekalan Parenting Skill (Pengajian Ibu-ibu)",bulan:[5],natura:0,ppg:0},
     {nama:"Pembekalan BK Kepada Tenaga Pendidik",bulan:[6],natura:0,ppg:0},
     {nama:"Mengundang Konselor dari Luar Pondok",bulan:[8],natura:0,ppg:0}
-   ]},
-  {id:"tahfidz",nama:"Tahfidzul Quran",icon:"award",pengurus:["Bp. H. Galang Krisna*","Bp. Ardianto","Bp. Miftah GUPB"],tupoksi:"Mengoordinasikan hafalan harian, ujian hafalan (PPWB, Bangsal, Alaska, Remaja), pembekalan guru tahfidz, dan motivasi peserta tahfidz.",
-   contoh:[
+  ],
+  tahfidz:[
     {nama:"Musyawarah Pleno & Pembina Tahfidz",bulan:[1,2,3,4,5,6,7,8,9,10,11],natura:2002000,ppg:0},
     {nama:"Kegiatan Hafalan Harian",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Ujian Hafalan Caberawit Tahfidz PPWB",bulan:[6,12],natura:2220000,ppg:0},
@@ -507,9 +514,8 @@ let BIDANG = [
     {nama:"Seleksi Peserta Tahfidz Semua Devisi",bulan:[3],natura:0,ppg:0},
     {nama:"Penampilan Peserta Tahfidz di Pengajian Sarimbit",bulan:[6],natura:0,ppg:0},
     {nama:"Motivasi Peserta Tahfidz (Gabungan)",bulan:[10],natura:0,ppg:650000}
-   ]},
-  {id:"danus",nama:"Penggalang Dana",icon:"dollar-sign",pengurus:["Bp. Putra Albarru GB"],tupoksi:"Mengelola laporan bulanan, shodaqoh kesanggupan wali generus (dalam & luar pondok), infaq PSM, bantuan sabilillah, donatur/sponsor, dan penerobosan muda-mudi.",
-   contoh:[
+  ],
+  danus:[
     {nama:"Laporan Bulanan",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Shodaqoh Kesanggupan Wali Generus (Dalam)",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Shodaqoh Kesanggupan Wali Generus (Luar)",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
@@ -520,8 +526,8 @@ let BIDANG = [
     {nama:"Donatur/Sponsor",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0},
     {nama:"Penerobosan Muda-Mudi",bulan:[3,6,9,12],natura:0,ppg:0},
     {nama:"Mandiri",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],natura:0,ppg:0}
-   ]}
-];
+  ]
+};
 
 const ICONS = {
   file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
@@ -540,16 +546,23 @@ const ICONS = {
 /* ============================================================
    STATE
    ============================================================ */
-const STORAGE_KEY = "prota_ppg_2026_v10";
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+const STORAGE_KEY = "prota_ppg_2026_v11";
+let BIDANG = JSON.parse(JSON.stringify(DEFAULT_BIDANG)); // init dari fallback
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY + "_data") || "null");
 if(!data){ data={}; BIDANG.forEach(b=>data[b.id]=[]); }
 let activeBidang = BIDANG[0].id;
 let activePage = "dashboard";
 let activeBulanKalender = 1;
 let evalTarget = {bidangId:null,programId:null};
 let syncTimer = null;
+let isSyncing = false;
 
-function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function saveLocal(){
+  localStorage.setItem(STORAGE_KEY + "_data", JSON.stringify(data));
+  // Simpan hanya id+nama+icon+contoh (pengurus & tupoksi selalu dari sheet)
+  const bidangCache = BIDANG.map(b => ({ id:b.id, nama:b.nama, icon:b.icon }));
+  localStorage.setItem(STORAGE_KEY + "_bidang", JSON.stringify(bidangCache));
+}
 function fmt(n){ return "Rp " + (Number(n)||0).toLocaleString("id-ID"); }
 
 /* ============================================================
@@ -603,14 +616,16 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
 }
 
 /* ============================================================
-   AUTO-SYNC
+   AUTO-SYNC — hanya kirim DATA PROGRAM, bukan BIDANG
    ============================================================ */
 function autoSync() {
+  if (isSyncing) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(async () => {
+    isSyncing = true;
     setSyncStatus("pending");
     try {
-      const payload = { action: "save", data: data, bidang: BIDANG };
+      const payload = { action: "save", data: data };  // ← TANPA bidang
       const { json } = await fetchWithTimeout(APPS_SCRIPT_URL, {
         method: "POST",
         body: JSON.stringify(payload),
@@ -625,40 +640,61 @@ function autoSync() {
     } catch (err) {
       console.error("[autoSync] Gagal:", err);
       setSyncStatus("err", "✗ " + err.message);
+    } finally {
+      isSyncing = false;
     }
   }, 800);
 }
 
 /* ============================================================
-   LOAD DARI SHEET
+   LOAD DARI SHEET — SELALU update BIDANG (pengurus & tupoksi)
    ============================================================ */
 async function loadFromSheet() {
   setSyncStatus("pending", "● Memuat data…");
   try {
     const { json } = await fetchWithTimeout(APPS_SCRIPT_URL + "?action=load", { method: "GET" });
-    if (json.status === "success" && json.data) {
-      const hasData = Object.values(json.data).some(arr => Array.isArray(arr) && arr.length > 0);
-      if (hasData) {
-        data = json.data;
-        if (json.bidang && json.bidang.length) {
-          BIDANG = json.bidang.map((b, i) => {
-            const local = BIDANG.find(x => x.id === b.id);
-            return {
-              ...(local || BIDANG[i] || {}),
-              ...b,
-              contoh: (local && local.contoh) || []
-            };
-          });
-        }
-        saveLocal();
-      }
-      setSyncStatus("ok", "✓ Tersinkron");
-    } else {
-      setSyncStatus("err", "✗ " + (json.message || "Format respons tidak dikenal"));
+    if (json.status !== "success") {
+      throw new Error(json.message || "Format respons tidak dikenal");
     }
+
+    // 1. Update DATA program (selalu, meski kosong)
+    if (json.data && typeof json.data === "object") {
+      data = json.data;
+    }
+
+    // 2. Update BIDANG dari sheet (SELALU, tidak tergantung ada/tidaknya program)
+    if (json.bidang && Array.isArray(json.bidang) && json.bidang.length > 0) {
+      BIDANG = json.bidang.map((b, i) => {
+        const fallback = DEFAULT_BIDANG.find(x => x.id === b.id) || DEFAULT_BIDANG[i] || {};
+        return {
+          id: b.id,
+          nama: b.nama || fallback.nama || b.id,
+          icon: b.icon || fallback.icon || "file",
+          tupoksi: b.tupoksi || "",                          // ← dari sheet
+          pengurus: Array.isArray(b.pengurus) ? b.pengurus : [], // ← dari sheet
+          contoh: CONTOH_PROGRAM[b.id] || []                   // ← contoh referensi lokal
+        };
+      });
+    } else {
+      // Sheet Bidang kosong — pakai fallback tapi isi contoh
+      BIDANG = DEFAULT_BIDANG.map(b => ({ ...b, contoh: CONTOH_PROGRAM[b.id] || [] }));
+    }
+
+    // 3. Pastikan setiap bidang punya array data
+    BIDANG.forEach(b => { if (!Array.isArray(data[b.id])) data[b.id] = []; });
+
+    // 4. Reset activeBidang jika tidak ada di BIDANG
+    if (!BIDANG.find(b => b.id === activeBidang)) {
+      activeBidang = BIDANG[0] ? BIDANG[0].id : null;
+    }
+
+    saveLocal();
+    setSyncStatus("ok", "✓ Tersinkron");
   } catch (err) {
     console.error("[loadFromSheet] Gagal:", err);
     setSyncStatus("err", "✗ " + err.message);
+    // Fallback: isi contoh dari lokal
+    BIDANG = DEFAULT_BIDANG.map(b => ({ ...b, contoh: CONTOH_PROGRAM[b.id] || [] }));
   }
   renderAll();
 }
@@ -688,7 +724,8 @@ function switchPage(target){
     renderHeader(); renderSummary(); renderTable();
     const listItem = document.querySelector(`.bidang-list li[data-id="${target}"]`);
     if(listItem) listItem.classList.add("active");
-    document.getElementById("printTitle").textContent = "Laporan Program Kerja " + (BIDANG.find(b=>b.id===target)?.nama || "");
+    const b = BIDANG.find(x=>x.id===target);
+    document.getElementById("printTitle").textContent = "Laporan Program Kerja " + (b?.nama || "");
   }
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -759,9 +796,24 @@ function renderDashboard(){
    ============================================================ */
 function renderHeader(){
   const b = BIDANG.find(x=>x.id===activeBidang);
+  if(!b) return;
   document.getElementById("pageTitle").textContent = b.nama;
-  document.getElementById("infoPengurus").innerHTML = b.pengurus.map(p=>`<li style="font-size:13px;padding:4px 0;display:flex;gap:8px"><span style="color:var(--primary)">•</span> ${p}</li>`).join("");
-  document.getElementById("infoTupoksi").textContent = b.tupoksi;
+
+  // Pengurus — dari sheet
+  const ul = document.getElementById("infoPengurus");
+  if(!b.pengurus || b.pengurus.length === 0){
+    ul.innerHTML = `<li style="font-size:13px;color:var(--text-muted);font-style:italic">Belum ada data pengurus (isi di Sheet "Pengurus").</li>`;
+  } else {
+    ul.innerHTML = b.pengurus.map(p=>`<li style="font-size:13px;padding:4px 0;display:flex;gap:8px"><span style="color:var(--primary)">•</span> ${p}</li>`).join("");
+  }
+
+  // Tupoksi — dari sheet
+  const tup = document.getElementById("infoTupoksi");
+  if(!b.tupoksi){
+    tup.innerHTML = `<span style="color:var(--text-muted);font-style:italic">Belum ada tupoksi (isi di Sheet "Bidang").</span>`;
+  } else {
+    tup.textContent = b.tupoksi;
+  }
 }
 
 function renderSummary(){
