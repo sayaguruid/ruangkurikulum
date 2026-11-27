@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>Prota PPG — Dashboard & Laporan</title>
+<!-- Library Excel & PDF -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root{
     --bg-body:#f4f6f9;--bg-card:#fff;--text-main:#1e293b;--text-muted:#64748b;
@@ -21,20 +23,12 @@
   .sidebar{
     width:260px;background:#fff;border-right:1px solid var(--border);
     display:flex;flex-direction:column;position:fixed;
-    top:0; bottom:0; left:0;
-    height:100vh; height:100dvh;
-    z-index:60; transition:transform .3s ease;
+    top:0; bottom:0; left:0; height:100vh; height:100dvh; z-index:60; transition:transform .3s ease;
   }
-  .sidebar-scroll{
-    flex:1;
-    overflow-y:auto;
-    padding:24px 16px;
-    -webkit-overflow-scrolling:touch;
-  }
+  .sidebar-scroll{ flex:1; overflow-y:auto; padding:24px 16px; -webkit-overflow-scrolling:touch; }
   .brand{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700;margin-bottom:20px;padding-left:8px}
   .brand-icon{width:32px;height:32px;background:var(--primary);color:#fff;border-radius:8px;display:grid;place-items:center}
   
-  /* Periode Selector */
   .periode-selector{margin-bottom:20px;padding:0 8px;}
   .periode-selector label{font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;display:block;}
   .periode-selector select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-weight:600;color:var(--primary);background:#fff;cursor:pointer;}
@@ -58,9 +52,7 @@
   /* ============ MOBILE TOPBAR ============ */
   .mobile-topbar{display:none;position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
   .mobile-topbar .hamburger{background:none;border:none;padding:6px;border-radius:8px;cursor:pointer;color:var(--text-main);display:grid;place-items:center}
-  .mobile-topbar .hamburger:hover{background:var(--bg-body)}
   .mobile-topbar .m-brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
-  .mobile-topbar .m-brand .brand-icon{width:26px;height:26px}
 
   /* ============ MAIN ============ */
   .main-content{flex:1;margin-left:260px;padding:24px 32px;max-width:1400px}
@@ -78,14 +70,12 @@
   .btn-outline:hover{background:var(--bg-body)}
   .btn-green{background:var(--green);color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.3)}
   .btn-green:hover{background:#059669}
-  .btn-danger{background:#fee2e2;color:var(--danger);border:none}
-  .btn-danger:hover{background:#fca5a5}
   
-  .sync-status{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--border);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sync-status{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:#fff;border:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sync-status.ok{color:var(--green);border-color:#6ee7b7;background:var(--green-light)}
   .sync-status.err{color:var(--danger);border-color:#fca5a5;background:#fee2e2}
 
-  /* ============ SUMMARY ============ */
+  /* ============ SUMMARY & GRID ============ */
   .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
   .summary-card{border-radius:var(--radius-lg);padding:20px;color:#fff;box-shadow:var(--shadow-md)}
   .summary-card h3{font-size:14px;font-weight:500;opacity:.9;margin-bottom:8px}
@@ -95,7 +85,6 @@
   .card-green{background:linear-gradient(135deg,#34d399,#10b981)}
   .card-purple{background:linear-gradient(135deg,#a78bfa,#8b5cf6)}
 
-  /* ============ BIDANG GRID ============ */
   .bidang-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px}
   .bidang-card{background:#fff;border-radius:var(--radius-lg);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s,box-shadow .2s;display:flex;flex-direction:column;gap:12px}
   .bidang-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--primary-light)}
@@ -123,28 +112,29 @@
   .badge-fund{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;text-transform:uppercase}
   .badge-natura{background:var(--orange-light);color:var(--orange);border:1px solid #fcd34d}
   .badge-ppg{background:var(--green-light);color:var(--green);border:1px solid #6ee7b7}
-  .status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
-  .status-pending{background:#f1f5f9;color:var(--text-muted)}
-  .status-selesai{background:var(--green-light);color:var(--green)}
-  .status-batal{background:#fee2e2;color:var(--danger)}
 
   /* ============ TUPOKSI & GAMBAR ============ */
   .tupoksi-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
   .tupoksi-list li{display:flex;gap:10px;font-size:13px;line-height:1.5;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid var(--primary)}
   .tupoksi-list li .tupoksi-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
   .tupoksi-empty{font-size:13px;color:var(--text-muted);font-style:italic}
-  .tupoksi-image{max-width:100%;border-radius:12px;margin-top:12px;border:1px solid var(--border)}
+  
+  .tupoksi-image-wrapper{margin-top:16px; text-align: center;}
+  .tupoksi-image{max-width:100%; border-radius:12px; cursor:zoom-in; border:1px solid var(--border); transition: transform .2s; object-fit: contain; max-height: 200px;}
+  .tupoksi-image:hover{ transform: scale(1.02); }
 
-  /* ============ KALENDER ============ */
-  .kalender-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px}
-  .kalender-tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
-  .kalender-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-  .kalender-list{display:flex;flex-direction:column;gap:12px}
-  .kalender-item{background:#fff;border-radius:var(--radius-md);padding:16px;border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:12px}
-  @media(min-width:768px){.kalender-item{flex-direction:row;justify-content:space-between;align-items:center}}
-  .kalender-info h4{font-size:15px;margin-bottom:4px}
-  .kalender-info .meta{font-size:12px;color:var(--text-muted);display:flex;gap:12px;flex-wrap:wrap}
-  .kalender-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  /* Lightbox Modal */
+  .lightbox-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 9999; align-items: center; justify-content: center; padding: 20px;
+  }
+  .lightbox-overlay.active { display: flex; animation: fadeIn .2s ease; }
+  .lightbox-content { position: relative; max-width: 90vw; max-height: 90vh; }
+  .lightbox-content img { width: 100%; height: 100%; max-height: 90vh; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+  .lightbox-close {
+    position: absolute; top: -40px; right: 0; background: none; border: none;
+    color: #fff; font-size: 30px; cursor: pointer; padding: 5px; line-height: 1;
+  }
 
   /* ============ MODAL ============ */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;justify-content:center;z-index:100}
@@ -159,11 +149,13 @@
   .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
   .form-control{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit}
   .form-control:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+  
   .bulan-picker{display:flex;flex-wrap:wrap;gap:6px}
   .bulan-picker label{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500}
   .bulan-picker input{display:none}
   .bulan-picker input:checked + span{color:#fff}
   .bulan-picker label:has(input:checked){background:var(--primary);border-color:var(--primary)}
+  
   .rab-section{background:#f8fafc;border-radius:var(--radius-md);padding:16px;margin-bottom:20px;border:1px solid var(--border)}
   .rab-item{background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;position:relative}
   .rab-item-header{display:flex;gap:8px;margin-bottom:8px;align-items:center}
@@ -176,11 +168,6 @@
   .grand-total-box strong{font-size:18px;color:var(--primary)}
   .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
 
-  .contoh-table{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}
-  .contoh-table th{background:#f8fafc;padding:10px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border)}
-  .contoh-table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
-  .contoh-table tr:last-child td{border-bottom:none}
-
   /* ============ MOBILE BOTTOM NAV ============ */
   .mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:90;padding:8px 0;box-shadow:0 -2px 10px rgba(0,0,0,.05)}
   .mobile-bottom-nav .nav-items{display:flex;justify-content:space-around}
@@ -188,74 +175,33 @@
   .mobile-bottom-nav .nav-item.active{color:var(--primary)}
   .mobile-bottom-nav .nav-item svg{width:22px;height:22px}
 
-  /* ============ MOBILE MEDIA QUERY ============ */
+  /* ============ PDF PRINT CONTAINER ============ */
+  /* Disembunyikan dari layar, tapi tetap dirender untuk html2pdf */
+  #pdf-wrapper { position: absolute; left: -9999px; top: 0; width: 800px; background: #fff; padding: 20px; }
+
   @media(max-width:900px){
     .app-container{flex-direction:column}
     .mobile-topbar{display:flex}
     .mobile-bottom-nav{display:block}
     .sidebar{transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.08)}
     .sidebar.open{transform:translateX(0)}
-    
     .sidebar-scroll{ padding-bottom:100px; }
     .main-content{margin-left:0;padding:16px;padding-bottom:80px;}
-    
     .page-header{flex-direction:column;align-items:flex-start;gap:12px}
     .header-actions{width:100%;gap:8px}
     .header-actions .btn{flex:1;justify-content:center;padding:10px 8px;font-size:12px}
-    .header-actions .sync-status{width:100%;justify-content:center;order:-1}
-    
     .summary-grid{grid-template-columns:1fr;gap:12px}
-    .summary-card{padding:16px}
     .bidang-summary-grid{grid-template-columns:1fr}
-    
+    .info-grid{grid-template-columns:1fr}
     .rab-fields{grid-template-columns:1fr 1fr;gap:6px}
     .rab-fields > div:nth-child(1){grid-column:span 2}
     .rab-fields > div:nth-child(4){grid-column:span 2;display:flex;justify-content:flex-end}
-    
-    .info-grid{grid-template-columns:1fr}
-    .modal-overlay.center{padding:12px}
-    
     table{min-width:600px} 
     th,td{padding:10px 12px;font-size:12px}
   }
 
   @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
   @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-  /* ============ PRINT (Khusus Halaman Bidang) ============ */
-  @media print {
-    body { background: #fff; font-size: 11px; }
-    .sidebar, .mobile-topbar, .header-actions, .nav-menu, .modal-overlay, 
-    .kalender-tabs, .btn, .no-print, .sidebar-overlay, .sync-status, .mobile-bottom-nav,
-    .summary-grid, .info-grid, .periode-selector, .main-content > .page-header { display: none !important; }
-    
-    .app-container { display: block; }
-    .main-content { margin: 0; padding: 0; max-width: 100%; }
-    .page-section { display: none !important; }
-    #section-bidang.active { display: block !important; }
-    
-    /* Print Header */
-    .print-header { display: block !important; margin-bottom: 20px; text-align: center; }
-    .print-header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-    .print-header p { font-size: 12px; color: #555; }
-    
-    /* Print Info Box */
-    .print-info-box { display: flex; gap: 20px; margin-bottom: 20px; font-size: 12px; border-bottom: 1px solid #000; padding-bottom: 10px; }
-    .print-info-box div { flex: 1; }
-    .print-info-box b { display: block; margin-bottom: 4px; }
-    
-    /* Tabel RAB */
-    .table-card { box-shadow: none; border: none; margin: 0; }
-    .table-card .table-header { display: none; }
-    .table-responsive { overflow: visible; }
-    table { width: 100%; min-width: 100%; border: 1px solid #000; border-collapse: collapse; }
-    th, td { border: 1px solid #000; padding: 6px 8px; font-size: 10px; color: #000; }
-    th { background: #f0f0f0 !important; }
-    
-    /* Hide UI specific */
-    [data-del], [data-edit] { display: none !important; }
-    .bidang-card, .badge-fund, .status-badge { box-shadow: none !important; }
-  }
 </style>
 </head>
 <body>
@@ -286,7 +232,6 @@
         <span>Prota PPG</span>
       </div>
       
-      <!-- PERIODE SELECTOR -->
       <div class="periode-selector">
         <label>Periode Tahun</label>
         <select id="selectPeriode" onchange="gantiPeriode(this.value)"></select>
@@ -318,6 +263,14 @@
         </div>
         <div class="header-actions">
           <div id="syncStatusDesktop" class="sync-status">● Memuat…</div>
+          <button class="btn btn-outline" onclick="downloadPDF()" style="color:#ef4444;border-color:#fca5a5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Cetak PDF Lengkap
+          </button>
+          <button class="btn btn-green" onclick="downloadExcelAll()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Excel
+          </button>
         </div>
       </header>
       <div class="summary-grid">
@@ -333,16 +286,6 @@
 
     <!-- DETAIL BIDANG -->
     <section id="section-bidang" class="page-section">
-      <!-- Print-only Header -->
-      <div class="print-header" style="display:none;">
-        <h1>Laporan Program Kerja & RAB</h1>
-        <p>PPG Tahun <span id="printTahun"></span></p>
-      </div>
-      <div class="print-info-box" style="display:none;">
-        <div><b>Bidang:</b> <span id="printNamaBidang"></span></div>
-        <div><b>Pengurus:</b> <span id="printPengurus"></span></div>
-      </div>
-
       <header class="page-header no-print">
         <div>
           <h1 id="pageTitle">Pilih Bidang</h1>
@@ -353,17 +296,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             Contoh
           </button>
-          <button class="btn btn-outline" onclick="window.print()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Cetak PDF
-          </button>
-          <button class="btn btn-green" id="btnExcel">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Excel
-          </button>
           <button class="btn btn-primary" id="btnTambah">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Tambah
+            Tambah Program
           </button>
         </div>
       </header>
@@ -387,7 +322,10 @@
           </h4>
           <div id="infoTupoksi"></div>
           <!-- Gambar Tupoksi -->
-          <img id="infoTupoksiGambar" class="tupoksi-image" style="display:none;" alt="Gambar Tupoksi">
+          <div class="tupoksi-image-wrapper" id="wrapperTupoksiGambar" style="display:none;">
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px; text-align:left;">* Klik gambar untuk memperbesar</p>
+            <img id="infoTupoksiGambar" class="tupoksi-image" alt="Gambar Tupoksi" onclick="openLightbox(this.src)">
+          </div>
         </div>
       </div>
       <div class="table-card">
@@ -410,6 +348,14 @@
   </main>
 </div>
 
+<!-- LIGHTBOX UNTUK GAMBAR -->
+<div class="lightbox-overlay" id="imageLightbox" onclick="closeLightbox(event)">
+  <div class="lightbox-content" onclick="event.stopPropagation()">
+    <button class="lightbox-close" onclick="document.getElementById('imageLightbox').classList.remove('active')">✕</button>
+    <img id="lightboxImg" src="" alt="Zoom Image">
+  </div>
+</div>
+
 <!-- MOBILE BOTTOM NAV -->
 <div class="mobile-bottom-nav no-print">
   <div class="nav-items">
@@ -424,7 +370,7 @@
   </div>
 </div>
 
-<!-- MODAL FORM (Tambah / Edit) -->
+<!-- MODAL FORM -->
 <div class="modal-overlay" id="modalForm">
   <div class="modal-content">
     <div class="modal-header">
@@ -478,12 +424,15 @@
       <h2 id="modalContohTitle">Contoh Program</h2>
       <button class="close-btn" onclick="document.getElementById('modalContoh').classList.remove('open')">✕</button>
     </div>
-    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">📌 Referensi Prota (bukan data RAB Anda).</p>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">📌 Referensi dari Prota PPG 2026 (bukan data RAB Anda).</p>
     <div style="overflow-x:auto">
-      <table class="contoh-table" id="contohTableBody"></table>
+      <table class="contoh-table" id="contohTableBody" style="width:100%;border-collapse:collapse;font-size:12px;min-width:480px"></table>
     </div>
   </div>
 </div>
+
+<!-- WRAPPER UNTUK PDF (DIRENDER DI LUAR LAYAR) -->
+<div id="pdf-wrapper"></div>
 
 <script>
 /* ============================================================
@@ -492,7 +441,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFfAl8gpgnCS6I4JZchQRiy0tZF6y9_WpdAOnSkVKpxDA5uQM9Vgi8F-E6DyN8hzxo-A/exec"; // GANTI URL ANDA
 const STORAGE_KEY = "prota_ppg_v13";
 
-// Default BIDANG fallback
+// Data Bidang fallback
 const DEFAULT_BIDANG = [
   {id:"sekretariat",nama:"Kesekretariatan",icon:"file",pengurus:[],tupoksi:"",contoh:[]},
   {id:"kurikulum",nama:"Kurikulum",icon:"book",pengurus:[],tupoksi:"",contoh:[]},
@@ -507,13 +456,102 @@ const DEFAULT_BIDANG = [
   {id:"danus",nama:"Penggalang Dana",icon:"dollar-sign",pengurus:[],tupoksi:"",contoh:[]}
 ];
 
+// Contoh Program Sesuai Excel (Prota PPG 2026)
+const CONTOH_PROGRAM = {
+  sekretariat:[
+    {nama:"Musyawarah Rutin PPG",bulan:[1,2,3,4,5,6,7,8,9,10,11],rab:[{fund:'ppg',name:'Konsumsi',qty:25*11,price:15000}]},
+    {nama:"Musyawaroh Pembuatan Program Kerja tahun 2027",bulan:[11],rab:[{fund:'ppg',name:'Kebutuhan Musyawarah',qty:1,price:10000000}]},
+    {nama:"Penerobosan PPG di Pengajian Sarimbit Kelompok-Kelompok",bulan:[3,6,9],rab:[{fund:'ppg',name:'Transport & Konsumsi',qty:3,price:155000}]},
+    {nama:"Tali Asih Pernikahan Putra-Putri Guru Pengurus yang aktif",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[{fund:'ppg',name:'Tali Asih (Target 20 Org x 1jt)',qty:20,price:1000000}]},
+    {nama:"Survey Tempat untuk Kegiatan",bulan:[2,8],rab:[{fund:'ppg',name:'Survey',qty:1,price:2500000}]},
+    {nama:"Sarasehan Sarimbit Guru Pengurus",bulan:[6],rab:[{fund:'natura',name:'Snack 130 Org x 7000',qty:130,price:7000}]}
+  ],
+  kurikulum:[
+    {nama:"Musyawaroh Bidang Kurikulum dan masing-masing PJ KBM",bulan:[2,5,8,11],rab:[{fund:'natura',name:'Konsumsi 21 org x 4 pertemuan',qty:84,price:15000}]},
+    {nama:"Musyawaroh Pembina TPQ",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[{fund:'natura',name:'Konsumsi 35 org x 12 bln x 4 mgg',qty:1680,price:7000}]},
+    {nama:"Pengajian Sabtu Minggu (PSM) Caberawit",bulan:[1,2,3,4,5,6,7,8,9,10,11],rab:[{fund:'natura',name:'Konsumsi 270 org x 11 bln',qty:2970,price:5000}]},
+    {nama:"Musyawaroh Tim Tilawati Pembina Caberawit",bulan:[3,6,9,12],rab:[{fund:'natura',name:'Konsumsi 14 org x 4 bln',qty:56,price:7000}]},
+    {nama:"Pra Ujian Tilawaty",bulan:[5,11],rab:[{fund:'ppg',name:'Foto Copy 5 kertas x 9 org x 2 bln',qty:90,price:300}]},
+    {nama:"Ujian Tilawaty & Al Quran",bulan:[6,12],rab:[{fund:'ppg',name:'Kebutuhan Ujian',qty:1,price:1839000}]},
+    {nama:"Ujian Semester",bulan:[6,12],rab:[{fund:'ppg',name:'Foto Copy Rp200 x 378 murid x 18 lbr x 2 smt',qty:13608,price:200}]},
+    {nama:"Pertemuan Wali Murid Luar Pondok",bulan:[3,9],rab:[{fund:'ppg',name:'Kebutuhan Pertemuan',qty:1,price:1870000}]},
+    {nama:"Penyerahan Raport",bulan:[6,12],rab:[{fund:'ppg',name:'Kebutuhan Raport',qty:1,price:3590000}]},
+    {nama:"Pengajian Akhir Tahun",bulan:[12],rab:[{fund:'ppg',name:'Kebutuhan Pengajian',qty:1,price:3375000}]},
+    {nama:"Refreshing Caberawit Kelas VI",bulan:[6],rab:[{fund:'ppg',name:'Kebutuhan Refreshing',qty:1,price:3300000}]},
+    {nama:"SAKA (Simulasi Akhlakul KArimah)",bulan:[8],rab:[{fund:'ppg',name:'Kebutuhan SAKA',qty:1,price:24700000}]},
+    {nama:"Musyawaroh Rutin Pembina Remaja",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:3872000}]},
+    {nama:"Pengajian Sabtu Malam (PSM) Remaja",bulan:[1,2,3,4,5,6,7,8,9,10,11],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:5000000}]},
+    {nama:"Pengajian PEMUDA WALI BANGSA",bulan:[4,8],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:2200000}]},
+    {nama:"Evaluasi Kegiatan Caberawit & Remaja 2026",bulan:[12],rab:[{fund:'ppg',name:'Konsumsi 19 org x 15.000',qty:19,price:15000}]}
+  ],
+  tenagapendidik:[
+    {nama:"Peningkatan SDM : Teknik Pembelajaran kepada Tenaga Pendidik",bulan:[3,7],rab:[{fund:'ppg',name:'Kebutuhan Pelatihan',qty:1,price:2500000}]}
+  ],
+  sarana:[
+    {nama:"Banner Kegiatan Keputrian (Ukuran 1x4 meter)",bulan:[2],rab:[{fund:'ppg',name:'Banner',qty:1,price:100000}]}
+  ],
+  seniora:[
+    {nama:"Musyawarah SSB",bulan:[2],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:500000}]},
+    {nama:"Latih Tanding SSB Caberawit (U10 dan U12) dan Remaja",bulan:[5,10],rab:[{fund:'ppg',name:'Kebutuhan Latih Tanding',qty:1,price:850000}]},
+    {nama:"Jersey Inventaris SSB Usia 13*",bulan:[4],rab:[{fund:'ppg',name:'Jersey',qty:1,price:3000000}]},
+    {nama:"Minisoccer Caberawit",bulan:[8],rab:[{fund:'ppg',name:'Kebutuhan Minisoccer',qty:1,price:2700000}]},
+    {nama:"Musyawarah Tim ASAD Caberawit dan Remaja",bulan:[2],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:935000}]},
+    {nama:"Pasanggiri Putra Caberawit dan Remaja",bulan:[6],rab:[{fund:'ppg',name:'Kebutuhan Pasanggiri',qty:1,price:1200000}]},
+    {nama:"FAS (Festival Anak Sholeh) Caberawit",bulan:[6],rab:[{fund:'ppg',name:'Kebutuhan FAS',qty:1,price:4715000}]},
+    {nama:"KAS (Kreasi Anak Sholeh) Caberawit",bulan:[9],rab:[{fund:'ppg',name:'Kebutuhan KAS',qty:1,price:4950000}]},
+    {nama:"Musyawarah Evaluasi Prota 2026 & Pembuatan Prota 2027",bulan:[12],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:250000}]}
+  ],
+  kemandirian:[
+    {nama:"Tata Boga : Membuat Nasi Goreng",bulan:[3],rab:[{fund:'ppg',name:'Bahan Masakan',qty:1,price:500000}]},
+    {nama:"Musyawarah Evaluasi Prota 2026 & Pembuatan Prota 2027",bulan:[12],rab:[{fund:'ppg',name:'Konsumsi 10 org',qty:10,price:10000}]}
+  ],
+  keputrian:[
+    {nama:"Keterampilan : Membuat Tempat Pensil",bulan:[4],rab:[{fund:'ppg',name:'Bahan Keterampilan',qty:1,price:111000}]},
+    {nama:"Perawatan Diri : Basic Skincare",bulan:[5],rab:[{fund:'ppg',name:'Bahan Skincare',qty:1,price:175000}]},
+    {nama:"Tata Boga : Membuat Puding Susu Caramel",bulan:[7],rab:[{fund:'ppg',name:'Bahan Masakan',qty:1,price:316000}]},
+    {nama:"Musyawarah Rutin",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:700000}]},
+    {nama:"Tata Boga : Brownis",bulan:[6],rab:[{fund:'ppg',name:'Bahan Masakan',qty:1,price:480000}]},
+    {nama:"Tata Boga : Manggo Milky Cheese",bulan:[8],rab:[{fund:'ppg',name:'Bahan Masakan',qty:1,price:300000}]},
+    {nama:"Pengembangan Diri : Desain Pamflet",bulan:[9],rab:[{fund:'ppg',name:'Kebutuhan Desain',qty:1,price:20000}]},
+    {nama:"Pengembangan Diri : Bag Charms (Aksesoris Tas)",bulan:[10],rab:[{fund:'ppg',name:'Bahan Aksesoris',qty:1,price:420000}]}
+  ],
+  kmm:[
+    {nama:"Musyawaroh kepengurusan muda mudi ( KMM )",bulan:[1,2,3,4,5,6,7,8,9,10,11],rab:[{fund:'ppg',name:'Konsumsi 35 org x 11 bln',qty:385,price:8000}]},
+    {nama:"Keakraban putra - putri guru pengurus ( Akamsi )",bulan:[6],rab:[{fund:'ppg',name:'Kebutuhan Akamsi',qty:1,price:7940000}]},
+    {nama:"Stand Bazzar KAS & FAS Caberawit",bulan:[6,9],rab:[{fund:'ppg',name:'Kebutuhan Bazzar',qty:1,price:1800000}]},
+    {nama:"Tasyakuran Qurban",bulan:[6],rab:[{fund:'ppg',name:'Kebutuhan Qurban',qty:1,price:1000000}]},
+    {nama:"BAZZAR se- kediri raya",bulan:[8],rab:[{fund:'ppg',name:'Kebutuhan Bazzar',qty:1,price:7000000}]},
+    {nama:"Pengajian Akhir Tahun",bulan:[12],rab:[{fund:'ppg',name:'Kebutuhan Pengajian',qty:1,price:4640000}]},
+    {nama:"Musyawaroh Evaluasi KMM dan Penyusunan Prota 2027",bulan:[12],rab:[{fund:'ppg',name:'Konsumsi 35 org x 15.000',qty:35,price:15000}]}
+  ],
+  bk:[
+    {nama:"BK PSM Caberawit dan Remaja (PPWB, Bangsal, Alaska)",bulan:[3,9],rab:[{fund:'ppg',name:'Konsumsi',qty:2,price:100000}]}
+  ],
+  tahfidz:[
+    {nama:"Musyawaroh Pleno dan Pembina Tahfidz",bulan:[1,2,3,4,5,6,7,8,9,10,11],rab:[{fund:'natura',name:'Konsumsi 13 org x 11 bln x 2',qty:286,price:7000}]},
+    {nama:"Ujian Hafalan Caberawit Tahfidz PPWB",bulan:[6,12],rab:[{fund:'natura',name:'Kebutuhan Ujian',qty:1,price:2220000}]},
+    {nama:"Ujian Hafalan Caberawit Tahfidz Bangsal",bulan:[6,12],rab:[{fund:'natura',name:'Kebutuhan Ujian',qty:1,price:1650000}]},
+    {nama:"Ujian Hafalan Generus Tahfidz ALASKA",bulan:[6,12],rab:[{fund:'natura',name:'Kebutuhan Ujian',qty:1,price:816000}]},
+    {nama:"Nasehat dan Motivasi Untuk Tahfidz Caberawit PPWB",bulan:[3,10],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:200000}]},
+    {nama:"Nasehat dan Motivasi Untuk Tahfidz Caberawit Bangsal",bulan:[3,10],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:200000}]},
+    {nama:"Nasehat dan Motivasi Untuk Tahfidz ALASKA",bulan:[3,10],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:200000}]},
+    {nama:"Pembekalan Guru Tahfidz",bulan:[2,8],rab:[{fund:'ppg',name:'Konsumsi 55 org x 2 pertemuan',qty:110,price:10000}]},
+    {nama:"Evaluasi Prota dan Pembuatan Prota 2027",bulan:[12],rab:[{fund:'ppg',name:'Konsumsi 40 org x 25.000',qty:40,price:25000}]},
+    {nama:"Motivasi peserta tahfidz (Gabungan semua jenjang)",bulan:[10],rab:[{fund:'ppg',name:'Konsumsi',qty:1,price:650000}]}
+  ],
+  danus:[
+    {nama:"Laporan Bulanan",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[]},
+    {nama:"Shodaqoh Kesanggupan Wali Generus dalam pondok",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[]},
+    {nama:"Infaq PSM (CBR & Remaja)",bulan:[1,2,3,4,5,6,7,8,9,10,11,12],rab:[]}
+  ]
+};
+
 const ICONS = { file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>', users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>', home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>', activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', tool:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>', heart:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>', zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', 'message-circle':'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>', award:'<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>', 'dollar-sign':'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' };
 
 let BIDANG = JSON.parse(JSON.stringify(DEFAULT_BIDANG));
 let periodeList = ["2026", "2027"];
-let activeTahun = "2027"; // Default
+let activeTahun = "2027";
 
-// Data disimpan per Tahun: { "2026": {...}, "2027": {...} }
 let dataMaster = JSON.parse(localStorage.getItem(STORAGE_KEY + "_data") || "null") || {};
 
 let activeBidang = BIDANG[0].id;
@@ -530,14 +568,12 @@ function saveLocal(){
 }
 function fmt(n){ return "Rp " + (Number(n)||0).toLocaleString("id-ID"); }
 
-/* Ambil data bidang aktif pada tahun aktif */
 function getDataAktif() {
   if (!dataMaster[activeTahun]) dataMaster[activeTahun] = {};
   if (!dataMaster[activeTahun][activeBidang]) dataMaster[activeTahun][activeBidang] = [];
   return dataMaster[activeTahun][activeBidang];
 }
 
-/* Parse Tupoksi poin */
 function parseTupoksi(str){
   if(!str) return [];
   let parts = String(str).replace(/\r\n/g,"\n").split(/\n+/);
@@ -550,6 +586,22 @@ function parseTupoksi(str){
   }
   return parts.map(p => p.replace(/^[\s•·\-–—]+/,"").replace(/^\d+\.\s*/,"").trim()).filter(p => p.length > 0);
 }
+
+/* ============================================================
+   LIGHTBOX (GAMBAR POPUP)
+   ============================================================ */
+window.openLightbox = (src) => {
+  document.getElementById("lightboxImg").src = src;
+  document.getElementById("imageLightbox").classList.add("active");
+  document.body.style.overflow = "hidden"; // Mencegah scroll saat popup terbuka
+};
+window.closeLightbox = (e) => {
+  // Hanya tutup jika yang diklik adalah background overlay atau tombol close
+  if (e.target.id === "imageLightbox" || e.target.classList.contains("lightbox-close")) {
+    document.getElementById("imageLightbox").classList.remove("active");
+    document.body.style.overflow = "";
+  }
+};
 
 /* ============================================================
    UI NAVIGATION
@@ -597,11 +649,10 @@ document.getElementById("bidangList").addEventListener("click", (e)=>{
 window.gantiPeriode = (th) => {
   activeTahun = th;
   saveLocal();
-  // Re-render current page
   if(activePage === "dashboard") renderDashboard();
   else if(activePage === "kalender") { renderKalenderList(); document.getElementById("labelTahunKal").textContent = activeTahun; }
   else { renderHeader(); renderSummary(); renderTable(); }
-  renderSidebar(); // Update angka badge
+  renderSidebar();
 };
 
 /* ============================================================
@@ -615,7 +666,6 @@ function renderPeriodeDropdown(){
 function renderSidebar(){
   const ul = document.getElementById("bidangList");
   ul.innerHTML = BIDANG.map(b=>{
-    // Badge menghitung jumlah program di bidang tersebut PADA TAHUN AKTIF
     const dataBidangTahun = (dataMaster[activeTahun] && dataMaster[activeTahun][b.id]) ? dataMaster[activeTahun][b.id] : [];
     const count = dataBidangTahun.length;
     const isActive = b.id === activeBidang && activePage !== "dashboard" && activePage !== "kalender";
@@ -670,11 +720,6 @@ function renderHeader(){
   document.getElementById("pageTitle").textContent = b.nama;
   document.getElementById("pageSubtitle").textContent = "Program Kerja Tahun " + activeTahun;
 
-  // Print headers
-  document.getElementById("printTahun").textContent = activeTahun;
-  document.getElementById("printNamaBidang").textContent = b.nama;
-  document.getElementById("printPengurus").textContent = (b.pengurus||[]).join(", ") || "-";
-
   // Pengurus
   const ul = document.getElementById("infoPengurus");
   if(!b.pengurus || b.pengurus.length === 0){
@@ -685,12 +730,14 @@ function renderHeader(){
 
   // Tupoksi & Gambar
   const tup = document.getElementById("infoTupoksi");
+  const wrapperImg = document.getElementById("wrapperTupoksiGambar");
   const img = document.getElementById("infoTupoksiGambar");
+  
   const points = parseTupoksi(b.tupoksi);
   
   if(points.length === 0 && !b.gambar){
     tup.innerHTML = `<div class="tupoksi-empty">Belum ada tupoksi.</div>`;
-    img.style.display = "none";
+    wrapperImg.style.display = "none";
   } else {
     if(points.length > 0){
       tup.innerHTML = `<ol class="tupoksi-list">${points.map((p,i)=>`
@@ -700,9 +747,9 @@ function renderHeader(){
 
     if(b.gambar && b.gambar.trim().startsWith("http")){
       img.src = b.gambar;
-      img.style.display = "block";
+      wrapperImg.style.display = "block";
     } else {
-      img.style.display = "none";
+      wrapperImg.style.display = "none";
     }
   }
 }
@@ -720,7 +767,7 @@ function renderTable(){
   document.getElementById("countProgram").textContent = `${rows.length} Program`;
   
   if(rows.length===0){
-    wrap.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-muted)">Belum ada program di tahun ini. Klik <b>+ Tambah</b>.</div>`;
+    wrap.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-muted)">Belum ada program di tahun ini. Klik <b>+ Tambah Program</b>.</div>`;
     return;
   }
 
@@ -852,18 +899,14 @@ window.openEditForm = (id) => {
   document.getElementById("inEditId").value = prog.id;
   document.getElementById("inNama").value = prog.nama;
   
-  // Set bulan
   document.querySelectorAll("#bulanPicker input").forEach(c=>{
     c.checked = prog.bulan.includes(+c.value);
   });
   
-  // Set RAB
   const container = document.getElementById("rabContainer");
   container.innerHTML = "";
   if(prog.rab && prog.rab.length > 0){
-    prog.rab.forEach(item => {
-      container.insertAdjacentHTML("beforeend", createRabRow(item));
-    });
+    prog.rab.forEach(item => container.insertAdjacentHTML("beforeend", createRabRow(item)));
   } else {
     container.insertAdjacentHTML("beforeend", createRabRow());
   }
@@ -897,13 +940,9 @@ document.getElementById("btnSimpan").onclick = ()=>{
   const dataArr = getDataAktif();
 
   if(idEdit) {
-    // Mode Edit
     const idx = dataArr.findIndex(x=>x.id===idEdit);
-    if(idx !== -1){
-      dataArr[idx] = { ...dataArr[idx], nama, bulan, rab: rabItems }; // mempertahankan id & evaluasi
-    }
+    if(idx !== -1) dataArr[idx] = { ...dataArr[idx], nama, bulan, rab: rabItems };
   } else {
-    // Mode Tambah
     dataArr.push({ id:"u"+Date.now(), nama, bulan, rab: rabItems, evaluasi:null });
   }
 
@@ -916,70 +955,202 @@ document.getElementById("btnSimpan").onclick = ()=>{
 };
 
 /* ============================================================
-   EXPORT EXCEL (Rapi dengan SheetJS)
+   EXPORT EXCEL (Semua Bidang di Dashboard)
    ============================================================ */
-document.getElementById("btnExcel").onclick = ()=>{
-  const b = BIDANG.find(x=>x.id===activeBidang);
-  const rows = getDataAktif();
-  if(rows.length === 0) return alert("Belum ada program untuk diekspor.");
-
-  const totals = calcTotals(activeBidang, activeTahun);
-
-  // 1. Sheet Info
-  const infoData = [
-    ["LAPORAN PROGRAM KERJA PPG " + activeTahun],
-    [],
-    ["Bidang", b.nama],
-    ["Pengurus", (b.pengurus || []).join("; ") || "-"],
-    [],
-    ["Total Dana PPG", totals.ppg],
-    ["Total Dana Natura", totals.natura],
-    ["Total Dana Keseluruhan", totals.total]
-  ];
-  
-  // 2. Sheet Rincian RAB
-  const detailData = [
-    ["No", "Nama Kegiatan", "Bulan", "Sumber Dana", "Rincian", "Qty", "Harga Satuan", "Subtotal"]
-  ];
-  let no = 0;
-  rows.forEach(r=>{
-    const bln = r.bulan.sort((a,b)=>a-b).join(", ");
-    if(r.rab && r.rab.length>0){
-      r.rab.forEach(item=>{
-        no++;
-        detailData.push([
-          no, r.nama, bln, item.fund.toUpperCase(), item.name || '',
-          Number(item.qty)||0, Number(item.price)||0, (Number(item.qty)||0)*(Number(item.price)||0)
-        ]);
-      });
-    }
-  });
-  
-  detailData.push([]);
-  detailData.push(["", "", "", "", "", "", "TOTAL PPG", totals.ppg]);
-  detailData.push(["", "", "", "", "", "", "TOTAL NATURA", totals.natura]);
-  detailData.push(["", "", "", "", "", "", "TOTAL KESELURUHAN", totals.total]);
-
+function downloadExcelAll() {
+  if(!dataMaster[activeTahun]) return alert("Belum ada data di tahun ini.");
   const wb = XLSX.utils.book_new();
   
-  const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-  wsInfo["!cols"] = [{wch:25},{wch:40}];
-  XLSX.utils.book_append_sheet(wb, wsInfo, "Info");
+  BIDANG.forEach(b => {
+    const rows = dataMaster[activeTahun][b.id] || [];
+    if(rows.length === 0) return; // skip bidang kosong
+    
+    const totals = calcTotals(b.id, activeTahun);
+    const infoData = [
+      ["LAPORAN PROGRAM KERJA PPG " + activeTahun],
+      [],
+      ["Bidang", b.nama],
+      ["Pengurus", (b.pengurus || []).join("; ") || "-"],
+      [],
+      ["Total Dana PPG", totals.ppg],
+      ["Total Dana Natura", totals.natura],
+      ["Total Dana Keseluruhan", totals.total]
+    ];
+    
+    const detailData = [
+      ["No", "Nama Kegiatan", "Bulan", "Sumber Dana", "Rincian", "Qty", "Harga Satuan", "Subtotal"]
+    ];
+    let no = 0;
+    rows.forEach(r=>{
+      const bln = r.bulan.sort((a,b)=>a-b).join(", ");
+      if(r.rab && r.rab.length>0){
+        r.rab.forEach(item=>{
+          no++;
+          detailData.push([ no, r.nama, bln, item.fund.toUpperCase(), item.name || '', Number(item.qty)||0, Number(item.price)||0, (Number(item.qty)||0)*(Number(item.price)||0) ]);
+        });
+      }
+    });
+    detailData.push([]);
+    detailData.push(["", "", "", "", "", "", "TOTAL PPG", totals.ppg]);
+    detailData.push(["", "", "", "", "", "", "TOTAL NATURA", totals.natura]);
+    detailData.push(["", "", "", "", "", "", "TOTAL KESELURUHAN", totals.total]);
 
-  const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
-  wsDetail["!cols"] = [{wch:5},{wch:30},{wch:15},{wch:12},{wch:25},{wch:8},{wch:15},{wch:15}];
-  
-  // Format angka rupiah di Excel (Kolom H)
-  for(let i=1; i<detailData.length; i++){
-    const cell = wsDetail[XLSX.utils.encode_cell({r:i, c:7})];
-    if(cell && typeof cell.v === 'number') cell.z = '"Rp"#,##0';
-    const cellG = wsDetail[XLSX.utils.encode_cell({r:i, c:6})];
-    if(cellG && typeof cellG.v === 'number') cellG.z = '"Rp"#,##0';
+    const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+    wsInfo["!cols"] = [{wch:25},{wch:40}];
+    XLSX.utils.book_append_sheet(wb, wsInfo, "Info " + b.nama.substring(0,20));
+
+    const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
+    wsDetail["!cols"] = [{wch:5},{wch:30},{wch:15},{wch:12},{wch:25},{wch:8},{wch:15},{wch:15}];
+    for(let i=1; i<detailData.length; i++){
+      const cell = wsDetail[XLSX.utils.encode_cell({r:i, c:7})];
+      if(cell && typeof cell.v === 'number') cell.z = '"Rp"#,##0';
+    }
+    XLSX.utils.book_append_sheet(wb, wsDetail, b.nama.substring(0,30));
+  });
+
+  if(wb.SheetNames.length === 0) return alert("Belum ada program untuk diekspor di tahun ini.");
+  XLSX.writeFile(wb, `Prota_PPG_Lengkap_${activeTahun}.xlsx`);
+}
+
+/* ============================================================
+   CETAK PDF LENGKAP (Dari Dashboard)
+   ============================================================ */
+function downloadPDF() {
+  const wrapper = document.getElementById("pdf-wrapper");
+  wrapper.innerHTML = ""; // clear
+
+  const style = `
+    <style>
+      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 10px; color:#333; }
+      h1 { text-align: center; font-size: 16px; margin-bottom: 2px; }
+      h2 { font-size: 11px; color: #555; margin-bottom: 15px; text-align: center; }
+      .section-title { font-size: 12px; font-weight: bold; background: #e2e8f0; padding: 6px 10px; margin-top: 15px; margin-bottom: 10px; border: 1px solid #94a3b8; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px; }
+      th, td { border: 1px solid #94a3b8; padding: 4px 6px; text-align: left; }
+      th { background: #f1f5f9; font-weight: bold; text-align: center; }
+      .text-right { text-align: right; }
+      .text-center { text-align: center; }
+      .bg-gray { background: #f8fafc; }
+      .fw-bold { font-weight: bold; }
+      .footer { text-align: right; font-size: 10px; margin-top: 20px; }
+    </style>
+  `;
+
+  let html = `<div ${style}>`;
+  html += `<h1>LAPORAN PROGRAM KERJA & RENCANA ANGGARAN BIAYA (RAB)</h1>`;
+  html += `<h2>PENGGERAK PEMBINA GENERUS (PPG) - TAHUN ${activeTahun}</h2>`;
+
+  let hasData = false;
+
+  BIDANG.forEach(b => {
+    const rows = (dataMaster[activeTahun] && dataMaster[activeTahun][b.id]) ? dataMaster[activeTahun][b.id] : [];
+    if(rows.length === 0) return;
+    hasData = true;
+
+    const totals = calcTotals(b.id, activeTahun);
+
+    html += `<div class="section-title">BIDANG ${b.nama.toUpperCase()}</div>`;
+    html += `<table>
+      <thead>
+        <tr>
+          <th style="width:4%;">No</th>
+          <th style="width:36%;">Kegiatan & Rincian RAB</th>
+          <th style="width:15%;">Bulan</th>
+          <th style="width:15%;">Sumber Dana</th>
+          <th style="width:15%;" class="text-right">Natura</th>
+          <th style="width:15%;" class="text-right">PPG</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+    let no = 0;
+    rows.forEach(r => {
+      const bln = r.bulan.sort((a,b)=>a-b).join(", ");
+      
+      // Baris Kegiatan Utama
+      html += `<tr>
+        <td class="text-center fw-bold">${++no}</td>
+        <td class="fw-bold" colspan="2">${r.nama}</td>
+        <td colspan="3"></td>
+      </tr>`;
+      
+      // Baris RAB
+      if(r.rab && r.rab.length > 0) {
+        r.rab.forEach(item => {
+          const sub = (Number(item.qty)||0) * (Number(item.price)||0);
+          html += `<tr>
+            <td></td>
+            <td style="padding-left: 15px;">- ${item.name || '-'} (${item.qty}x @ ${fmt(item.price)})</td>
+            <td class="text-center">${bln}</td>
+            <td class="text-center bg-gray">${item.fund.toUpperCase()}</td>
+            <td class="text-right">${item.fund==='natura' ? fmt(sub) : '-'}</td>
+            <td class="text-right">${item.fund==='ppg' ? fmt(sub) : '-'}</td>
+          </tr>`;
+        });
+      } else {
+        html += `<tr>
+          <td></td>
+          <td style="padding-left: 15px;">- (Tanpa RAB)</td>
+          <td class="text-center">${bln}</td>
+          <td class="text-center bg-gray">-</td>
+          <td class="text-right">-</td>
+          <td class="text-right">-</td>
+        </tr>`;
+      }
+    });
+
+    html += `</tbody>
+      <tfoot>
+        <tr class="bg-gray fw-bold">
+          <td colspan="4" class="text-center">TOTAL DANA BIDANG ${b.nama.toUpperCase()}</td>
+          <td class="text-right">${fmt(totals.natura)}</td>
+          <td class="text-right">${fmt(totals.ppg)}</td>
+        </tr>
+      </tfoot>
+    </table>`;
+  });
+
+  if(!hasData) {
+    alert("Belum ada data program untuk dicetak di tahun " + activeTahun);
+    return;
   }
-  XLSX.utils.book_append_sheet(wb, wsDetail, "Rincian RAB");
 
-  XLSX.writeFile(wb, `Prota_PPG_${activeTahun}_${b.nama.replace(/[^a-zA-Z0-9]/g,"_")}.xlsx`);
-};
+  html += `<div class="footer">Dicetak pada: ${new Date().toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}</div>`;
+  html += `</div>`;
+  wrapper.innerHTML = html;
+
+  // PENTING: Agar html2pdf bisa merender, kita harus memastikan wrapper terlihat oleh browser.
+  // Kita atur display menjadi block (tapi posisinya di luar layar menggunakan left:-9999px pada CSS).
+  wrapper.style.display = "block";
+
+  const opt = {
+    margin:       10,
+    filename:     `Prota_PPG_Lengkap_${activeTahun}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  // Tampilkan loading alert
+  const btn = event.target.closest('button');
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = "Menyiapkan PDF...";
+  btn.disabled = true;
+
+  html2pdf().set(opt).from(wrapper).save().then(() => {
+    wrapper.innerHTML = ""; // bersihkan setelah selesai
+    wrapper.style.display = "none";
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  }).catch(err => {
+    console.error(err);
+    alert("Gagal membuat PDF. Silakan coba lagi.");
+    wrapper.innerHTML = "";
+    wrapper.style.display = "none";
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  });
+}
 
 /* ============================================================
    EVALUASI KALENDER
@@ -1015,9 +1186,9 @@ function renderKalenderList(){
     const evalStatus = p.evaluasi?.status || 'pending';
     const evalDana = p.evaluasi?.dana || 0;
     let statusBadge = '';
-    if(evalStatus==='selesai') statusBadge = `<span class="status-badge status-selesai">✓ Selesai (Realisasi: ${fmt(evalDana)})</span>`;
-    else if(evalStatus==='batal') statusBadge = `<span class="status-badge status-batal">✕ Tidak Berjalan</span>`;
-    else statusBadge = `<span class="status-badge status-pending">Belum Berjalan</span>`;
+    if(evalStatus==='selesai') statusBadge = `<span class="status-badge status-selesai" style="background:#ecfdf5;color:#10b981;padding:4px 8px;border-radius:4px;font-size:11px;">✓ Selesai (Realisasi: ${fmt(evalDana)})</span>`;
+    else if(evalStatus==='batal') statusBadge = `<span class="status-badge status-batal" style="background:#fee2e2;color:#ef4444;padding:4px 8px;border-radius:4px;font-size:11px;">✕ Tidak Berjalan</span>`;
+    else statusBadge = `<span class="status-badge status-pending" style="background:#f1f5f9;color:#64748b;padding:4px 8px;border-radius:4px;font-size:11px;">Belum Berjalan</span>`;
     return `<div class="kalender-item">
       <div class="kalender-info">
         <h4>${p.nama}</h4>
@@ -1116,7 +1287,7 @@ async function loadFromSheet() {
       if (json.bidang && json.bidang.length > 0) {
         BIDANG = json.bidang.map((b, i) => {
           const fallback = DEFAULT_BIDANG.find(x => x.id === b.id) || DEFAULT_BIDANG[i] || {};
-          return { ...fallback, ...b, contoh: fallback.contoh || [] };
+          return { ...fallback, ...b, contoh: CONTOH_PROGRAM[b.id] || [] };
         });
       }
       if (json.periodeList) periodeList = json.periodeList;
@@ -1129,13 +1300,33 @@ async function loadFromSheet() {
     }
   } catch (err) {
     setSyncStatus("err", "✗ " + err.message);
-    // Coba load local jika gagal
     const localP = JSON.parse(localStorage.getItem(STORAGE_KEY + "_periode"));
     if (localP) { periodeList = localP.list; activeTahun = localP.active; }
   }
   renderPeriodeDropdown();
   renderAll();
 }
+
+/* ============================================================
+   MODAL CONTOH
+   ============================================================ */
+document.getElementById("btnContoh").onclick = ()=>{
+  const b = BIDANG.find(x=>x.id===activeBidang);
+  document.getElementById("modalContohTitle").textContent = "Contoh: " + b.nama;
+  let html = `<thead><tr><th style="background:#f8fafc;padding:10px;text-align:left;font-size:11px;">Kegiatan</th><th style="background:#f8fafc;padding:10px;text-align:left;font-size:11px;">Bulan</th><th style="background:#f8fafc;padding:10px;text-align:right;font-size:11px;">Natura</th><th style="background:#f8fafc;padding:10px;text-align:right;font-size:11px;">PPG</th></tr></thead><tbody>`;
+  if(!b.contoh || b.contoh.length === 0){
+    html += `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Belum ada contoh untuk bidang ini.</td></tr>`;
+  } else {
+    b.contoh.forEach(r=>{
+      let totNatura = 0, totPPG = 0;
+      if(r.rab) r.rab.forEach(item => { const sub = item.qty * item.price; if(item.fund==='ppg') totPPG+=sub; else totNatura+=sub; });
+      html += `<tr><td style="padding:10px;border-bottom:1px solid var(--border);vertical-align:top;">${r.nama}</td><td style="padding:10px;border-bottom:1px solid var(--border);vertical-align:top;">${r.bulan.join(", ")}</td><td style="padding:10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:right;">${totNatura>0?fmt(totNatura):'-'}</td><td style="padding:10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:right;">${totPPG>0?fmt(totPPG):'-'}</td></tr>`;
+    });
+  }
+  html += `</tbody>`;
+  document.getElementById("contohTableBody").innerHTML = html;
+  document.getElementById("modalContoh").classList.add("open");
+};
 
 function renderAll(){
   renderPeriodeDropdown();
