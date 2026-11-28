@@ -136,6 +136,52 @@
     color: #fff; font-size: 30px; cursor: pointer; padding: 5px; line-height: 1;
   }
 
+  /* ============ KALENDER & EVALUASI (REDESIGN) ============ */
+  .kalender-container {
+    background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .kalender-tabs {
+    display: flex; gap: 8px; overflow-x: auto; padding: 16px 20px; background: #f8fafc; border-bottom: 1px solid var(--border);
+    scrollbar-width: none; /* Firefox */
+  }
+  .kalender-tabs::-webkit-scrollbar { display: none; } /* Chrome */
+  .kalender-tab {
+    padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid var(--border); 
+    cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); white-space: nowrap; transition: .2s;
+  }
+  .kalender-tab:hover { background: var(--primary-light); color: var(--primary); }
+  .kalender-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 8px rgba(59,130,246,.3); }
+  
+  .kalender-list { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .kalender-item {
+    display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: var(--radius-md);
+    border: 1px solid var(--border); background: #fff; transition: .2s; position: relative; overflow: hidden;
+  }
+  .kalender-item:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); }
+  .kalender-item::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--primary);
+  }
+  
+  /* Layout Desktop untuk Kalender */
+  @media(min-width: 768px) {
+    .kalender-item { flex-direction: row; justify-content: space-between; align-items: center; }
+    .kalender-info { flex: 1; padding-right: 24px; }
+    .kalender-actions { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  }
+
+  .kalender-info h4 { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+  .kalender-info .meta { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .kalender-info .bidang-name { color: var(--primary); font-weight: 600; background: var(--primary-light); padding: 2px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
+  .kalender-info .rab-val { font-weight: 600; color: var(--text-main); }
+  
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  .status-pending { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
+  .status-selesai { background: var(--green-light); color: var(--green); border: 1px solid #6ee7b7; }
+  .status-batal { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+
   /* ============ MODAL ============ */
   .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;justify-content:center;z-index:100}
   .modal-overlay.open{display:flex}
@@ -175,9 +221,8 @@
   .mobile-bottom-nav .nav-item.active{color:var(--primary)}
   .mobile-bottom-nav .nav-item svg{width:22px;height:22px}
 
-  /* ============ PDF PRINT CONTAINER ============ */
-  /* Disembunyikan dari layar, tapi tetap dirender untuk html2pdf */
-  #pdf-wrapper { position: absolute; left: -9999px; top: 0; width: 800px; background: #fff; padding: 20px; }
+  /* Container untuk iframe PDF */
+  #pdf-container-iframe { display: none; }
 
   @media(max-width:900px){
     .app-container{flex-direction:column}
@@ -198,6 +243,11 @@
     .rab-fields > div:nth-child(4){grid-column:span 2;display:flex;justify-content:flex-end}
     table{min-width:600px} 
     th,td{padding:10px 12px;font-size:12px}
+    
+    /* Mobile Kalender Adjustments */
+    .kalender-item::before { width: 100%; height: 4px; bottom: auto; }
+    .kalender-item { padding-top: 24px; }
+    .kalender-actions { flex-direction: row; justify-content: space-between; width: 100%; border-top: 1px dashed var(--border); padding-top: 12px; }
   }
 
   @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -337,13 +387,19 @@
       </div>
     </section>
 
-    <!-- KALENDER -->
+    <!-- KALENDER & EVALUASI (REDESIGN) -->
     <section id="section-kalender" class="page-section">
       <header class="page-header">
-        <div><h1>Kalender & Evaluasi</h1><p>Pantau kegiatan bulanan, realisasi dana, dan status tahun <span id="labelTahunKal" style="font-weight:bold;color:var(--primary)"></span></p></div>
+        <div>
+          <h1>Kalender & Evaluasi</h1>
+          <p>Pantau kegiatan bulanan dan status pelaksanaan tahun <span id="labelTahunKal" style="font-weight:bold;color:var(--primary)"></span></p>
+        </div>
       </header>
-      <div class="kalender-tabs" id="kalenderTabs"></div>
-      <div class="kalender-list" id="kalenderList" style="margin-top:16px"></div>
+      
+      <div class="kalender-container">
+        <div class="kalender-tabs" id="kalenderTabs"></div>
+        <div class="kalender-list" id="kalenderList"></div>
+      </div>
     </section>
   </main>
 </div>
@@ -431,8 +487,8 @@
   </div>
 </div>
 
-<!-- WRAPPER UNTUK PDF (DIRENDER DI LUAR LAYAR) -->
-<div id="pdf-wrapper"></div>
+<!-- CONTAINER IFRAME UNTUK PDF -->
+<div id="pdf-container-iframe"></div>
 
 <script>
 /* ============================================================
@@ -596,7 +652,6 @@ window.openLightbox = (src) => {
   document.body.style.overflow = "hidden"; // Mencegah scroll saat popup terbuka
 };
 window.closeLightbox = (e) => {
-  // Hanya tutup jika yang diklik adalah background overlay atau tombol close
   if (e.target.id === "imageLightbox" || e.target.classList.contains("lightbox-close")) {
     document.getElementById("imageLightbox").classList.remove("active");
     document.body.style.overflow = "";
@@ -961,85 +1016,97 @@ function downloadExcelAll() {
   if(!dataMaster[activeTahun]) return alert("Belum ada data di tahun ini.");
   const wb = XLSX.utils.book_new();
   
+  const wsData = [
+    ["LAPORAN PROGRAM KERJA PPG " + activeTahun],
+    [],
+    ["No", "Bidang", "Nama Kegiatan", "Bulan Pelaksanaan", "Rincian RAB Natura", "Rincian RAB PPG", "Total Dana"]
+  ];
+
+  let no = 0;
+  let totalPPG = 0, totalNatura = 0;
+  let merges = [];
+
   BIDANG.forEach(b => {
     const rows = dataMaster[activeTahun][b.id] || [];
-    if(rows.length === 0) return; // skip bidang kosong
+    if(rows.length === 0) return;
     
-    const totals = calcTotals(b.id, activeTahun);
-    const infoData = [
-      ["LAPORAN PROGRAM KERJA PPG " + activeTahun],
-      [],
-      ["Bidang", b.nama],
-      ["Pengurus", (b.pengurus || []).join("; ") || "-"],
-      [],
-      ["Total Dana PPG", totals.ppg],
-      ["Total Dana Natura", totals.natura],
-      ["Total Dana Keseluruhan", totals.total]
-    ];
-    
-    const detailData = [
-      ["No", "Nama Kegiatan", "Bulan", "Sumber Dana", "Rincian", "Qty", "Harga Satuan", "Subtotal"]
-    ];
-    let no = 0;
-    rows.forEach(r=>{
+    rows.forEach(r => {
       const bln = r.bulan.sort((a,b)=>a-b).join(", ");
-      if(r.rab && r.rab.length>0){
-        r.rab.forEach(item=>{
+      let numRows = r.rab.length > 0 ? r.rab.length : 1;
+      let progStartRow = wsData.length;
+
+      if(r.rab && r.rab.length > 0){
+        r.rab.forEach((item, idx) => {
           no++;
-          detailData.push([ no, r.nama, bln, item.fund.toUpperCase(), item.name || '', Number(item.qty)||0, Number(item.price)||0, (Number(item.qty)||0)*(Number(item.price)||0) ]);
+          const sub = (Number(item.qty)||0) * (Number(item.price)||0);
+          if(item.fund === 'ppg') totalPPG += sub; else totalNatura += sub;
+          
+          wsData.push([
+            idx === 0 ? (no - numRows + 1) : "",
+            idx === 0 ? b.nama : "",
+            idx === 0 ? r.nama : "",
+            idx === 0 ? bln : "",
+            item.fund === 'natura' ? `${item.name} (${item.qty}x @ ${fmt(item.price)}) = ${fmt(sub)}` : "",
+            item.fund === 'ppg' ? `${item.name} (${item.qty}x @ ${fmt(item.price)}) = ${fmt(sub)}` : "",
+            fmt(sub)
+          ]);
         });
+      } else {
+        no++;
+        wsData.push([no, b.nama, r.nama, bln, "-", "-", "-"]);
+      }
+
+      if(numRows > 1){
+        merges.push({ s: { r: progStartRow, c: 1 }, e: { r: progStartRow + numRows - 1, c: 1 } });
+        merges.push({ s: { r: progStartRow, c: 2 }, e: { r: progStartRow + numRows - 1, c: 2 } });
+        merges.push({ s: { r: progStartRow, c: 3 }, e: { r: progStartRow + numRows - 1, c: 3 } });
       }
     });
-    detailData.push([]);
-    detailData.push(["", "", "", "", "", "", "TOTAL PPG", totals.ppg]);
-    detailData.push(["", "", "", "", "", "", "TOTAL NATURA", totals.natura]);
-    detailData.push(["", "", "", "", "", "", "TOTAL KESELURUHAN", totals.total]);
-
-    const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-    wsInfo["!cols"] = [{wch:25},{wch:40}];
-    XLSX.utils.book_append_sheet(wb, wsInfo, "Info " + b.nama.substring(0,20));
-
-    const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
-    wsDetail["!cols"] = [{wch:5},{wch:30},{wch:15},{wch:12},{wch:25},{wch:8},{wch:15},{wch:15}];
-    for(let i=1; i<detailData.length; i++){
-      const cell = wsDetail[XLSX.utils.encode_cell({r:i, c:7})];
-      if(cell && typeof cell.v === 'number') cell.z = '"Rp"#,##0';
-    }
-    XLSX.utils.book_append_sheet(wb, wsDetail, b.nama.substring(0,30));
   });
 
-  if(wb.SheetNames.length === 0) return alert("Belum ada program untuk diekspor di tahun ini.");
+  wsData.push([]);
+  wsData.push(["", "", "", "", "Total Kebutuhan Biaya Natura:", fmt(totalNatura), ""]);
+  wsData.push(["", "", "", "", "Total Kebutuhan Biaya PPG:", fmt(totalPPG), ""]);
+  wsData.push(["", "", "", "", "Total Dana Keseluruhan:", fmt(totalNatura + totalPPG), ""]);
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws["!cols"] = [{wch:5}, {wch:20}, {wch:35}, {wch:15}, {wch:35}, {wch:35}, {wch:18}];
+  ws["!merges"] = merges;
+  ws["!autofilter"] = { ref: "A3:G3" };
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap Prota " + activeTahun);
+
   XLSX.writeFile(wb, `Prota_PPG_Lengkap_${activeTahun}.xlsx`);
 }
 
 /* ============================================================
-   CETAK PDF LENGKAP (Dari Dashboard)
+   CETAK PDF LENGKAP (RAPI & RATA)
    ============================================================ */
 function downloadPDF() {
-  const wrapper = document.getElementById("pdf-wrapper");
-  wrapper.innerHTML = ""; // clear
+  if(!dataMaster[activeTahun]) return alert("Belum ada data di tahun ini.");
 
-  const style = `
-    <style>
-      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 10px; color:#333; }
-      h1 { text-align: center; font-size: 16px; margin-bottom: 2px; }
-      h2 { font-size: 11px; color: #555; margin-bottom: 15px; text-align: center; }
-      .section-title { font-size: 12px; font-weight: bold; background: #e2e8f0; padding: 6px 10px; margin-top: 15px; margin-bottom: 10px; border: 1px solid #94a3b8; }
-      table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 9px; }
-      th, td { border: 1px solid #94a3b8; padding: 4px 6px; text-align: left; }
-      th { background: #f1f5f9; font-weight: bold; text-align: center; }
-      .text-right { text-align: right; }
-      .text-center { text-align: center; }
-      .bg-gray { background: #f8fafc; }
-      .fw-bold { font-weight: bold; }
-      .footer { text-align: right; font-size: 10px; margin-top: 20px; }
-    </style>
+  // 1. Susun HTML dengan formatting yang lebih ketat untuk mencegah baris terpotong
+  let htmlBody = `
+    <div style="padding: 20px; background: #fff; color: #333;">
+      <h1 style="text-align: center; font-size: 16px; margin-bottom: 4px; text-transform: uppercase;">Laporan Program Kerja & Rencana Anggaran Biaya (RAB)</h1>
+      <h2 style="text-align: center; font-size: 12px; margin-bottom: 24px; font-weight: normal; color: #555;">Penggerak Pembina Generus (PPG) - Tahun ${activeTahun}</h2>
+      
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; word-wrap: break-word;">
+        <thead>
+          <tr style="background-color: #f1f5f9;">
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: center; width: 5%;">NO</th>
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: left; width: 15%;">BIDANG</th>
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: left; width: 22%;">NAMA KEGIATAN</th>
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: center; width: 12%;">BULAN PELAKSANAAN</th>
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: left; width: 18%;">RINCIAN RAB NATURA</th>
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: left; width: 18%;">RINCIAN RAB PPG</th>
+            <th style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right; width: 10%;">TOTAL DANA</th>
+          </tr>
+        </thead>
+        <tbody>
   `;
 
-  let html = `<div ${style}>`;
-  html += `<h1>LAPORAN PROGRAM KERJA & RENCANA ANGGARAN BIAYA (RAB)</h1>`;
-  html += `<h2>PENGGERAK PEMBINA GENERUS (PPG) - TAHUN ${activeTahun}</h2>`;
-
+  let no = 0;
+  let totalPPG = 0, totalNatura = 0;
   let hasData = false;
 
   BIDANG.forEach(b => {
@@ -1047,67 +1114,40 @@ function downloadPDF() {
     if(rows.length === 0) return;
     hasData = true;
 
-    const totals = calcTotals(b.id, activeTahun);
-
-    html += `<div class="section-title">BIDANG ${b.nama.toUpperCase()}</div>`;
-    html += `<table>
-      <thead>
-        <tr>
-          <th style="width:4%;">No</th>
-          <th style="width:36%;">Kegiatan & Rincian RAB</th>
-          <th style="width:15%;">Bulan</th>
-          <th style="width:15%;">Sumber Dana</th>
-          <th style="width:15%;" class="text-right">Natura</th>
-          <th style="width:15%;" class="text-right">PPG</th>
-        </tr>
-      </thead>
-      <tbody>`;
-
-    let no = 0;
     rows.forEach(r => {
       const bln = r.bulan.sort((a,b)=>a-b).join(", ");
-      
-      // Baris Kegiatan Utama
-      html += `<tr>
-        <td class="text-center fw-bold">${++no}</td>
-        <td class="fw-bold" colspan="2">${r.nama}</td>
-        <td colspan="3"></td>
-      </tr>`;
-      
-      // Baris RAB
+      let numRows = r.rab.length > 0 ? r.rab.length : 1;
+
       if(r.rab && r.rab.length > 0) {
-        r.rab.forEach(item => {
+        r.rab.forEach((item, idx) => {
+          no++;
           const sub = (Number(item.qty)||0) * (Number(item.price)||0);
-          html += `<tr>
-            <td></td>
-            <td style="padding-left: 15px;">- ${item.name || '-'} (${item.qty}x @ ${fmt(item.price)})</td>
-            <td class="text-center">${bln}</td>
-            <td class="text-center bg-gray">${item.fund.toUpperCase()}</td>
-            <td class="text-right">${item.fund==='natura' ? fmt(sub) : '-'}</td>
-            <td class="text-right">${item.fund==='ppg' ? fmt(sub) : '-'}</td>
+          if(item.fund==='ppg') totalPPG += sub; 
+          else totalNatura += sub;
+
+          htmlBody += `<tr style="page-break-inside: avoid;">
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">${idx === 0 ? (no - numRows + 1) : ""}</td>
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: left; vertical-align: middle;">${idx === 0 ? b.nama : ""}</td>
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: left; vertical-align: middle;">${idx === 0 ? r.nama : ""}</td>
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">${idx === 0 ? bln : ""}</td>
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: right; vertical-align: middle;">${item.fund === 'natura' ? `${item.name} (${item.qty}x @ ${fmt(item.price)}) = ${fmt(sub)}` : '-'}</td>
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: right; vertical-align: middle;">${item.fund === 'ppg' ? `${item.name} (${item.qty}x @ ${fmt(item.price)}) = ${fmt(sub)}` : '-'}</td>
+            <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: right; vertical-align: middle; font-weight: bold;">${fmt(sub)}</td>
           </tr>`;
         });
       } else {
-        html += `<tr>
-          <td></td>
-          <td style="padding-left: 15px;">- (Tanpa RAB)</td>
-          <td class="text-center">${bln}</td>
-          <td class="text-center bg-gray">-</td>
-          <td class="text-right">-</td>
-          <td class="text-right">-</td>
+        no++;
+        htmlBody += `<tr style="page-break-inside: avoid;">
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">${no}</td>
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: left; vertical-align: middle;">${b.nama}</td>
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: left; vertical-align: middle;">${r.nama}</td>
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">${bln}</td>
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">-</td>
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">-</td>
+          <td style="border: 1px solid #94a3b8; padding: 6px 4px; text-align: center; vertical-align: middle;">-</td>
         </tr>`;
       }
     });
-
-    html += `</tbody>
-      <tfoot>
-        <tr class="bg-gray fw-bold">
-          <td colspan="4" class="text-center">TOTAL DANA BIDANG ${b.nama.toUpperCase()}</td>
-          <td class="text-right">${fmt(totals.natura)}</td>
-          <td class="text-right">${fmt(totals.ppg)}</td>
-        </tr>
-      </tfoot>
-    </table>`;
   });
 
   if(!hasData) {
@@ -1115,45 +1155,82 @@ function downloadPDF() {
     return;
   }
 
-  html += `<div class="footer">Dicetak pada: ${new Date().toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}</div>`;
-  html += `</div>`;
-  wrapper.innerHTML = html;
+  htmlBody += `
+        </tbody>
+        <tfoot>
+          <tr style="background-color: #f8fafc; font-weight: bold;">
+            <td colspan="6" style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right;">Total Kebutuhan Biaya Natura:</td>
+            <td style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right;">${fmt(totalNatura)}</td>
+          </tr>
+          <tr style="background-color: #f8fafc; font-weight: bold;">
+            <td colspan="6" style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right;">Total Kebutuhan Biaya PPG:</td>
+            <td style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right;">${fmt(totalPPG)}</td>
+          </tr>
+          <tr style="background-color: #f8fafc; font-weight: bold; font-size: 11px;">
+            <td colspan="6" style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right;">Total Dana Keseluruhan:</td>
+            <td style="border: 1px solid #94a3b8; padding: 8px 4px; text-align: right;">${fmt(totalNatura + totalPPG)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div style="text-align: right; font-size: 10px; margin-top: 24px; color: #777;">
+        Dicetak pada: ${new Date().toLocaleDateString('id-ID', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'})}
+      </div>
+    </div>
+  `;
 
-  // PENTING: Agar html2pdf bisa merender, kita harus memastikan wrapper terlihat oleh browser.
-  // Kita atur display menjadi block (tapi posisinya di luar layar menggunakan left:-9999px pada CSS).
-  wrapper.style.display = "block";
+  const cssStyles = `
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { box-sizing: border-box; }
+  `;
 
-  const opt = {
-    margin:       10,
-    filename:     `Prota_PPG_Lengkap_${activeTahun}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true, logging: false },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+  // 2. Buat Iframe tersembunyi
+  const iframeContainer = document.getElementById("pdf-container-iframe");
+  iframeContainer.innerHTML = ""; 
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "absolute";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "none";
+  iframeContainer.appendChild(iframe);
 
-  // Tampilkan loading alert
+  // 3. Tulis HTML ke dalam iframe
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html><head><style>${cssStyles}</style></head><body>${htmlBody}</body></html>`);
+  doc.close();
+
+  // 4. Tampilkan loading
   const btn = event.target.closest('button');
   const originalHtml = btn.innerHTML;
   btn.innerHTML = "Menyiapkan PDF...";
   btn.disabled = true;
 
-  html2pdf().set(opt).from(wrapper).save().then(() => {
-    wrapper.innerHTML = ""; // bersihkan setelah selesai
-    wrapper.style.display = "none";
-    btn.innerHTML = originalHtml;
-    btn.disabled = false;
-  }).catch(err => {
-    console.error(err);
-    alert("Gagal membuat PDF. Silakan coba lagi.");
-    wrapper.innerHTML = "";
-    wrapper.style.display = "none";
-    btn.innerHTML = originalHtml;
-    btn.disabled = false;
-  });
+  // 5. Proses html2pdf dengan format A4 Landscape
+  setTimeout(() => {
+    const opt = {
+      margin:       [10, 10, 10, 10],
+      filename:     `Prota_PPG_Lengkap_${activeTahun}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' } // Ubah ke Landscape agar 7 kolom muat
+    };
+
+    html2pdf().set(opt).from(iframe.contentWindow.document.body).save().then(() => {
+      iframeContainer.innerHTML = ""; 
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }).catch(err => {
+      console.error(err);
+      alert("Gagal membuat PDF. Silakan coba lagi.");
+      iframeContainer.innerHTML = "";
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    });
+  }, 500);
 }
 
 /* ============================================================
-   EVALUASI KALENDER
+   EVALUASI KALENDER (UI BARU)
    ============================================================ */
 function renderKalenderTabs(){
   const tabs = document.getElementById("kalenderTabs");
@@ -1186,16 +1263,23 @@ function renderKalenderList(){
     const evalStatus = p.evaluasi?.status || 'pending';
     const evalDana = p.evaluasi?.dana || 0;
     let statusBadge = '';
-    if(evalStatus==='selesai') statusBadge = `<span class="status-badge status-selesai" style="background:#ecfdf5;color:#10b981;padding:4px 8px;border-radius:4px;font-size:11px;">✓ Selesai (Realisasi: ${fmt(evalDana)})</span>`;
-    else if(evalStatus==='batal') statusBadge = `<span class="status-badge status-batal" style="background:#fee2e2;color:#ef4444;padding:4px 8px;border-radius:4px;font-size:11px;">✕ Tidak Berjalan</span>`;
-    else statusBadge = `<span class="status-badge status-pending" style="background:#f1f5f9;color:#64748b;padding:4px 8px;border-radius:4px;font-size:11px;">Belum Berjalan</span>`;
+    if(evalStatus==='selesai') statusBadge = `<span class="status-badge status-selesai">✓ Selesai (Realisasi: ${fmt(evalDana)})</span>`;
+    else if(evalStatus==='batal') statusBadge = `<span class="status-badge status-batal">✕ Tidak Berjalan</span>`;
+    else statusBadge = `<span class="status-badge status-pending">Belum Berjalan</span>`;
+    
     return `<div class="kalender-item">
       <div class="kalender-info">
         <h4>${p.nama}</h4>
-        <div class="meta"><span style="color:var(--primary);font-weight:600">${p.bidangNama}</span><span>RAB: <b>${fmt(total)}</b></span></div>
-        ${p.evaluasi && p.evaluasi.catatan ? `<div style="font-size:12px;margin-top:8px;color:var(--text-muted);background:#f8fafc;padding:8px;border-radius:6px">Catatan: ${p.evaluasi.catatan}</div>` : ''}
+        <div class="meta">
+          <span class="bidang-name">${p.bidangNama}</span>
+          <span>Total RAB: <span class="rab-val">${fmt(total)}</span></span>
+        </div>
+        ${p.evaluasi && p.evaluasi.catatan ? `<div style="font-size:12px;margin-top:8px;color:var(--text-muted);background:#f8fafc;padding:8px;border-radius:6px;border-left:2px solid #cbd5e1;">Catatan: ${p.evaluasi.catatan}</div>` : ''}
       </div>
-      <div class="kalender-actions">${statusBadge}<button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="openEvalModal('${p.bidangId}','${p.id}')">Evaluasi</button></div>
+      <div class="kalender-actions">
+        ${statusBadge}
+        <button class="btn btn-outline" style="padding:6px 10px;font-size:12px;width:100%;max-width:120px;" onclick="openEvalModal('${p.bidangId}','${p.id}')">Evaluasi</button>
+      </div>
     </div>`;
   }).join("");
 }
